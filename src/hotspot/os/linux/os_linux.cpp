@@ -1856,6 +1856,8 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
     {EM_RISCV,       EM_RISCV,   ELFCLASS32, ELFDATA2LSB, (char*)"RISCV 32"},
   };
 
+#define RISCV32
+
 #if  (defined IA32)
   static  Elf32_Half running_arch_code=EM_386;
 #elif   (defined AMD64)
