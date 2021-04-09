@@ -313,7 +313,7 @@ void test_assembler_entry(CodeBuffer *cb) {
     __ bind(forth);
 
 /*
-riscv32ops.o:     file format elf64-littleriscv
+riscv32ops.o:     file format elf32-littleriscv
 
 
 Disassembly of section .text:
@@ -321,190 +321,189 @@ Disassembly of section .text:
 0000000000000000 <back>:
    0: 01970f33            add t5,a4,s9
    4: 414a0c33            sub s8,s4,s4
-  10: 00d46e33            or  t3,s0,a3
-  14: 0043c3b3            xor t2,t2,tp
-  18: 033b8fb3            mul t6,s7,s3
-  1c: 023194b3            mulh  s1,gp,gp
-  20: 021caeb3            mulhsu  t4,s9,ra
-  24: 0392bbb3            mulhu s7,t0,s9
-  28: 0248c633            div a2,a7,tp
-  2c: 03cfd9b3            divu  s3,t6,t3
-  30: 036fe9b3            rem s3,t6,s6
-  34: 033ef333            remu  t1,t4,s3
-  4c: 012a7b33            and s6,s4,s2
-  50: 13710493            addi  s1,sp,311
-  58: 6790e793            ori a5,ra,1657
-  5c: 1a9b4693            xori  a3,s6,425
-  60: 1e0d7113            andi  sp,s10,480
-  64: 0000006f            j 64 <back+0x64>
-  68: f99ff06f            j 0 <back>
-  6c: 3300006f            j 39c <forth>
-  70: 000000ef            jal ra,70 <back+0x70>
-  74: f8dff0ef            jal ra,0 <back>
-  78: 324000ef            jal ra,39c <forth>
-  7c: 6bfc0467            jalr  s0,1727(s8)
-  80: 005573b7            lui t2,0x557
-  84: 15e9a217            auipc tp,0x15e9a
-  88: 00041063            bnez  s0,88 <back+0x88>
-  8c: f6041ae3            bnez  s0,0 <back>
-  90: 30041663            bnez  s0,39c <forth>
-  94: 00008063            beqz  ra,94 <back+0x94>
-  98: f60084e3            beqz  ra,0 <back>
-  9c: 30008063            beqz  ra,39c <forth>
-  a0: 002a1063            bne s4,sp,a0 <back+0xa0>
-  a4: f42a1ee3            bne s4,sp,0 <back>
-  a8: 2e2a1a63            bne s4,sp,39c <forth>
-  ac: 01d68063            beq a3,t4,ac <back+0xac>
-  b0: f5d688e3            beq a3,t4,0 <back>
-  b4: 2fd68463            beq a3,t4,39c <forth>
-  b8: 0074d063            bge s1,t2,b8 <back+0xb8>
-  bc: f474d2e3            bge s1,t2,0 <back>
-  c0: 2c74de63            bge s1,t2,39c <forth>
-  c4: 0043f063            bgeu  t2,tp,c4 <back+0xc4>
-  c8: f243fce3            bgeu  t2,tp,0 <back>
-  cc: 2c43f863            bgeu  t2,tp,39c <forth>
-  d0: 01d4c063            blt s1,t4,d0 <back+0xd0>
-  d4: f3d4c6e3            blt s1,t4,0 <back>
-  d8: 2dd4c263            blt s1,t4,39c <forth>
-  dc: 0198e063            bltu  a7,s9,dc <back+0xdc>
-  e0: f398e0e3            bltu  a7,s9,0 <back>
-  e4: 2b98ec63            bltu  a7,s9,39c <forth>
-  e8: 62f72a13            slti  s4,a4,1583
-  ec: 2675b813            sltiu a6,a1,615
-  f0: 013d90b3            sll ra,s11,s3
-  f4: 01895bb3            srl s7,s2,s8
-  f8: 41a4d5b3            sra a1,s1,s10
- 108: 001c9693            slli  a3,s9,0x1
- 10c: 0004d093            srli  ra,s1,0x0
- 110: 401f5b13            srai  s6,t5,0x1
- 120: 00000013            nop
- 124: 00000073            ecall
- 128: 00100073            ebreak
- 12c: 0000100f            fence.i
- 130: 0410000f            fence o,w
- 134: 1d0129af            sc.w.aq s3,a6,(sp)
- 138: 0d0eaf2f            amoswap.w.aq  t5,a6,(t4)
- 13c: 0589af2f            amoadd.w.aq t5,s8,(s3)
- 140: 2553a12f            amoxor.w.aq sp,s5,(t2)
- 144: 6591ae2f            amoand.w.aq t3,s9,(gp)
- 148: 4445a0af            amoor.w.aq  ra,tp,(a1)
- 14c: 84b222af            amomin.w.aq t0,a1,(tp)
- 150: a5f6242f            amomax.w.aq s0,t6,(a2)
- 154: c5182a2f            amominu.w.aq  s4,a7,(a6)
- 158: e5762faf            amomaxu.w.aq  t6,s7,(a2)
- 15c: 14062faf            lr.w.aq t6,(a2)
- 160: 1a2fa9af            sc.w.rl s3,sp,(t6)
- 164: 0be929af            amoswap.w.rl  s3,t5,(s2)
- 168: 0302a0af            amoadd.w.rl ra,a6,(t0)
- 16c: 22bea8af            amoxor.w.rl a7,a1,(t4)
- 170: 62792e2f            amoand.w.rl t3,t2,(s2)
- 174: 42582faf            amoor.w.rl  t6,t0,(a6)
- 178: 82a422af            amomin.w.rl t0,a0,(s0)
- 17c: a29b21af            amomax.w.rl gp,s1,(s6)
- 180: c235a92f            amominu.w.rl  s2,gp,(a1)
- 184: e22ba3af            amomaxu.w.rl  t2,sp,(s7)
- 188: 120da82f            lr.w.rl a6,(s11)
-
- 1e4: 001027f3            frflags a5
- 1e8: 00202cf3            frrm  s9
- 1ec: 00302873            frcsr a6
- 1f0: c0102d73            rdtime  s10
- 1f4: c0002df3            rdcycle s11
- 1f8: c0202273            rdinstret tp
- 1fc: 00080a13            mv  s4,a6
- 200: fff34913            not s2,t1
- 204: 40f00a33            neg s4,a5
- 208: 41b0043b            negw  s0,s11
- 20c: 0007009b            sext.w  ra,a4
- 210: 001cb593            seqz  a1,s9
- 214: 01a03833            snez  a6,s10
- 218: 000ea6b3            sltz  a3,t4
- 21c: 019025b3            sgtz  a1,s9
- 220: 003a15f3            fscsr a1,s4
- 224: 002f1bf3            fsrm  s7,t5
- 228: 001b1373            fsflags t1,s6
- 22c: 007f23b3            slt t2,t5,t2
- 230: 01fc3633            sltu  a2,s8,t6
- 234: 6bb19673            csrrw a2,0x6bb,gp
- 238: 04722c73            csrrs s8,0x47,tp
- 23c: 1fa43b73            csrrc s6,0x1fa,s0
- 240: 5764d873            csrrwi  a6,0x576,9
- 244: 59b76cf3            csrrsi  s9,0x59b,14
- 248: 7b34fb73            csrrci  s6,0x7b3,9
- 24c: 3b9026f3            csrr  a3,pmpaddr9
- 250: 545f1073            csrw  0x545,t5
- 254: 5e6d2073            csrs  0x5e6,s10
- 258: 72643073            csrc  0x726,s0
- 25c: 11d45073            csrwi 0x11d,8
- 260: 66d3e073            csrsi 0x66d,7
- 264: 5c647073            csrci 0x5c6,8
- 26c: fcb3af83            lw  t6,-53(t2) # 556fcb <forth+0x556c2f>
- 274: bd2a1b83            lh  s7,-1070(s4)
- 278: a9fb5c03            lhu s8,-1377(s6)
- 27c: f3268f83            lb  t6,-206(a3)
- 280: 9c3fca03            lbu s4,-1597(t6)
- 288: 162b25a3            sw  sp,363(s6)
- 28c: 10d510a3            sh  a3,257(a0)
- 290: 1fe503a3            sb  t5,487(a0)
- 294: 80dfb787            fld fa5,-2035(t6)
- 298: 85b32a07            flw fs4,-1957(t1)
- 29c: 068d37a7            fsd fs0,111(s10)
- 2a0: f8eba827            fsw fa4,-112(s7)
- 2a4: 5804ad53            fsqrt.s fs10,fs1,rdn
- 2a8: 5a0226d3            fsqrt.d fa3,ft4,rdn
- 2ac: 00b53553            fadd.s  fa0,fa0,fa1,rup
- 2b0: 084f3353            fsub.s  ft6,ft10,ft4,rup
- 2b4: 037abad3            fadd.d  fs5,fs5,fs7,rup
- 2b8: 0b39be53            fsub.d  ft8,fs3,fs3,rup
- 2bc: 103a33d3            fmul.s  ft7,fs4,ft3,rup
- 2c0: 191dba53            fdiv.s  fs4,fs11,fa7,rup
- 2c4: 1335b553            fmul.d  fa0,fa1,fs3,rup
- 2c8: 1b8f3653            fdiv.d  fa2,ft10,fs8,rup
- 2cc: 99583c43            fmadd.s fs8,fa6,fs5,fs3,rup
- 2d0: 29b29647            fmsub.s fa2,ft5,fs11,ft5,rtz
- 2d4: 129d36c3            fmadd.d fa3,fs10,fs1,ft2,rup
- 2d8: 422e1247            fmsub.d ft4,ft8,ft2,fs0,rtz
- 2dc: 0880cd4b            fnmsub.s  fs10,ft1,fs0,ft1,rmm
- 2e0: 80a39a4f            fnmadd.s  fs4,ft7,fa0,fa6,rtz
- 2e4: 8ab34a4b            fnmsub.d  fs4,ft6,fa1,fa7,rmm
- 2e8: abe8144f            fnmadd.d  fs0,fa6,ft10,fs5,rtz
- 2ec: e00a9553            fclass.s  a0,fs5
- 2f0: 20f78b53            fmv.s fs6,fa5
- 2f4: e20f9b53            fclass.d  s6,ft11
- 2f8: 224209d3            fmv.d fs3,ft4
- 2fc: 2073a753            fabs.s  fa4,ft7
- 300: 210819d3            fneg.s  fs3,fa6
- 304: 234a2f53            fabs.d  ft10,fs4
- 308: 22a51353            fneg.d  ft6,fa0
- 30c: e00101d3            fmv.x.w gp,ft2
- 314: 21b10b53            fsgnj.s fs6,ft2,fs11
- 318: 21f697d3            fsgnjn.s  fa5,fa3,ft11
- 31c: 23a90d53            fsgnj.d fs10,fs2,fs10
- 320: 221b9a53            fsgnjn.d  fs4,fs7,ft1
- 324: 2072a853            fsgnjx.s  fa6,ft5,ft7
- 328: 29ef80d3            fmin.s  ft1,ft11,ft10
- 32c: 22a5a653            fsgnjx.d  fa2,fa1,fa0
- 330: 2b0185d3            fmin.d  fa1,ft3,fa6
- 334: 29151fd3            fmax.s  ft11,fa0,fa7
- 338: a1b8a1d3            feq.s gp,fa7,fs11
- 33c: 2ad61ed3            fmax.d  ft9,fa2,fa3
- 340: a38e2153            feq.d sp,ft8,fs8
- 344: a12a9553            flt.s a0,fs5,fs2
- 348: a0ea83d3            fle.s t2,fs5,fa4
- 34c: a33815d3            flt.d a1,fa6,fs3
- 350: a25c06d3            fle.d a3,fs8,ft5
- 354: c00f34d3            fcvt.w.s  s1,ft10,rup
- 358: c0160b53            fcvt.wu.s s6,fa2,rne
- 35c: d00a2fd3            fcvt.s.w  ft11,s4,rdn
- 360: d01c1cd3            fcvt.s.wu fs9,s8,rtz
- 374: 401f2dd3            fcvt.s.d  fs11,ft10,rdn
- 378: 42078653            fcvt.d.s  fa2,fa5
- 37c: c20f20d3            fcvt.w.d  ra,ft10,rdn
- 380: c2192e53            fcvt.wu.d t3,fs2,rdn
- 384: d20d8fd3            fcvt.d.w  ft11,s11
- 388: d2120bd3            fcvt.d.wu fs7,tp
- 394: d223a9d3            fcvt.d.l  fs3,t2,rdn
- 398: d23523d3            fcvt.d.lu ft7,a0,rdn
+   8: 00d46e33            or  t3,s0,a3
+   c: 0043c3b3            xor t2,t2,tp
+  10: 033b8fb3            mul t6,s7,s3
+  14: 023194b3            mulh  s1,gp,gp
+  18: 021caeb3            mulhsu  t4,s9,ra
+  1c: 0392bbb3            mulhu s7,t0,s9
+  20: 0248c633            div a2,a7,tp
+  24: 03cfd9b3            divu  s3,t6,t3
+  28: 036fe9b3            rem s3,t6,s6
+  2c: 033ef333            remu  t1,t4,s3
+  30: 012a7b33            and s6,s4,s2
+  34: 13710493            addi  s1,sp,311
+  38: 6790e793            ori a5,ra,1657
+  3c: 1a9b4693            xori  a3,s6,425
+  40: 1e0d7113            andi  sp,s10,480
+  44: 0000006f            j 64 <back+0x64>
+  48: f99ff06f            j 0 <back>
+  4c: 3300006f            j 39c <forth>
+  50: 000000ef            jal ra,70 <back+0x70>
+  54: f8dff0ef            jal ra,0 <back>
+  58: 324000ef            jal ra,39c <forth>
+  5c: 6bfc0467            jalr  s0,1727(s8)
+  60: 005573b7            lui t2,0x557
+  64: 15e9a217            auipc tp,0x15e9a
+  68: 00041063            bnez  s0,88 <back+0x88>
+  6c: f6041ae3            bnez  s0,0 <back>
+  70: 30041663            bnez  s0,39c <forth>
+  74: 00008063            beqz  ra,94 <back+0x94>
+  78: f60084e3            beqz  ra,0 <back>
+  7c: 30008063            beqz  ra,39c <forth>
+  80: 002a1063            bne s4,sp,a0 <back+0xa0>
+  84: f42a1ee3            bne s4,sp,0 <back>
+  88: 2e2a1a63            bne s4,sp,39c <forth>
+  8c: 01d68063            beq a3,t4,ac <back+0xac>
+  90: f5d688e3            beq a3,t4,0 <back>
+  94: 2fd68463            beq a3,t4,39c <forth>
+  98: 0074d063            bge s1,t2,b8 <back+0xb8>
+  9c: f474d2e3            bge s1,t2,0 <back>
+  a0: 2c74de63            bge s1,t2,39c <forth>
+  a4: 0043f063            bgeu  t2,tp,c4 <back+0xc4>
+  a8: f243fce3            bgeu  t2,tp,0 <back>
+  ac: 2c43f863            bgeu  t2,tp,39c <forth>
+  b0: 01d4c063            blt s1,t4,d0 <back+0xd0>
+  b4: f3d4c6e3            blt s1,t4,0 <back>
+  b8: 2dd4c263            blt s1,t4,39c <forth>
+  bc: 0198e063            bltu  a7,s9,dc <back+0xdc>
+  c0: f398e0e3            bltu  a7,s9,0 <back>
+  c4: 2b98ec63            bltu  a7,s9,39c <forth>
+  c8: 62f72a13            slti  s4,a4,1583
+  cc: 2675b813            sltiu a6,a1,615
+  d0: 013d90b3            sll ra,s11,s3
+  d4: 01895bb3            srl s7,s2,s8
+  d8: 41a4d5b3            sra a1,s1,s10
+  dc: 001c9693            slli  a3,s9,0x1
+  e0: 0004d093            srli  ra,s1,0x0
+  e4: 401f5b13            srai  s6,t5,0x1
+  e8: 00000013            nop
+  ec: 00000073            ecall
+  f0: 00100073            ebreak
+  f4: 0000100f            fence.i
+  f8: 0410000f            fence o,w
+  fc: 1d0129af            sc.w.aq s3,a6,(sp)
+ 100: 0d0eaf2f            amoswap.w.aq  t5,a6,(t4)
+ 104: 0589af2f            amoadd.w.aq t5,s8,(s3)
+ 108: 2553a12f            amoxor.w.aq sp,s5,(t2)
+ 10c: 6591ae2f            amoand.w.aq t3,s9,(gp)
+ 110: 4445a0af            amoor.w.aq  ra,tp,(a1)
+ 114: 84b222af            amomin.w.aq t0,a1,(tp)
+ 118: a5f6242f            amomax.w.aq s0,t6,(a2)
+ 11c: c5182a2f            amominu.w.aq  s4,a7,(a6)
+ 120: e5762faf            amomaxu.w.aq  t6,s7,(a2)
+ 124: 14062faf            lr.w.aq t6,(a2)
+ 128: 1a2fa9af            sc.w.rl s3,sp,(t6)
+ 12c: 0be929af            amoswap.w.rl  s3,t5,(s2)
+ 130: 0302a0af            amoadd.w.rl ra,a6,(t0)
+ 134: 22bea8af            amoxor.w.rl a7,a1,(t4)
+ 138: 62792e2f            amoand.w.rl t3,t2,(s2)
+ 13c: 42582faf            amoor.w.rl  t6,t0,(a6)
+ 140: 82a422af            amomin.w.rl t0,a0,(s0)
+ 144: a29b21af            amomax.w.rl gp,s1,(s6)
+ 148: c235a92f            amominu.w.rl  s2,gp,(a1)
+ 14c: e22ba3af            amomaxu.w.rl  t2,sp,(s7)
+ 150: 120da82f            lr.w.rl a6,(s11)
+ 154: 001027f3            frflags a5
+ 158: 00202cf3            frrm  s9
+ 15c: 00302873            frcsr a6
+ 160: c0102d73            rdtime  s10
+ 164: c0002df3            rdcycle s11
+ 168: c0202273            rdinstret tp
+ 16c: 00080a13            mv  s4,a6
+ 170: fff34913            not s2,t1
+ 174: 40f00a33            neg s4,a5
+ 178: 41b0043b            negw  s0,s11
+ 17c: 0007009b            sext.w  ra,a4
+ 180: 001cb593            seqz  a1,s9
+ 184: 01a03833            snez  a6,s10
+ 188: 000ea6b3            sltz  a3,t4
+ 18c: 019025b3            sgtz  a1,s9
+ 190: 003a15f3            fscsr a1,s4
+ 194: 002f1bf3            fsrm  s7,t5
+ 198: 001b1373            fsflags t1,s6
+ 19c: 007f23b3            slt t2,t5,t2
+ 1a0: 01fc3633            sltu  a2,s8,t6
+ 1a4: 6bb19673            csrrw a2,0x6bb,gp
+ 1a8: 04722c73            csrrs s8,0x47,tp
+ 1ac: 1fa43b73            csrrc s6,0x1fa,s0
+ 1b0: 5764d873            csrrwi  a6,0x576,9
+ 1b4: 59b76cf3            csrrsi  s9,0x59b,14
+ 1b8: 7b34fb73            csrrci  s6,0x7b3,9
+ 1bc: 3b9026f3            csrr  a3,pmpaddr9
+ 1c0: 545f1073            csrw  0x545,t5
+ 1c4: 5e6d2073            csrs  0x5e6,s10
+ 1c8: 72643073            csrc  0x726,s0
+ 1cc: 11d45073            csrwi 0x11d,8
+ 1d0: 66d3e073            csrsi 0x66d,7
+ 1d4: 5c647073            csrci 0x5c6,8
+ 1d8: fcb3af83            lw  t6,-53(t2) # 556fcb <forth+0x556c2f>
+ 1dc: bd2a1b83            lh  s7,-1070(s4)
+ 1e0: a9fb5c03            lhu s8,-1377(s6)
+ 1e4: f3268f83            lb  t6,-206(a3)
+ 1e8: 9c3fca03            lbu s4,-1597(t6)
+ 1ec: 162b25a3            sw  sp,363(s6)
+ 1f0: 10d510a3            sh  a3,257(a0)
+ 1f4: 1fe503a3            sb  t5,487(a0)
+ 1f8: 80dfb787            fld fa5,-2035(t6)
+ 1fc: 85b32a07            flw fs4,-1957(t1)
+ 200: 068d37a7            fsd fs0,111(s10)
+ 204: f8eba827            fsw fa4,-112(s7)
+ 208: 5804ad53            fsqrt.s fs10,fs1,rdn
+ 20c: 5a0226d3            fsqrt.d fa3,ft4,rdn
+ 210: 00b53553            fadd.s  fa0,fa0,fa1,rup
+ 214: 084f3353            fsub.s  ft6,ft10,ft4,rup
+ 218: 037abad3            fadd.d  fs5,fs5,fs7,rup
+ 21c: 0b39be53            fsub.d  ft8,fs3,fs3,rup
+ 220: 103a33d3            fmul.s  ft7,fs4,ft3,rup
+ 224: 191dba53            fdiv.s  fs4,fs11,fa7,rup
+ 228: 1335b553            fmul.d  fa0,fa1,fs3,rup
+ 22c: 1b8f3653            fdiv.d  fa2,ft10,fs8,rup
+ 230: 99583c43            fmadd.s fs8,fa6,fs5,fs3,rup
+ 234: 29b29647            fmsub.s fa2,ft5,fs11,ft5,rtz
+ 238: 129d36c3            fmadd.d fa3,fs10,fs1,ft2,rup
+ 23c: 422e1247            fmsub.d ft4,ft8,ft2,fs0,rtz
+ 240: 0880cd4b            fnmsub.s  fs10,ft1,fs0,ft1,rmm
+ 244: 80a39a4f            fnmadd.s  fs4,ft7,fa0,fa6,rtz
+ 248: 8ab34a4b            fnmsub.d  fs4,ft6,fa1,fa7,rmm
+ 24c: abe8144f            fnmadd.d  fs0,fa6,ft10,fs5,rtz
+ 250: e00a9553            fclass.s  a0,fs5
+ 254: 20f78b53            fmv.s fs6,fa5
+ 258: e20f9b53            fclass.d  s6,ft11
+ 25c: 224209d3            fmv.d fs3,ft4
+ 260: 2073a753            fabs.s  fa4,ft7
+ 264: 210819d3            fneg.s  fs3,fa6
+ 268: 234a2f53            fabs.d  ft10,fs4
+ 26c: 22a51353            fneg.d  ft6,fa0
+ 270: e00101d3            fmv.x.w gp,ft2
+ 274: 21b10b53            fsgnj.s fs6,ft2,fs11
+ 278: 21f697d3            fsgnjn.s  fa5,fa3,ft11
+ 27c: 23a90d53            fsgnj.d fs10,fs2,fs10
+ 280: 221b9a53            fsgnjn.d  fs4,fs7,ft1
+ 284: 2072a853            fsgnjx.s  fa6,ft5,ft7
+ 288: 29ef80d3            fmin.s  ft1,ft11,ft10
+ 28c: 22a5a653            fsgnjx.d  fa2,fa1,fa0
+ 290: 2b0185d3            fmin.d  fa1,ft3,fa6
+ 294: 29151fd3            fmax.s  ft11,fa0,fa7
+ 298: a1b8a1d3            feq.s gp,fa7,fs11
+ 29c: 2ad61ed3            fmax.d  ft9,fa2,fa3
+ 2a0: a38e2153            feq.d sp,ft8,fs8
+ 2a4: a12a9553            flt.s a0,fs5,fs2
+ 2a8: a0ea83d3            fle.s t2,fs5,fa4
+ 2ac: a33815d3            flt.d a1,fa6,fs3
+ 2b0: a25c06d3            fle.d a3,fs8,ft5
+ 2b4: c00f34d3            fcvt.w.s  s1,ft10,rup
+ 2b8: c0160b53            fcvt.wu.s s6,fa2,rne
+ 2bc: d00a2fd3            fcvt.s.w  ft11,s4,rdn
+ 2c0: d01c1cd3            fcvt.s.wu fs9,s8,rtz
+ 2c4: 401f2dd3            fcvt.s.d  fs11,ft10,rdn
+ 2c8: 42078653            fcvt.d.s  fa2,fa5
+ 2cc: c20f20d3            fcvt.w.d  ra,ft10,rdn
+ 2d0: c2192e53            fcvt.wu.d t3,fs2,rdn
+ 2d4: d20d8fd3            fcvt.d.w  ft11,s11
+ 2d8: d2120bd3            fcvt.d.wu fs7,tp
+ 2dc: d223a9d3            fcvt.d.l  fs3,t2,rdn
+ 2e0: d23523d3            fcvt.d.lu ft7,a0,rdn
  */
 
   static const unsigned int insns[] =
