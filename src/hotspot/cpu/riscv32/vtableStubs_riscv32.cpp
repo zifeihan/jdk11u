@@ -2,6 +2,7 @@
  * Copyright (c) 2003, 2018, Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2014, Red Hat Inc. All rights reserved.
  * Copyright (c) 2020, Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) 2021, Institute of Software, Chinese Academy of Sciences. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -110,8 +111,8 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   start_pc = __ pc();
   __ lookup_virtual_method(t2, vtable_index, xmethod);
   // lookup_virtual_method generates
-  // 4 instructions (maximum value encountered in normal case):li(lui + addi) + add + flw
-  // 1 instruction (best case):flw * 1
+  // 4 instructions (maximum value encountered in normal case):li(lui + addi) + add + lw
+  // 1 instruction (best case):lw * 1
   slop_delta = 16 - (int)(__ pc() - start_pc);
   slop_bytes += slop_delta;
   assert(slop_delta >= 0, "negative slop(%d) encountered, adjust code size estimate!", slop_delta);
@@ -120,7 +121,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   if (DebugVtables) {
     Label L;
     __ beqz(xmethod, L);
-    __ flw(t0, Address(xmethod, Method::from_compiled_offset()));
+    __ lw(t0, Address(xmethod, Method::from_compiled_offset()));
     __ bnez(t0, L);
     __ stop("Vtable entry is NULL");
     __ bind(L);
@@ -131,7 +132,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   // xmethod: Method*
   // x12: receiver
   address ame_addr = __ pc();
-  __ flw(t0, Address(xmethod, Method::from_compiled_offset()));
+  __ lw(t0, Address(xmethod, Method::from_compiled_offset()));
   __ jr(t0);
 
   masm->flush();
@@ -183,8 +184,8 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
 
   Label L_no_such_interface;
 
-  __ flw(resolved_klass_reg, Address(icholder_reg, CompiledICHolder::holder_klass_offset()));
-  __ flw(holder_klass_reg,   Address(icholder_reg, CompiledICHolder::holder_metadata_offset()));
+  __ lw(resolved_klass_reg, Address(icholder_reg, CompiledICHolder::holder_klass_offset()));
+  __ lw(holder_klass_reg,   Address(icholder_reg, CompiledICHolder::holder_metadata_offset()));
 
   start_pc = __ pc();
 
@@ -225,7 +226,7 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
   if (DebugVtables) {
     Label L2;
     __ beqz(xmethod, L2);
-    __ flw(t0, Address(xmethod, Method::from_compiled_offset()));
+    __ lw(t0, Address(xmethod, Method::from_compiled_offset()));
     __ bnez(t0, L2);
     __ stop("compiler entrypoint is null");
     __ bind(L2);
@@ -235,7 +236,7 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
   // xmethod: Method*
   // j_rarg0: receiver
   address ame_addr = __ pc();
-  __ flw(t0, Address(xmethod, Method::from_compiled_offset()));
+  __ lw(t0, Address(xmethod, Method::from_compiled_offset()));
   __ jr(t0);
 
   __ bind(L_no_such_interface);

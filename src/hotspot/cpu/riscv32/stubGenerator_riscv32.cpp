@@ -2,6 +2,7 @@
  * Copyright (c) 2003, 2018, Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2014, 2019, Red Hat Inc. All rights reserved.
  * Copyright (c) 2020, Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) 2021, Institute of Software, Chinese Academy of Sciences. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -221,28 +222,28 @@ class StubGenerator: public StubCodeGenerator {
     // save register parameters and Java temporary/global registers
     // n.b. we save thread even though it gets installed in
     // xthread because we want to sanity check tp later
-    __ fsw(c_rarg7, thread);
+    __ sw(c_rarg7, thread);
     __ sw(c_rarg6, parameter_size);
-    __ fsw(c_rarg5, parameters);
-    __ fsw(c_rarg4, entry_point);
-    __ fsw(c_rarg3, method);
-    __ fsw(c_rarg2, result_type);
-    __ fsw(c_rarg1, result);
-    __ fsw(c_rarg0, call_wrapper);
+    __ sw(c_rarg5, parameters);
+    __ sw(c_rarg4, entry_point);
+    __ sw(c_rarg3, method);
+    __ sw(c_rarg2, result_type);
+    __ sw(c_rarg1, result);
+    __ sw(c_rarg0, call_wrapper);
 
-    __ fsw(x4, x4_save);
-    __ fsw(x9, x9_save);
+    __ sw(x4, x4_save);
+    __ sw(x9, x9_save);
 
-    __ fsw(x18, x18_save);
-    __ fsw(x19, x19_save);
-    __ fsw(x20, x20_save);
-    __ fsw(x21, x21_save);
-    __ fsw(x22, x22_save);
-    __ fsw(x23, x23_save);
-    __ fsw(x24, x24_save);
-    __ fsw(x25, x25_save);
-    __ fsw(x26, x26_save);
-    __ fsw(x27, x27_save);
+    __ sw(x18, x18_save);
+    __ sw(x19, x19_save);
+    __ sw(x20, x20_save);
+    __ sw(x21, x21_save);
+    __ sw(x22, x22_save);
+    __ sw(x23, x23_save);
+    __ sw(x24, x24_save);
+    __ sw(x25, x25_save);
+    __ sw(x26, x26_save);
+    __ sw(x27, x27_save);
 
     // install Java thread in global register now we have saved
     // whatever value it held
@@ -258,7 +259,7 @@ class StubGenerator: public StubCodeGenerator {
     // make sure we have no pending exceptions
     {
       Label L;
-      __ flw(t0, Address(xthread, in_bytes(Thread::pending_exception_offset())));
+      __ lw(t0, Address(xthread, in_bytes(Thread::pending_exception_offset())));
       __ beqz(t0, L);
       __ stop("StubRoutines::call_stub: entered with pending exception");
       __ BIND(L);
@@ -277,7 +278,7 @@ class StubGenerator: public StubCodeGenerator {
     __ beqz(c_rarg6, parameters_done);
 
     address loop = __ pc();
-    __ flw(t0, c_rarg5, 0);
+    __ lw(t0, c_rarg5, 0);
     __ addi(c_rarg5, c_rarg5, wordSize);
     __ addi(c_rarg6, c_rarg6, -1);
     __ push_reg(t0);
@@ -300,9 +301,9 @@ class StubGenerator: public StubCodeGenerator {
     // T_OBJECT, T_LONG, T_FLOAT or T_DOUBLE is treated as T_INT)
     // n.b. this assumes Java returns an integral result in x10
     // and a floating result in j_farg0
-    __ flw(j_rarg2, result);
+    __ lw(j_rarg2, result);
     Label is_long, is_float, is_double, exit;
-    __ flw(j_rarg1, result_type);
+    __ lw(j_rarg1, result_type);
     __ li(t0, T_OBJECT);
     __ beq(j_rarg1, t0, is_long);
     __ li(t0, T_LONG);
@@ -324,7 +325,7 @@ class StubGenerator: public StubCodeGenerator {
     // verify that threads correspond
     {
       Label L, S;
-      __ flw(t0, thread);
+      __ lw(t0, thread);
       __ bne(xthread, t0, S);
       __ get_thread(t0);
       __ beq(xthread, t0, L);
@@ -335,28 +336,28 @@ class StubGenerator: public StubCodeGenerator {
 #endif
 
     // restore callee-save registers
-    __ flw(x27, x27_save);
-    __ flw(x26, x26_save);
-    __ flw(x25, x25_save);
-    __ flw(x24, x24_save);
-    __ flw(x23, x23_save);
-    __ flw(x22, x22_save);
-    __ flw(x21, x21_save);
-    __ flw(x20, x20_save);
-    __ flw(x19, x19_save);
-    __ flw(x18, x18_save);
+    __ lw(x27, x27_save);
+    __ lw(x26, x26_save);
+    __ lw(x25, x25_save);
+    __ lw(x24, x24_save);
+    __ lw(x23, x23_save);
+    __ lw(x22, x22_save);
+    __ lw(x21, x21_save);
+    __ lw(x20, x20_save);
+    __ lw(x19, x19_save);
+    __ lw(x18, x18_save);
 
-    __ flw(x9, x9_save);
-    __ flw(x4, x4_save);
+    __ lw(x9, x9_save);
+    __ lw(x4, x4_save);
 
-    __ flw(c_rarg0, call_wrapper);
-    __ flw(c_rarg1, result);
-    __ flw(c_rarg2, result_type);
-    __ flw(c_rarg3, method);
-    __ flw(c_rarg4, entry_point);
-    __ flw(c_rarg5, parameters);
-    __ flw(c_rarg6, parameter_size);
-    __ flw(c_rarg7, thread);
+    __ lw(c_rarg0, call_wrapper);
+    __ lw(c_rarg1, result);
+    __ lw(c_rarg2, result_type);
+    __ lw(c_rarg3, method);
+    __ lw(c_rarg4, entry_point);
+    __ lw(c_rarg5, parameters);
+    __ lw(c_rarg6, parameter_size);
+    __ lw(c_rarg7, thread);
 
     // leave frame and return to caller
     __ leave();
@@ -365,7 +366,7 @@ class StubGenerator: public StubCodeGenerator {
     // handle return types different from T_INT
 
     __ BIND(is_long);
-    __ fsw(x10, Address(j_rarg2, 0));
+    __ sw(x10, Address(j_rarg2, 0));
     __ j(exit);
 
     __ BIND(is_float);
@@ -402,7 +403,7 @@ class StubGenerator: public StubCodeGenerator {
     // verify that threads correspond
     {
       Label L, S;
-      __ flw(t0, thread);
+      __ lw(t0, thread);
       __ bne(xthread, t0, S);
       __ get_thread(t0);
       __ beq(xthread, t0, L);
@@ -415,9 +416,9 @@ class StubGenerator: public StubCodeGenerator {
     // set pending exception
     __ verify_oop(x10);
 
-    __ fsw(x10, Address(xthread, Thread::pending_exception_offset()));
+    __ sw(x10, Address(xthread, Thread::pending_exception_offset()));
     __ mv(t0, (address)__FILE__);
-    __ fsw(t0, Address(xthread, Thread::exception_file_offset()));
+    __ sw(t0, Address(xthread, Thread::exception_file_offset()));
     __ mv(t0, (int)__LINE__);
     __ sw(t0, Address(xthread, Thread::exception_line_offset()));
 
@@ -460,7 +461,7 @@ class StubGenerator: public StubCodeGenerator {
     // make sure this code is only executed if there is a pending exception
     {
       Label L;
-      __ flw(t0, Address(xthread, Thread::pending_exception_offset()));
+      __ lw(t0, Address(xthread, Thread::pending_exception_offset()));
       __ bnez(t0, L);
       __ stop("StubRoutines::forward exception: no pending exception (1)");
       __ bind(L);
@@ -492,8 +493,8 @@ class StubGenerator: public StubCodeGenerator {
     // setup x10 & x13 & clear pending exception
     __ mv(x13, x9);
     __ mv(x9, x10);
-    __ flw(x10, Address(xthread, Thread::pending_exception_offset()));
-    __ fsw(zr, Address(xthread, Thread::pending_exception_offset()));
+    __ lw(x10, Address(xthread, Thread::pending_exception_offset()));
+    __ sw(zr, Address(xthread, Thread::pending_exception_offset()));
 
 #ifdef ASSERT
     // make sure exception is set
@@ -538,9 +539,9 @@ class StubGenerator: public StubCodeGenerator {
     __ push_reg(0x3000, sp);   // save c_rarg2 and c_rarg3
 
     __ la(c_rarg2, ExternalAddress((address) StubRoutines::verify_oop_count_addr()));
-    __ flw(c_rarg3, Address(c_rarg2));
+    __ lw(c_rarg3, Address(c_rarg2));
     __ add(c_rarg3, c_rarg3, 1);
-    __ fsw(c_rarg3, Address(c_rarg2));
+    __ sw(c_rarg3, Address(c_rarg2));
 
     // object is in x10
     // make sure object is 'reasonable'
@@ -615,7 +616,7 @@ class StubGenerator: public StubCodeGenerator {
       __ bltz(cnt, done);
       __ bind(loop);
       for (int i = 0; i < MacroAssembler::zero_words_block_size; i++) {
-        __ fsw(zr, Address(base, 0));
+        __ sw(zr, Address(base, 0));
         __ add(base, base, 8);
       }
       __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
@@ -689,14 +690,14 @@ class StubGenerator: public StubCodeGenerator {
     }
 #endif
 
-    __ flw(tmp_reg0, Address(s, 1 * unit));
-    __ flw(tmp_reg1, Address(s, 2 * unit));
-    __ flw(tmp_reg2, Address(s, 3 * unit));
-    __ flw(tmp_reg3, Address(s, 4 * unit));
-    __ flw(tmp_reg4, Address(s, 5 * unit));
-    __ flw(tmp_reg5, Address(s, 6 * unit));
-    __ flw(tmp_reg6, Address(s, 7 * unit));
-    __ flw(tmp_reg7, Address(s, 8 * unit));
+    __ lw(tmp_reg0, Address(s, 1 * unit));
+    __ lw(tmp_reg1, Address(s, 2 * unit));
+    __ lw(tmp_reg2, Address(s, 3 * unit));
+    __ lw(tmp_reg3, Address(s, 4 * unit));
+    __ lw(tmp_reg4, Address(s, 5 * unit));
+    __ lw(tmp_reg5, Address(s, 6 * unit));
+    __ lw(tmp_reg6, Address(s, 7 * unit));
+    __ lw(tmp_reg7, Address(s, 8 * unit));
     __ addi(s, s, 8 * unit);
 
     __ sub(count, count, 16);
@@ -704,23 +705,23 @@ class StubGenerator: public StubCodeGenerator {
 
     __ bind(again);
 
-    __ fsw(tmp_reg0, Address(d, 1 * unit));
-    __ fsw(tmp_reg1, Address(d, 2 * unit));
-    __ fsw(tmp_reg2, Address(d, 3 * unit));
-    __ fsw(tmp_reg3, Address(d, 4 * unit));
-    __ fsw(tmp_reg4, Address(d, 5 * unit));
-    __ fsw(tmp_reg5, Address(d, 6 * unit));
-    __ fsw(tmp_reg6, Address(d, 7 * unit));
-    __ fsw(tmp_reg7, Address(d, 8 * unit));
+    __ sw(tmp_reg0, Address(d, 1 * unit));
+    __ sw(tmp_reg1, Address(d, 2 * unit));
+    __ sw(tmp_reg2, Address(d, 3 * unit));
+    __ sw(tmp_reg3, Address(d, 4 * unit));
+    __ sw(tmp_reg4, Address(d, 5 * unit));
+    __ sw(tmp_reg5, Address(d, 6 * unit));
+    __ sw(tmp_reg6, Address(d, 7 * unit));
+    __ sw(tmp_reg7, Address(d, 8 * unit));
 
-    __ flw(tmp_reg0, Address(s, 1 * unit));
-    __ flw(tmp_reg1, Address(s, 2 * unit));
-    __ flw(tmp_reg2, Address(s, 3 * unit));
-    __ flw(tmp_reg3, Address(s, 4 * unit));
-    __ flw(tmp_reg4, Address(s, 5 * unit));
-    __ flw(tmp_reg5, Address(s, 6 * unit));
-    __ flw(tmp_reg6, Address(s, 7 * unit));
-    __ flw(tmp_reg7, Address(s, 8 * unit));
+    __ lw(tmp_reg0, Address(s, 1 * unit));
+    __ lw(tmp_reg1, Address(s, 2 * unit));
+    __ lw(tmp_reg2, Address(s, 3 * unit));
+    __ lw(tmp_reg3, Address(s, 4 * unit));
+    __ lw(tmp_reg4, Address(s, 5 * unit));
+    __ lw(tmp_reg5, Address(s, 6 * unit));
+    __ lw(tmp_reg6, Address(s, 7 * unit));
+    __ lw(tmp_reg7, Address(s, 8 * unit));
 
     __ addi(s, s, 8 * unit);
     __ addi(d, d, 8 * unit);
@@ -731,14 +732,14 @@ class StubGenerator: public StubCodeGenerator {
     // Drain
     __ bind(drain);
 
-    __ fsw(tmp_reg0, Address(d, 1 * unit));
-    __ fsw(tmp_reg1, Address(d, 2 * unit));
-    __ fsw(tmp_reg2, Address(d, 3 * unit));
-    __ fsw(tmp_reg3, Address(d, 4 * unit));
-    __ fsw(tmp_reg4, Address(d, 5 * unit));
-    __ fsw(tmp_reg5, Address(d, 6 * unit));
-    __ fsw(tmp_reg6, Address(d, 7 * unit));
-    __ fsw(tmp_reg7, Address(d, 8 * unit));
+    __ sw(tmp_reg0, Address(d, 1 * unit));
+    __ sw(tmp_reg1, Address(d, 2 * unit));
+    __ sw(tmp_reg2, Address(d, 3 * unit));
+    __ sw(tmp_reg3, Address(d, 4 * unit));
+    __ sw(tmp_reg4, Address(d, 5 * unit));
+    __ sw(tmp_reg5, Address(d, 6 * unit));
+    __ sw(tmp_reg6, Address(d, 7 * unit));
+    __ sw(tmp_reg7, Address(d, 8 * unit));
     __ addi(d, d, 8 * unit);
 
     {
@@ -746,16 +747,16 @@ class StubGenerator: public StubCodeGenerator {
       __ andi(t0, count, 4);
       __ beqz(t0, L1);
 
-      __ flw(tmp_reg0, Address(s, 1 * unit));
-      __ flw(tmp_reg1, Address(s, 2 * unit));
-      __ flw(tmp_reg2, Address(s, 3 * unit));
-      __ flw(tmp_reg3, Address(s, 4 * unit));
+      __ lw(tmp_reg0, Address(s, 1 * unit));
+      __ lw(tmp_reg1, Address(s, 2 * unit));
+      __ lw(tmp_reg2, Address(s, 3 * unit));
+      __ lw(tmp_reg3, Address(s, 4 * unit));
       __ addi(s, s, 4 * unit);
 
-      __ fsw(tmp_reg0, Address(d, 1 * unit));
-      __ fsw(tmp_reg1, Address(d, 2 * unit));
-      __ fsw(tmp_reg2, Address(d, 3 * unit));
-      __ fsw(tmp_reg3, Address(d, 4 * unit));
+      __ sw(tmp_reg0, Address(d, 1 * unit));
+      __ sw(tmp_reg1, Address(d, 2 * unit));
+      __ sw(tmp_reg2, Address(d, 3 * unit));
+      __ sw(tmp_reg3, Address(d, 4 * unit));
       __ addi(d, d, 4 * unit);
 
       __ bind(L1);
@@ -769,17 +770,17 @@ class StubGenerator: public StubCodeGenerator {
       __ beqz(t0, L2);
       if (direction == copy_backwards) {
         __ addi(s, s, 2 * unit);
-        __ flw(tmp_reg0, Address(s));
-        __ flw(tmp_reg1, Address(s, wordSize));
+        __ lw(tmp_reg0, Address(s));
+        __ lw(tmp_reg1, Address(s, wordSize));
         __ addi(d, d, 2 * unit);
-        __ fsw(tmp_reg0, Address(d));
-        __ fsw(tmp_reg1, Address(d, wordSize));
+        __ sw(tmp_reg0, Address(d));
+        __ sw(tmp_reg1, Address(d, wordSize));
       } else {
-        __ flw(tmp_reg0, Address(s));
-        __ flw(tmp_reg1, Address(s, wordSize));
+        __ lw(tmp_reg0, Address(s));
+        __ lw(tmp_reg1, Address(s, wordSize));
         __ addi(s, s, 2 * unit);
-        __ fsw(tmp_reg0, Address(d));
-        __ fsw(tmp_reg1, Address(d, wordSize));
+        __ sw(tmp_reg0, Address(d));
+        __ sw(tmp_reg1, Address(d, wordSize));
         __ addi(d, d, 2 * unit);
       }
       __ bind(L2);
@@ -847,8 +848,8 @@ class StubGenerator: public StubCodeGenerator {
         st_arr = (copy_insn)&MacroAssembler::sw;
         break;
       case 8 :
-        ld_arr = (copy_insn)&MacroAssembler::flw;
-        st_arr = (copy_insn)&MacroAssembler::fsw;
+        ld_arr = (copy_insn)&MacroAssembler::lw;
+        st_arr = (copy_insn)&MacroAssembler::sw;
         break;
       default:
         ShouldNotReachHere();
@@ -899,8 +900,8 @@ class StubGenerator: public StubCodeGenerator {
       __ addi(src, src, -wordSize);
       __ addi(dst, dst, -wordSize);
     }
-    __ flw(tmp3, Address(src, 0), t0);
-    __ fsw(tmp3, Address(dst, 0), t0);
+    __ lw(tmp3, Address(src, 0), t0);
+    __ sw(tmp3, Address(dst, 0), t0);
     if (!is_backwards) {
       __ addi(src, src, wordSize);
       __ addi(dst, dst, wordSize);
@@ -939,7 +940,7 @@ class StubGenerator: public StubCodeGenerator {
 
     __ add(temp, a, t1);
     if (size == (size_t)wordSize) {
-      __ flw(temp, Address(temp, 0));
+      __ lw(temp, Address(temp, 0));
       __ verify_oop(temp);
     } else {
       __ lw(temp, Address(temp, 0));
@@ -1828,7 +1829,7 @@ class StubGenerator: public StubCodeGenerator {
 
       // Fetch destination element klass from the ObjArrayKlass header.
       int ek_offset = in_bytes(ObjArrayKlass::element_klass_offset());
-      __ flw(dst_klass, Address(dst_klass, ek_offset));
+      __ lw(dst_klass, Address(dst_klass, ek_offset));
       __ lw(sco_temp, Address(dst_klass, sco_offset));
 
       // the checkcast_copy loop needs two extra arguments:
@@ -1976,7 +1977,7 @@ class StubGenerator: public StubCodeGenerator {
       __ beqz(count, L_exit1);
       __ slli(tmp_reg, count, shift);
       __ add(to, to, tmp_reg); // points to the end
-      __ fsw(value, Address(to, -8)); // overwrite some elements
+      __ sw(value, Address(to, -8)); // overwrite some elements
       __ bind(L_exit1);
       __ leave();
       __ ret();
@@ -2165,7 +2166,7 @@ class StubGenerator: public StubCodeGenerator {
         break;
       case 8:
         // int64_t
-        __ flw(c_rarg1, Address(c_rarg0, 0));
+        __ lw(c_rarg1, Address(c_rarg0, 0));
         break;
       default:
         ShouldNotReachHere();
@@ -2181,16 +2182,16 @@ class StubGenerator: public StubCodeGenerator {
   // code for comparing 16 bytes of strings with same encoding
   void compare_string_16_bytes_same(Label &DIFF1, Label &DIFF2) {
     const Register result = x10, str1 = x11, cnt1 = x12, str2 = x13, tmp1 = x28, tmp2 = x29, tmp4 = x7, tmp5 = x31;
-    __ flw(tmp5, Address(str1));
+    __ lw(tmp5, Address(str1));
     __ addi(str1, str1, 8);
     __ xorr(tmp4, tmp1, tmp2);
-    __ flw(cnt1, Address(str2));
+    __ lw(cnt1, Address(str2));
     __ addi(str2, str2, 8);
     __ bnez(tmp4, DIFF1);
-    __ flw(tmp1, Address(str1));
+    __ lw(tmp1, Address(str1));
     __ addi(str1, str1, 8);
     __ xorr(tmp4, tmp5, cnt1);
-    __ flw(tmp2, Address(str2));
+    __ lw(tmp2, Address(str2));
     __ addi(str2, str2, 8);
     __ bnez(tmp4, DIFF2);
   }
@@ -2200,9 +2201,9 @@ class StubGenerator: public StubCodeGenerator {
                               Label &DIFF2) {
     const Register cnt1 = x12, tmp1 = x28, tmp2 = x29, tmp3 = x30, tmp4 = x7;
 
-    __ flw(tmpL, Address(tmp2));
+    __ lw(tmpL, Address(tmp2));
     __ addi(tmp2, tmp2, 8);
-    __ flw(tmpU, Address(cnt1));
+    __ lw(tmpU, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
@@ -2210,23 +2211,23 @@ class StubGenerator: public StubCodeGenerator {
     __ xorr(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
 
-    __ flw(tmp4, Address(cnt1));
+    __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);
 
-    __ flw(tmpL, Address(tmp2));
+    __ lw(tmpL, Address(tmp2));
     __ addi(tmp2, tmp2, 8);
-    __ flw(tmpU, Address(cnt1));
+    __ lw(tmpU, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
 
-    __ flw(tmp4, Address(cnt1));
+    __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
@@ -2283,7 +2284,7 @@ class StubGenerator: public StubCodeGenerator {
     __ slli(t0, cnt2, 1);
     __ sub(cnt1, strU, t0); // strU pointer to load from
 
-    __ flw(tmp4, Address(cnt1));
+    __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ beqz(cnt2, LOAD_LAST); // no characters left except last load
     __ sub(cnt2, cnt2, 16);
@@ -2298,7 +2299,7 @@ class StubGenerator: public StubCodeGenerator {
       __ slli(t0, cnt2, 1);
       __ add(cnt1, cnt1, t0); // Address of 8 bytes before last 4 characters in UTF-16 string
       __ add(tmp2, tmp2, cnt2); // Address of 16 bytes before last 4 characters in Latin1 string
-      __ flw(tmp4, Address(cnt1, -8));
+      __ lw(tmp4, Address(cnt1, -8));
       compare_string_16_x_LU(tmpL, tmpU, DIFF1, DIFF2); // last 16 characters before last load
       __ j(LOAD_LAST);
     __ bind(DIFF2);
@@ -2310,7 +2311,7 @@ class StubGenerator: public StubCodeGenerator {
       // Last 4 UTF-16 characters are already pre-loaded into tmp4 by compare_string_16_x_LU.
       // No need to load it again
       __ mv(tmpU, tmp4);
-      __ flw(tmpL, Address(strL));
+      __ lw(tmpL, Address(strL));
       __ inflate_lo32(tmp3, tmpL);
       __ mv(tmpL, tmp3);
       __ xorr(tmp3, tmpU, tmpL);
@@ -2372,9 +2373,9 @@ class StubGenerator: public StubCodeGenerator {
       __ blez(cnt2, CHECK_LAST);
       __ xorr(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
-      __ flw(tmp1, Address(str1));
+      __ lw(tmp1, Address(str1));
       __ addi(str1, str1, 8);
-      __ flw(tmp2, Address(str2));
+      __ lw(tmp2, Address(str2));
       __ addi(str2, str2, 8);
       __ sub(cnt2, cnt2, isLL ? 8 : 4);
     __ bind(CHECK_LAST);
@@ -2384,9 +2385,9 @@ class StubGenerator: public StubCodeGenerator {
       __ xorr(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
       __ add(str1, str1, cnt2);
-      __ flw(tmp5, Address(str1));
+      __ lw(tmp5, Address(str1));
       __ add(str2, str2, cnt2);
-      __ flw(cnt1, Address(str2));
+      __ lw(cnt1, Address(str2));
       __ xorr(tmp4, tmp5, cnt1);
       __ beqz(tmp4, LENGTH_DIFF);
       // Find the first different characters in the longwords and
@@ -2469,8 +2470,8 @@ class StubGenerator: public StubCodeGenerator {
           L_SMALL_CMP_LOOP_LAST_CMP, L_SMALL_CMP_LOOP_LAST_CMP2,
           L_CMP_LOOP_LAST_CMP2, DONE, NOMATCH;
 
-    __ flw(ch1, Address(needle));
-    __ flw(ch2, Address(haystack));
+    __ lw(ch1, Address(needle));
+    __ lw(ch2, Address(haystack));
     // src.length - pattern.length
     __ sub(haystack_len, haystack_len, needle_len);
 
@@ -2504,7 +2505,7 @@ class StubGenerator: public StubCodeGenerator {
     __ bltz(haystack_len, L_POST_LOOP);
 
     __ bind(L_LOOP);
-    __ flw(ch2, Address(haystack));
+    __ lw(ch2, Address(haystack));
     __ compute_match_mask(ch2, first, match_mask, mask1, mask2);
     __ bnez(match_mask, L_HAS_ZERO);
 
@@ -2517,7 +2518,7 @@ class StubGenerator: public StubCodeGenerator {
     __ bind(L_POST_LOOP);
     __ mv(ch2, -wordSize / haystack_chr_size);
     __ ble(haystack_len, ch2, NOMATCH); // no extra characters to check
-    __ flw(ch2, Address(haystack));
+    __ lw(ch2, Address(haystack));
     __ slli(haystack_len, haystack_len, LogBitsPerByte + haystack_chr_shift);
     __ neg(haystack_len, haystack_len);
     __ xorr(ch2, first, ch2);
@@ -2761,7 +2762,7 @@ class StubGenerator: public StubCodeGenerator {
     // check for pending exceptions
 #ifdef ASSERT
     Label L;
-    __ flw(t0, Address(xthread, Thread::pending_exception_offset()));
+    __ lw(t0, Address(xthread, Thread::pending_exception_offset()));
     __ bnez(t0, L);
     __ should_not_reach_here();
     __ bind(L);
