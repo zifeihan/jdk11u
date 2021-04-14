@@ -494,7 +494,6 @@ class MacroAssembler: public Assembler {
   void reinit_heapbase();
 
   // mv
-  void mv(Register Rd, int32_t imm32);
   void mv(Register Rd, int imm);
   void mvw(Register Rd, int32_t imm32);
   void mv(Register Rd, Address dest);
@@ -708,7 +707,7 @@ class MacroAssembler: public Assembler {
   void inflate_hi32(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz(Register Rd, Register Rs, bool isLL = false, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz_bit(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
-  void zero_words(Register base, u_int64_t cnt);
+  void zero_words(Register base, u_int32_t cnt);
   void zero_words(Register ptr, Register cnt);
   void fill_words(Register base, Register cnt, Register value);
   void zero_memory(Register addr, Register len, Register tmp1);
@@ -760,7 +759,7 @@ class MacroAssembler: public Assembler {
       sign_ext(Rt, Rt, registerSize - 16);
       break;
     case T_INT    :
-      addw(Rt, Rt, zr);
+      add(Rt, Rt, zr);
       break;
     case T_LONG   : /* nothing to do */        break;
     case T_VOID   : /* nothing to do */        break;
@@ -792,10 +791,10 @@ private:
   void load_prototype_header(Register dst, Register src);
   void repne_scan(Register addr, Register value, Register count, Register temp);
 
-  // Return true if an addres is within the 48-bit Riscv64 address
-  // space.
-  bool is_valid_riscv64_address(address addr) {
-    return ((uintptr_t)addr >> 48) == 0;
+  // Return true if an addres is within the 16-bit Riscv32 address
+  // space. Need to fix. shining
+  bool is_valid_riscv32_address(address addr) {
+    return ((uintptr_t)addr >> 16) == 0;
   }
 
   void ld_constant(Register dest, const Address &const_addr) {
