@@ -569,7 +569,7 @@ void Assembler::add(Register Rd, Register Rn, int32_t increment, Register temp) 
   }
 }
 
-void Assembler::sub(Register Rd, Register Rn, int64_t decrement, Register temp) {
+void Assembler::sub(Register Rd, Register Rn, int32_t decrement, Register temp) {
   if (is_imm_in_range(-decrement, 12, 0)) {
     addi(Rd, Rn, -decrement);
   } else {
@@ -732,23 +732,17 @@ void Assembler::movptr_with_offset(Register Rd, address addr, int32_t &offset) {
     block_comment(buffer);
   }
 #endif
-  assert(is_unsigned_imm_in_range(imm64, 47, 0) || (imm64 == (uintptr_t)-1), "48-bit overflow in address constant");
-  // Load upper 32 bits
-  int32_t imm = imm64 >> 16;
-  int64_t upper = imm, lower = imm;
-  lower = (lower << 52) >> 52;
+  assert(is_unsigned_imm_in_range(imm32, 31, 0) || (imm32 == (uintptr_t)-1), "32-bit overflow in address constant");
+  // Load 32 bits
+  int32_t imm = imm32;
+  int32_t upper = imm, lower = imm;
+  lower = (lower << 20) >> 20;
   upper -= lower;
-  upper = (int32_t)upper;
   lui(Rd, upper);
   addi(Rd, Rd, lower);
 
-  // Load the rest 16 bits.
-  slli(Rd, Rd, 11);
-  addi(Rd, Rd, (imm64 >> 5) & 0x7ff);
-  slli(Rd, Rd, 5);
-
-  // Here, remove the addi instruct and return the offset directly. This offset will be used by following jalr/ld.
-  offset = imm32 & 0x1f;
+  // This offset will be used by following jalr/ld.
+  offset = 0x0;
 }
 
 void Assembler::movptr(Register Rd, uintptr_t imm32) {

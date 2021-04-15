@@ -296,7 +296,7 @@ public:
     }
   }
 
-  void li(Register Rd, int64_t imm);  // optimized load immediate
+  void li(Register Rd, int32_t imm);  // optimized load immediate
   void li32(Register Rd, int32_t imm);
   void movptr(Register Rd, address addr);
   void movptr_with_offset(Register Rd, address addr, int32_t &offset);
@@ -1206,8 +1206,8 @@ enum operand_size { int8, int16, int32, uint32, int64 };
   void wrap_label(Register r, Label &L, jal_jalr_insn insn);
 
   // calculate pseudoinstruction
-  void add(Register Rd, Register Rn, int64_t increment, Register temp = t0);
-  void sub(Register Rd, Register Rn, int64_t decrement, Register temp = t0);
+  void add(Register Rd, Register Rn, int32_t increment, Register temp = t0);
+  void sub(Register Rd, Register Rn, int32_t decrement, Register temp = t0);
 
   Assembler(CodeBuffer* code) : AbstractAssembler(code) {
   }
