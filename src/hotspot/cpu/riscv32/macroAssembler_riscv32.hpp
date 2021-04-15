@@ -791,10 +791,10 @@ private:
   void load_prototype_header(Register dst, Register src);
   void repne_scan(Register addr, Register value, Register count, Register temp);
 
-  // Return true if an addres is within the 16-bit Riscv32 address
-  // space. Need to fix. shining
+  // Return true if an addres is within the 32-bit Riscv32 address
+  // space. According the 4.1.12 of riscv-privileged-20190608.
   bool is_valid_riscv32_address(address addr) {
-    return ((uintptr_t)addr >> 16) == 0;
+    return ((uintptr_t)addr >> 32) == 0;
   }
 
   void ld_constant(Register dest, const Address &const_addr) {
