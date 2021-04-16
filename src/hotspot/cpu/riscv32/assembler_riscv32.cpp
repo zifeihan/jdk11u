@@ -581,23 +581,6 @@ void Assembler::sub(Register Rd, Register Rn, int32_t decrement, Register temp) 
 }
 
 void Assembler::li(Register Rd, int32_t imm) {
-  // int32_t is in range 0x8000 0000 ~ 0x7fff ffff
-  int shift = 12;
-  int64_t upper = imm, lower = imm;
-  // Split imm to a lower 12-bit sign-extended part and the remainder, because addi will sign-extend the lower imm.
-  lower = ((int32_t)imm << 20) >> 20;
-  upper -= lower;
-  Register hi_Rd = zr;
-  if (upper != 0) {
-    lui(Rd, (int32_t)upper);
-    hi_Rd = Rd;
-  }
-  if (lower != 0 || hi_Rd == zr) {
-    addi(Rd, hi_Rd, lower);
-  }
-}
-
-void Assembler::li32(Register Rd, int32_t imm) {
   // int32_t is in range 0x8000 0000 ~ 0x7fff ffff, and imm[31] is the sign bit
   int64_t upper = imm, lower = imm;
   lower = (imm << 20) >> 20;
