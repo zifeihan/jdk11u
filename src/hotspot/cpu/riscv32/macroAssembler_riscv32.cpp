@@ -3004,8 +3004,7 @@ void  MacroAssembler::set_narrow_oop(Register dst, jobject obj) {
   InstructionMark im(this);
   RelocationHolder rspec = oop_Relocation::spec(oop_index);
   code_section()->relocate(inst_mark(), rspec);
-  li32(dst, 0xDEADBEEF);
-  clear_upper_bits(dst, 32); // clear upper 32bit, do not sign extend.
+  li(dst, 0xDEADBEEF);
 }
 
 void  MacroAssembler::set_narrow_klass(Register dst, Klass* k) {
@@ -3018,8 +3017,7 @@ void  MacroAssembler::set_narrow_klass(Register dst, Klass* k) {
   RelocationHolder rspec = metadata_Relocation::spec(index);
   code_section()->relocate(inst_mark(), rspec);
   narrowKlass nk = Klass::encode_klass(k);
-  li32(dst, nk);
-  clear_upper_bits(dst, 32); // clear upper 32bit, do not sign extend.
+  li(dst, nk);
 }
 
 // Maybe emit a call via a trampoline.  If the code cache is small
