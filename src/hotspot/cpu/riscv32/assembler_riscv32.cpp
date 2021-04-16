@@ -582,12 +582,12 @@ void Assembler::sub(Register Rd, Register Rn, int32_t decrement, Register temp) 
 
 void Assembler::li(Register Rd, int32_t imm) {
   // int32_t is in range 0x8000 0000 ~ 0x7fff ffff, and imm[31] is the sign bit
-  int64_t upper = imm, lower = imm;
+  int32_t upper = imm, lower = imm;
   lower = (imm << 20) >> 20;
   upper -= lower;
-  upper = (int32_t)upper;
   // lui Rd, imm[31:12] + imm[11]
   lui(Rd, upper);
+  addi(Rd, Rd, lower);
 }
 
 #define INSN(NAME, REGISTER)                                       \
