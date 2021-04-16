@@ -2906,7 +2906,6 @@ void MacroAssembler::la_patchable(Register reg1, const Address &dest, int32_t &o
   long offset_low = dest_address - low_address;
   long offset_high = dest_address - high_address;
 
-  assert(is_valid_riscv32_address(dest.target()), "bad address");
   assert(dest.getMode() == Address::literal, "la_patchable must be applied to a literal address");
 
   InstructionMark im(this);
