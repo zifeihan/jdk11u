@@ -31,7 +31,7 @@
 #include "gc/shared/collectedHeap.inline.hpp"
 #include "interpreter/bytecodes.hpp"
 #include "memory/resourceArea.hpp"
-#include "nativeInst_riscv64.hpp"
+#include "nativeInst_riscv32.hpp"
 #include "oops/oop.inline.hpp"
 
 int InlineCacheBuffer::ic_stub_code_size() {
