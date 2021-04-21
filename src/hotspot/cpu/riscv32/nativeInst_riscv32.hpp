@@ -2,6 +2,7 @@
  * Copyright (c) 1997, 2018, Oracle and/or its affiliates. All rights reserved.
  * Copyright (c) 2014, 2018, Red Hat Inc. All rights reserved.
  * Copyright (c) 2020, Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) 2021, Institute of Software, Chinese Academy of Sciences. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -380,7 +381,7 @@ inline NativeMovConstReg* nativeMovConstReg_before(address addr) {
   return test;
 }
 
-/*// RISCV64 should not use C1 runtime patching, so just leave NativeMovRegMem Unimplemented.
+// RISCV32 should not use C1 runtime patching, so just leave NativeMovRegMem Unimplemented.
 class NativeMovRegMem: public NativeInstruction {
  public:
   int instruction_start() const {
@@ -414,7 +415,7 @@ class NativeMovRegMem: public NativeInstruction {
 inline NativeMovRegMem* nativeMovRegMem_at (address addr) {
   Unimplemented();
   return NULL;
-}*/
+}
 
 class NativeJump: public NativeInstruction {
  public:
