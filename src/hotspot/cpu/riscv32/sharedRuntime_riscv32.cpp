@@ -562,7 +562,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
       }
     } else {
       if (!r_2->is_valid()) {
-        __ lw(r_1->as_FloatRegister(), Address(esp, ld_off));
+        __ flw(r_1->as_FloatRegister(), Address(esp, ld_off));
       } else {
         __ fld(r_1->as_FloatRegister(), Address(esp, next_off));
       }

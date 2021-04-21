@@ -580,7 +580,7 @@ class StubGenerator: public StubCodeGenerator {
 #endif
     BLOCK_COMMENT("call MacroAssembler::debug");
     int32_t offset = 0;
-    __ movptr_with_offset(t0, CAST_FROM_FN_PTR(address, MacroAssembler::debug64), offset);
+    __ movptr_with_offset(t0, CAST_FROM_FN_PTR(address, MacroAssembler::debug32), offset);
     __ jalr(x1, t0, offset);
 
     return start;
@@ -1956,7 +1956,7 @@ class StubGenerator: public StubCodeGenerator {
     //
     //  Fill large chunks
     //
-    __ srliw(cnt_words, count, 3 - shift); // number of words
+    __ srli(cnt_words, count, 3 - shift); // number of words
 
     // 32 bit -> 64 bit
     __ andi(value, value, 0xffffffff);
