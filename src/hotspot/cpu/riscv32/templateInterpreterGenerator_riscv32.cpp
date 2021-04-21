@@ -1748,7 +1748,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ lhu(t0, Address(t0, ConstMethod::max_stack_offset()));
   __ add(t0, t0, frame::interpreter_frame_monitor_size() + 4);
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
-  __ slliw(t0, t0, 3);
+  __ slli(t0, t0, 3);
   __ sub(t0, t1, t0);
   __ andi(sp, t0, -16);
 
