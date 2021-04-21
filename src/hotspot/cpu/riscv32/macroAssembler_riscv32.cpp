@@ -722,7 +722,7 @@ void MacroAssembler::la(Register Rd, const address &dest) {
   int32_t offset = dest - pc();
   if (is_offset_in_range(offset, 32)) {
     auipc(Rd, (int32_t)offset + 0x800);  //0x800, Note:the 11th sign bit
-    addi(Rd, Rd, ((int32_t)offset << 52) >> 52);
+    addi(Rd, Rd, ((int32_t)offset << 20) >> 20);
   } else {
     movptr(Rd, dest);
   }
@@ -1173,8 +1173,8 @@ static int patch_offset_in_pc_relative(address branch, int32_t offset) {
 
 static int patch_addr_in_movptr(address branch, address target) {
   const int MOVPTR_INSTRUCTIONS_NUM = 6;                                                  // lui + addi + slli + addi + slli + addi/jalr/load
-  int32_t lower = ((intptr_t)target << 36) >> 36;
-  int32_t upper = ((intptr_t)target - lower) >> 28;
+  int32_t lower = ((intptr_t)target << 20) >> 20;
+  int32_t upper = ((intptr_t)target - lower);
   Assembler::patch(branch + 0,  31, 12, upper & 0xfffff);                       // Lui.             target[47:28] + target[27] ==> branch[31:12]
   Assembler::patch(branch + 4,  31, 20, (lower >> 16) & 0xfff);                 // Addi.            target[27:16] ==> branch[31:20]
   Assembler::patch(branch + 12, 31, 20, (lower >> 5) & 0x7ff);                  // Addi.            target[15: 5] ==> branch[31:20]
@@ -1202,7 +1202,7 @@ static long get_offset_of_jal(address insn_addr) {
   offset |= (val & 0xff) << 12;
   offset |= ((val >> 8) & 0x1) << 11;
   offset |= ((val >> 9) & 0x3ff) << 1;
-  offset = (offset << 43) >> 43;
+  offset = (offset << 11) >> 11;
   return offset;
 }
 
@@ -1214,7 +1214,7 @@ static long get_offset_of_conditional_branch(address insn_addr) {
   offset = (offset << 12) | ((Assembler::sextract(insn, 7, 7) & 0x1) << 11);
   offset = offset | ((Assembler::sextract(insn, 30, 25) & 0x3f) << 5);
   offset = offset | ((Assembler::sextract(insn, 11, 8) & 0xf) << 1);
-  offset = (offset << 41) >> 41;
+  offset = (offset << 9) >> 9;
   return offset;
 }
 
@@ -1223,7 +1223,6 @@ static long get_offset_of_pc_relative(address insn_addr) {
   assert_cond(insn_addr != NULL);
   offset = (Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) << 12;                                          // Auipc.
   offset += Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20);                                                 // Addi/Jalr/Load.
-  offset = (offset << 32) >> 32;
   return offset;
 }
 
@@ -4209,7 +4208,7 @@ void MacroAssembler::inflate_lo32(Register Rd, Register Rs, Register Rtmp1, Regi
 void MacroAssembler::inflate_hi32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
 {
   assert_different_registers(Rd, Rs, Rtmp1, Rtmp2);
-  li(Rtmp1, 0xFF00000000);
+  li(Rtmp1, 0xFF0000);
   mv(Rd, zr);
   for (int i = 0; i <= 3; i++)
   {
