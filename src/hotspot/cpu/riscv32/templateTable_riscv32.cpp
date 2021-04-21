@@ -305,7 +305,7 @@ void TemplateTable::sipush()
   transition(vtos, itos);
   __ load_unsigned_short(x10, at_bcp(1));
   __ grevw(x10, x10);
-  __ sraiw(x10, x10, 16);
+  __ srai(x10, x10, 16);
 }
 
 void TemplateTable::ldc(bool wide)
@@ -2205,7 +2205,7 @@ void TemplateTable::fast_binaryswitch() {
     Label loop;
     __ bind(loop);
     __ add(h, i, j);                           // h = i + j
-    __ srliw(h, h, 1);                          // h = (i + j) >> 1
+    __ srli(h, h, 1);                          // h = (i + j) >> 1
     // if [key < array[h].fast_match()]
     // then [j = h]
     // else [i = h]
