@@ -1217,9 +1217,13 @@ class JavaThread: public Thread {
   address last_Java_pc(void)                     { return _anchor.last_Java_pc(); }
 
   // Safepoint support
-#if !(defined(PPC64) || defined(AARCH64))
+#if !(defined(PPC64) || defined(AARCH64) || defined(RISCV32))
   JavaThreadState thread_state() const           { return _thread_state; }
-  void set_thread_state(JavaThreadState s)       { _thread_state = s;    }
+  void set_thread_state(JavaThreadState s)       {
+    assert(current_or_null() == NULL || current_or_null() == this,
+           "state change should only be called by the current thread");
+    _thread_state = s;
+  }
 #else
   // Use membars when accessing volatile _thread_state. See
   // Threads::create_vm() for size checks.
