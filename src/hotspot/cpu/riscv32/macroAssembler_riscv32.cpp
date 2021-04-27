@@ -2163,7 +2163,7 @@ void MacroAssembler::load_reserved(Register addr,
       break;
     case uint32:
       lr_w(t0, addr, acquire);
-      clear_upper_bits(t0, 32);
+      clear_upper_bits(t0, 16);
       break;
     default:
       ShouldNotReachHere();
@@ -2397,7 +2397,7 @@ ATOMIC_XCHG(xchgalw, amoswap_w, Assembler::aq, Assembler::rl)
 #define ATOMIC_XCHGU(OP1, OP2)                                                       \
 void MacroAssembler::atomic_##OP1(Register prev, Register newv, Register addr) {     \
   atomic_##OP2(prev, newv, addr);                                                    \
-  clear_upper_bits(prev, 32);                                                        \
+  clear_upper_bits(prev, 16);                                                        \
   return;                                                                            \
 }
 

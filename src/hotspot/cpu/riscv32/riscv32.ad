@@ -1225,7 +1225,7 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
         __ mv(as_Register(Matcher::_regEncode[dst_lo]),
             as_Register(Matcher::_regEncode[src_lo]));
         if (!is64 && this->ideal_reg() != Op_RegI) // zero extended for narrow oop or klass
-          __ clear_upper_bits(as_Register(Matcher::_regEncode[dst_lo]), 32);
+          __ clear_upper_bits(as_Register(Matcher::_regEncode[dst_lo]), 16);
       } else if (dst_lo_rc == rc_float) { // gpr --> fpr copy
         if (is64) {
             __ fmv_d_x(as_FloatRegister(Matcher::_regEncode[dst_lo]),
@@ -7667,7 +7667,7 @@ instruct convP2I(iRegINoSp dst, iRegP src) %{
 
   ins_encode %{
     __ mv($dst$$Register, $src$$Register);
-    __ clear_upper_bits($dst$$Register, 32);
+    __ clear_upper_bits($dst$$Register, 16);
   %}
 
   ins_pipe(ialu_reg);
