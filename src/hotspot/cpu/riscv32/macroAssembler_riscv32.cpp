@@ -2629,7 +2629,7 @@ void MacroAssembler::atomic_incw(Register counter_addr, Register tmp) {
 }
 
 void MacroAssembler::far_jump(Address entry, CodeBuffer *cbuf, Register tmp) {
-  assert(ReservedCodeCacheSize < 4*G, "branch out of range");
+  assert(ReservedCodeCacheSize <= 4*G-1, "branch out of range");
   assert(CodeCache::find_blob(entry.target()) != NULL,
          "destination of far call not found in code cache");
   int32_t offset = 0;
@@ -2646,7 +2646,7 @@ void MacroAssembler::far_jump(Address entry, CodeBuffer *cbuf, Register tmp) {
 }
 
 void MacroAssembler::far_call(Address entry, CodeBuffer *cbuf, Register tmp) {
-  assert(ReservedCodeCacheSize < 4*G, "branch out of range");
+  assert(ReservedCodeCacheSize <= 4*G-1, "branch out of range");
   assert(CodeCache::find_blob(entry.target()) != NULL,
          "destination of far call not found in code cache");
   int32_t offset = 0;
