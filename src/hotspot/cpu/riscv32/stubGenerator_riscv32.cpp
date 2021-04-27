@@ -1487,9 +1487,9 @@ class StubGenerator: public StubCodeGenerator {
     __ add(temp, length, dst_pos);
     __ bgtu(temp, t0, L_failed);
 
-    // Have to clean up high 32 bits of 'src_pos' and 'dst_pos'.
-    __ clear_upper_bits(src_pos, 32);
-    __ clear_upper_bits(dst_pos, 32);
+    // Have to clean up high 16 bits of 'src_pos' and 'dst_pos'.
+    __ clear_upper_bits(src_pos, 16);
+    __ clear_upper_bits(dst_pos, 16);
 
     BLOCK_COMMENT("arraycopy_range_checks done");
   }
