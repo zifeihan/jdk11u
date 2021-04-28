@@ -2909,7 +2909,7 @@ void MacroAssembler::la_patchable(Register reg1, const Address &dest, int32_t &o
 
   InstructionMark im(this);
   code_section()->relocate(inst_mark(), dest.rspec());
-  // RISC-V doesn't compute a page-aligned address, in order to partially
+/*  // RISC-V doesn't compute a page-aligned address, in order to partially
   // compensate for the use of *signed* offsets in its base+disp12
   // addressing mode (RISC-V's PC-relative reach remains asymmetric
   // +(2 GB - 2k - 1) to -(2 GB + 2k)).
@@ -2919,7 +2919,8 @@ void MacroAssembler::la_patchable(Register reg1, const Address &dest, int32_t &o
     offset = ((int32_t)distance << 20) >> 20;
   } else {
     movptr_with_offset(reg1, dest.target(), offset);
-  }
+  }*/
+  movptr_with_offset(reg1, dest.target(), offset);
 }
 
 void MacroAssembler::build_frame(int framesize) {
