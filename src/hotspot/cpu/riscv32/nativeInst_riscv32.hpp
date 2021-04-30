@@ -111,38 +111,12 @@ class NativeInstruction {
            compare_instr_field(instr + 20, 19, 15, instr + 16, 11, 7);       // check the rs1 field of addi/jalr/load and the rd field of slli
   }
 
-/*  // the instruction sequence of li64 is as below:
-  //     lui
-  //     addi
-  //     slli
-  //     addi
-  //     slli
-  //     addi
-  //     slli
-  //     addi
-  static bool check_li64_data_dependency(address instr) {
-    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7)       &&  // check the rs1 field of addi and the rd field of lui
-           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7)   &&  // check the rs1 field and the rd field of addi
-           compare_instr_field(instr + 8, 19, 15, instr + 4, 11, 7)   &&  // check the rs1 field of slli and the rd field of addi
-           compare_instr_field(instr + 8, 19, 15, instr + 8, 11, 7)   &&  // check the rs1 field and the rd field of slli
-           compare_instr_field(instr + 12, 19, 15, instr + 8, 11, 7)  &&  // check the rs1 field of addi and the rd field of slli
-           compare_instr_field(instr + 12, 19, 15, instr + 12, 11, 7) &&  // check the rs1 field and the rd field of addi
-           compare_instr_field(instr + 16, 19, 15, instr + 12, 11, 7) &&  // check the rs1 field of slli and the rd field of addi
-           compare_instr_field(instr + 16, 19, 15, instr + 16, 11, 7) &&  // check the rs1 field and the rd field fof slli
-           compare_instr_field(instr + 20, 19, 15, instr + 16, 11, 7) &&  // check the rs1 field of addi and the rd field of slli
-           compare_instr_field(instr + 20, 19, 15, instr + 20, 11, 7) &&  // check the rs1 field and the rd field of addi
-           compare_instr_field(instr + 24, 19, 15, instr + 20, 11, 7) &&  // check the rs1 field of slli and the rd field of addi
-           compare_instr_field(instr + 24, 19, 15, instr + 24, 11, 7) &&  // check the rs1 field and the rd field of slli
-           compare_instr_field(instr + 28, 19, 15, instr + 24, 11, 7) &&  // check the rs1 field of addi and the rd field of slli
-           compare_instr_field(instr + 28, 19, 15, instr + 28, 11, 7);    // check the rs1 field and the rd field of addi
-  }*/
-
-  // the instruction sequence of li32 is as below:
+  // the instruction sequence of li is as below:
   //     lui
   //     addiw
-  static bool check_li32_data_dependency(address instr) {
-    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7) &&     // check the rs1 field of addiw and the rd field of lui
-           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addiw
+  static bool check_li_data_dependency(address instr) {
+    return compare_instr_field(instr, 19, 15, instr, 11, 7) &&     // check the rs1 field of addi and the rd field of lui
+           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addi
   }
 
   // the instruction sequence of pc-relative is as below:
@@ -161,8 +135,7 @@ class NativeInstruction {
   }
 
   static bool is_movptr_at(address instr);
-  static bool is_li32_at(address instr);
-  //static bool is_li64_at(address instr);
+  static bool is_li_at(address instr);
   static bool is_pc_relative_at(address branch);
   static bool is_load_pc_relative_at(address branch);
 

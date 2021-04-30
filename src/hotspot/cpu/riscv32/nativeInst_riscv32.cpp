@@ -73,29 +73,14 @@ bool NativeInstruction::is_movptr_at(address instr) {
   return false;
 }
 
-bool NativeInstruction::is_li32_at(address instr) {
+bool NativeInstruction::is_li_at(address instr) {
   if (is_lui_at(instr) && // lui
-      is_addiw_at(instr + 4) && // addiw
-      check_li32_data_dependency(instr)) {
+      is_addi_at(instr + 4) && // addi
+      check_li_data_dependency(instr)) {
     return true;
   }
   return false;
 }
-
-/*bool NativeInstruction::is_li64_at(address instr) {
-  if (is_lui_at(instr) && // lui
-      is_addi_at(instr + 4) && // addi
-      is_slli_shift_at(instr + 8, 12)&&  // Slli Rd, Rs, 12
-      is_addi_at(instr + 12) && // addi
-      is_slli_shift_at(instr + 16, 12) && // Slli Rd, Rs, 12
-      is_addi_at(instr + 20) && // addi
-      is_slli_shift_at(instr + 24, 8) && // Slli Rd, Rs, 8
-      is_addi_at(instr + 28) && // addi
-      check_li64_data_dependency(instr)) {
-    return true;
-  }
-  return false;
-}*/
 
 void NativeCall::verify() {
   assert(NativeCall::is_call_at((address)this), "unexpected code at call site");
