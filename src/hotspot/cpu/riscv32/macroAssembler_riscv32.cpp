@@ -1182,14 +1182,13 @@ static int patch_addr_in_movptr(address branch, address target) {
   return MOVPTR_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
 }
 
-static int patch_imm_in_li32(address branch, int32_t target) {
+static int patch_imm_in_li(address branch, int32_t target) {
   const int LI32_INSTRUCTIONS_NUM = 2;                                                      // lui + addiw
-  int32_t upper = (intptr_t)target;
-  int32_t lower = (((int32_t)target) << 20) >> 20;
+  int32_t upper = target;
+  int32_t lower = (target << 20) >> 20;
   upper -= lower;
-  upper = (int32_t)upper;
   Assembler::patch(branch + 0,  31, 12, (upper >> 12) & 0xfffff);               // Lui.
-  Assembler::patch(branch + 4,  31, 20, lower & 0xfff);                         // Addiw.
+  Assembler::patch(branch + 4,  11, 0, lower & 0xfff);                         // Addi.
   return LI32_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
 }
 
@@ -1235,10 +1234,10 @@ static address get_target_of_movptr(address insn_addr) {
   return (address) target_address;
 }
 
-static address get_target_of_li32(address insn_addr) {
+static address get_target_of_li(address insn_addr) {
   assert_cond(insn_addr != NULL);
   intptr_t target_address = (((int32_t)Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) & 0xfffff) << 12;    // Lui.
-  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20));                                       // Addiw.
+  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 11, 0));                                       // Addi.
   return (address)target_address;
 }
 
@@ -1255,9 +1254,9 @@ int MacroAssembler::pd_patch_instruction_size(address branch, address target) {
     return patch_offset_in_pc_relative(branch, offset);
   } else if (NativeInstruction::is_movptr_at(branch)) {               // movptr
     return patch_addr_in_movptr(branch, target);
-  } else if (NativeInstruction::is_li32_at(branch)) {                 // li32
+  } else if (NativeInstruction::is_li_at(branch)) {                 // li
     int32_t imm = (intptr_t)target;
-    return patch_imm_in_li32(branch, (int32_t)imm);
+    return patch_imm_in_li(branch, (int32_t)imm);
   } else {
     tty->print_cr("pd_patch_instruction_size: instruction 0x%x could not be patched!\n", *(unsigned*)branch);
     ShouldNotReachHere();
@@ -1276,8 +1275,8 @@ address MacroAssembler::target_addr_for_insn(address insn_addr) {
     offset = get_offset_of_pc_relative(insn_addr);
   } else if (NativeInstruction::is_movptr_at(insn_addr)) {           // movptr
     return get_target_of_movptr(insn_addr);
-  } else if (NativeInstruction::is_li32_at(insn_addr)) {             // li32
-    return get_target_of_li32(insn_addr);
+  } else if (NativeInstruction::is_li_at(insn_addr)) {             // li
+    return get_target_of_li(insn_addr);
   } else {
     ShouldNotReachHere();
   }
@@ -1288,10 +1287,10 @@ int MacroAssembler::patch_oop(address insn_addr, address o) {
   // OOPs are either narrow (32 bits) or wide (48 bits).  We encode
   // narrow OOPs by setting the upper 16 bits in the first
   // instruction.
-  if (NativeInstruction::is_li32_at(insn_addr)) {
+  if (NativeInstruction::is_li_at(insn_addr)) {
     // Move narrow OOP
     narrowOop n = CompressedOops::encode((oop)o);
-    return patch_imm_in_li32(insn_addr, (int32_t)n);
+    return patch_imm_in_li(insn_addr, (int32_t)n);
   } else if (NativeInstruction::is_movptr_at(insn_addr)) {
     // Move wide OOP
     return patch_addr_in_movptr(insn_addr, o);
