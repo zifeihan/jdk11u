@@ -560,9 +560,8 @@ void MacroAssembler::emit_static_call_stub() {
   mov_metadata(xmethod, (Metadata*)NULL);
 
   // Jump to the entry point of the i2c stub.
-  int32_t offset = 0;
-  movptr_with_offset(t0, 0, offset);
-  jalr(x0, t0, offset);
+  auipc(t0, 0);
+  jalr(x0, t0, 0);
 }
 void MacroAssembler::call_VM_leaf_base(address entry_point,
                                        int number_of_arguments,
@@ -580,8 +579,8 @@ void MacroAssembler::call_native_base(address entry_point, Label *retaddr) {
   Label E, L;
   int32_t offset = 0;
   push_reg(0x80000040, sp);   // push << t0 & xmethod >> to sp
-  movptr_with_offset(t0, entry_point, offset);
-  jalr(x1, t0, offset);
+  auipc(t0, (int32_t)entry_point);
+  jalr(x1, t0, ((int32_t)entry_point<<20)>>20);
   if (retaddr != NULL) {
     bind(*retaddr);
   }
@@ -2908,18 +2907,10 @@ void MacroAssembler::la_patchable(Register reg1, const Address &dest, int32_t &o
 
   InstructionMark im(this);
   code_section()->relocate(inst_mark(), dest.rspec());
-/*  // RISC-V doesn't compute a page-aligned address, in order to partially
-  // compensate for the use of *signed* offsets in its base+disp12
-  // addressing mode (RISC-V's PC-relative reach remains asymmetric
-  // +(2 GB - 2k - 1) to -(2 GB + 2k)).
-  if (offset_high >= -((1l << 31)) && offset_low < (1l << 31) + (1l << 12) - 1) {
-    int32_t distance = dest.target() - pc();
-    auipc(reg1, (int32_t)distance + 0x800);
-    offset = ((int32_t)distance << 20) >> 20;
-  } else {
-    movptr_with_offset(reg1, dest.target(), offset);
-  }*/
-  movptr_with_offset(reg1, dest.target(), offset);
+
+  int32_t distance = dest.target() - pc();
+  auipc(reg1, (int32_t)distance);
+  offset = ((int32_t)distance << 20) >> 20;
 }
 
 void MacroAssembler::build_frame(int framesize) {

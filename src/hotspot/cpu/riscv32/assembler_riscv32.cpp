@@ -598,9 +598,8 @@ void Assembler::li(Register Rd, int32_t imm) {
       jal(REGISTER, distance);                                     \
     } else {                                                       \
       assert(temp != noreg, "temp must not be empty register!");   \
-      int32_t offset = 0;                                          \
-      movptr_with_offset(temp, dest, offset);                      \
-      jalr(REGISTER, temp, offset);                                \
+      auipc(temp, (int32_t)dest);                                  \
+      jalr(REGISTER, temp, ((int32_t)dest<<20)>>20);               \
     }                                                              \
   }                                                                \
   void Assembler::NAME(Label &l, Register temp) {                  \
@@ -634,10 +633,6 @@ void Assembler::ret() {
     if (is_offset_in_range(distance, 32)) {                       \
       auipc(temp, distance + 0x800);                              \
       jalr(REGISTER, temp, ((int32_t)distance << 20) >> 20);      \
-    } else {                                                      \
-      int32_t offset = 0;                                         \
-      movptr_with_offset(temp, dest, offset);                     \
-      jalr(REGISTER, temp, offset);                               \
     }                                                             \
   }
 
@@ -707,36 +702,14 @@ void Assembler::wrap_label(Register Rt, Label &L, jal_jalr_insn insn) {
   }
 }
 
-void Assembler::movptr_with_offset(Register Rd, address addr, int32_t &offset) {
-  uintptr_t imm32 = (uintptr_t)addr;
-#ifndef PRODUCT
-  {
-    char buffer[32];
-    snprintf(buffer, sizeof(buffer), "0x%"PRIx32, imm32);
-    block_comment(buffer);
-  }
-#endif
-  assert(is_unsigned_imm_in_range(imm32, 31, 0) || (imm32 == (uintptr_t)-1), "32-bit overflow in address constant");
-  // Load 32 bits
-  int32_t imm = imm32;
-  int32_t upper = imm, lower = imm;
-  lower = (lower << 20) >> 20;
-  upper -= lower;
-  lui(Rd, upper);
-  addi(Rd, Rd, lower);
-
-  // This offset will be used by following jalr/ld.
-  offset = 0x0;
-}
-
 void Assembler::movptr(Register Rd, uintptr_t imm32) {
   movptr(Rd, (address)imm32);
 }
 
 void Assembler::movptr(Register Rd, address addr) {
   int offset = 0;
-  movptr_with_offset(Rd, addr, offset);
-  addi(Rd, Rd, offset);
+  auipc(Rd, (int32_t)addr);
+  addi(Rd, Rd, ((int32_t)addr << 20) >> 20);
 }
 
 void Assembler::ifence() {
