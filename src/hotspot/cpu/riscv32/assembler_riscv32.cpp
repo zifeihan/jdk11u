@@ -599,7 +599,7 @@ void Assembler::li(Register Rd, int32_t imm) {
     } else {                                                       \
       assert(temp != noreg, "temp must not be empty register!");   \
       auipc(temp, (int32_t)dest);                                  \
-      jalr(REGISTER, temp, ((int32_t)dest<<20)>>20);               \
+      jalr(REGISTER, temp, ((int32_t)dest << 20) >> 20);           \
     }                                                              \
   }                                                                \
   void Assembler::NAME(Label &l, Register temp) {                  \
