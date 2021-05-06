@@ -2005,7 +2005,7 @@ void MacroAssembler::lookup_virtual_method(Register recv_klass,
                                            RegisterOrConstant vtable_index,
                                            Register method_result) {
   const int base = in_bytes(Klass::vtable_start_offset());
-  assert(vtableEntry::size() * wordSize == 8,
+  assert(vtableEntry::size() * wordSize == 4,
          "adjust the scaling in the code below");
   int vtable_offset_in_bytes = base + vtableEntry::method_offset_in_bytes();
 
