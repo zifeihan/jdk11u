@@ -93,22 +93,10 @@ class NativeInstruction {
   }
 
   // the instruction sequence of movptr is as below:
-  //     lui
+  //     auipc
   //     addi
-  //     slli
-  //     addi
-  //     slli
-  //     addi/jalr/load
   static bool check_movptr_data_dependency(address instr) {
-    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7)       &&     // check the rs1 field of addi and the rd field of lui
-           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7)   &&     // check the rs1 field and the rd field of addi
-           compare_instr_field(instr + 8, 19, 15, instr + 4, 11, 7)   &&     // check the rs1 field of slli and the rd field of addi
-           compare_instr_field(instr + 8, 19, 15, instr + 8, 11, 7)   &&     // check the rs1 field and the rd field of slli
-           compare_instr_field(instr + 12, 19, 15, instr + 8, 11, 7)  &&     // check the rs1 field of addi and the rd field of slli
-           compare_instr_field(instr + 12, 19, 15, instr + 12, 11, 7) &&     // check the rs1 field and the rd field of addi
-           compare_instr_field(instr + 16, 19, 15, instr + 12, 11, 7) &&     // check the rs1 field of slli and the rd field of addi
-           compare_instr_field(instr + 16, 19, 15, instr + 16, 11, 7) &&     // check the rs1 field and the rd field of slli
-           compare_instr_field(instr + 20, 19, 15, instr + 16, 11, 7);       // check the rs1 field of addi/jalr/load and the rd field of slli
+    return compare_instr_field(instr, 11, 7, instr + 4, 19, 15);          // check the rd field of auipc and the rs1 field of addi
   }
 
   // the instruction sequence of li is as below:
@@ -289,8 +277,7 @@ inline NativeCall* nativeCall_before(address return_address) {
 class NativeMovConstReg: public NativeInstruction {
  public:
   enum RISCV32_specific_constants {
-    movptr_instruction_size             =    6 * NativeInstruction::instruction_size, // lui, addi, slli, addi, slli, addi.  See movptr().
-    movptr_with_offset_instruction_size =    5 * NativeInstruction::instruction_size, // lui, addi, slli, addi, slli. See movptr_with_offset().
+    movptr_instruction_size             =    2 * NativeInstruction::instruction_size, // auipc, addi
     load_pc_relative_instruction_size   =    2 * NativeInstruction::instruction_size, // auipc, ld
     instruction_offset                  =    0,
     displacement_offset                 =    0
@@ -298,20 +285,10 @@ class NativeMovConstReg: public NativeInstruction {
 
   address instruction_address() const       { return addr_at(instruction_offset); }
   address next_instruction_address() const  {
-    // if the instruction at 5 * instruction_size is addi,
-    // it means a lui + addi + slli + addi + slli + addi instruction sequence,
-    // and the next instruction address should be addr_at(6 * instruction_size).
-    // However, when the instruction at 5 * instruction_size isn't addi,
-    // the next instruction address should be addr_at(5 * instruction_size)
-    if (nativeInstruction_at(instruction_address())->is_movptr()) {
-      if (is_addi_at(addr_at(movptr_with_offset_instruction_size))) {
-        // Assume: lui, addi, slli, addi, slli, addi
-        return addr_at(movptr_instruction_size);
-      } else {
-        // Assume: lui, addi, slli, addi, slli
-        return addr_at(movptr_with_offset_instruction_size);
-      }
-    } else if (is_load_pc_relative_at(instruction_address())) {
+    if (is_movptr_at(instruction_address())) {
+      return addr_at(movptr_instruction_size);
+    }
+    else if(is_load_pc_relative_at(instruction_address())) {
       // Assume: auipc, ld
       return addr_at(load_pc_relative_instruction_size);
     }

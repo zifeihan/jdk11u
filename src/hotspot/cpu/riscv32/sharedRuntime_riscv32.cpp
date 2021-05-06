@@ -194,15 +194,13 @@ bool SharedRuntime::is_wide_vector(int size) {
 }
 
 size_t SharedRuntime::trampoline_size() {
-  // Byte size of function generate_trampoline. movptr_with_offset: 5 instructions, jalr: 1 instrction
-  return 6 * NativeInstruction::instruction_size; // lui + addi + slli + addi + slli + jalr
+  return 2 * NativeInstruction::instruction_size; // auipc + jalr
 }
 
 void SharedRuntime::generate_trampoline(MacroAssembler *masm, address destination) {
   assert_cond(masm != NULL);
-  int32_t offset = 0;
-  __ movptr_with_offset(t0, destination, offset); // lui + addi + slli + addi + slli
-  __ jalr(x0, t0, offset);
+  __ auipc(t0, (int32_t)destination);
+  __ jalr(x0, t0, ((int32_t)destination << 20) >> 20);
 }
 
 // The java_calling_convention describes stack locations as ideal slots on

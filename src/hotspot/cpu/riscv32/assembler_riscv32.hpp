@@ -274,16 +274,15 @@ public:
   void baseOffset32(Register temp, const Address &adr, int32_t &offset) {
     assert(temp != noreg, "temp must not be empty register!");
     guarantee(adr.base() != temp, "should use different registers!");
-    if (is_offset_in_range(adr.offset(), 32)) {
-      int32_t imm = adr.offset();
-      int32_t upper = imm, lower = imm;
-      lower = (imm << 20) >> 20;
-      upper -= lower;
-      lui(temp, upper);
-      offset = lower;
-    } else {
-      movptr_with_offset(temp, (address)(uintptr_t)adr.offset(), offset);
+    if (!is_offset_in_range(adr.offset(), 32)) {
+      return;
     }
+    int32_t imm = adr.offset();
+    int32_t upper = imm, lower = imm;
+    lower = (imm << 20) >> 20;
+    upper -= lower;
+    lui(temp, upper);
+    offset = lower;
     add(temp, temp, adr.base());
   }
 
@@ -299,7 +298,6 @@ public:
 
   void li(Register Rd, int32_t imm);
   void movptr(Register Rd, address addr);
-  void movptr_with_offset(Register Rd, address addr, int32_t &offset);
   void movptr(Register Rd, uintptr_t imm64);
   void ifence();
   void j(const address &dest, Register temp = t0);
@@ -432,10 +430,6 @@ public:
     if (is_offset_in_range(distance, 32)) {                                                        \
       auipc(Rd, (int32_t)distance + 0x800);                                                        \
       NAME(Rd, Rd, ((int32_t)distance << 20) >> 20);                                               \
-    } else {                                                                                       \
-      int32_t offset = 0;                                                                          \
-      movptr_with_offset(Rd, dest, offset);                                                        \
-      NAME(Rd, Rd, offset);                                                                        \
     }                                                                                              \
   }                                                                                                \
   INSN_ENTRY_RELOC(void, NAME(Register Rd, address dest, relocInfo::relocType rtype))              \
@@ -493,14 +487,10 @@ public:
   }                                                                                                \
   void NAME(FloatRegister Rd, address dest, Register temp = t0) {                                  \
     assert_cond(dest != NULL);                                                                     \
-    int64_t distance = (dest - pc());                                                              \
+    int32_t distance = (dest - pc());                                                              \
     if (is_offset_in_range(distance, 32)) {                                                        \
-      auipc(temp, (int32_t)distance + 0x800);                                                      \
+      auipc(temp, (int32_t)distance);                                                              \
       NAME(Rd, temp, ((int32_t)distance << 20) >> 20);                                             \
-    } else {                                                                                       \
-      int32_t offset = 0;                                                                          \
-      movptr_with_offset(temp, dest, offset);                                                      \
-      NAME(Rd, temp, offset);                                                                      \
     }                                                                                              \
   }                                                                                                \
   INSN_ENTRY_RELOC(void, NAME(FloatRegister Rd, address dest, relocInfo::relocType rtype, Register temp = t0)) \
@@ -615,14 +605,10 @@ public:
   void NAME(Register Rs, address dest, Register temp = t0) {                                       \
     assert_cond(dest != NULL);                                                                     \
     assert_different_registers(Rs, temp);                                                          \
-    int64_t distance = (dest - pc());                                                              \
+    int32_t distance = (dest - pc());                                                              \
     if (is_offset_in_range(distance, 32)) {                                                        \
-      auipc(temp, (int32_t)distance + 0x800);                                                      \
+      auipc(temp, (int32_t)distance);                                                              \
       NAME(Rs, temp, ((int32_t)distance << 20) >> 20);                                             \
-    } else {                                                                                       \
-      int32_t offset = 0;                                                                          \
-      movptr_with_offset(temp, dest, offset);                                                      \
-      NAME(Rs, temp, offset);                                                                      \
     }                                                                                              \
   }                                                                                                \
   void NAME(Register Rs, const Address &adr, Register temp = t0) {                                 \
@@ -660,12 +646,8 @@ public:
     assert_cond(dest != NULL);                                                                     \
     int64_t distance = (dest - pc());                                                              \
     if (is_offset_in_range(distance, 32)) {                                                        \
-      auipc(temp, (int32_t)distance + 0x800);                                                      \
+      auipc(temp, (int32_t)distance);                                                              \
       NAME(Rs, temp, ((int32_t)distance << 20) >> 20);                                             \
-    } else {                                                                                       \
-      int32_t offset = 0;                                                                          \
-      movptr_with_offset(temp, dest, offset);                                                      \
-      NAME(Rs, temp, offset);                                                                      \
     }                                                                                              \
   }                                                                                                \
   void NAME(FloatRegister Rs, const Address &adr, Register temp = t0) {                            \
@@ -747,14 +729,14 @@ public:
   }                                                                                           \
   void NAME(Register Rd, const address dest, Register temp = t0) {                            \
     assert_cond(dest != NULL);                                                                \
-    int64_t offset = dest - pc();                                                             \
+    int32_t offset = dest - pc();                                                             \
     if (is_imm_in_range(offset, 20, 1)) {                                                     \
       NAME(Rd, offset);                                                                       \
     } else {                                                                                  \
       assert_different_registers(Rd, temp);                                                   \
       int32_t off = 0;                                                                        \
-      movptr_with_offset(temp, dest, off);                                                    \
-      jalr(Rd, temp, off);                                                                    \
+      auipc(temp, (int32_t)dest);                                                             \
+      jalr(Rd, temp, ((int32_t)dest<<20)>>20);                                                \
     }                                                                                         \
   }                                                                                           \
   void NAME(Register Rd, Label &L, Register temp = t0) {                                      \

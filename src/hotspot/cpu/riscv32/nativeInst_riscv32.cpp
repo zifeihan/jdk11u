@@ -61,12 +61,8 @@ bool NativeInstruction::is_load_pc_relative_at(address instr) {
 }
 
 bool NativeInstruction::is_movptr_at(address instr) {
-  if (is_lui_at(instr) && // Lui
+  if (is_auipc_at(instr) && // Lui
       is_addi_at(instr + 4) && // Addi
-      is_slli_shift_at(instr + 8, 11) && // Slli Rd, Rs, 11
-      is_addi_at(instr + 12) && // Addi
-      is_slli_shift_at(instr + 16, 5) && // Slli Rd, Rs, 5
-      (is_addi_at(instr + 20) || is_jalr_at(instr + 20) || is_load_at(instr + 20)) && // Addi/Jalr/Load
       check_movptr_data_dependency(instr)) {
     return true;
   }
@@ -328,8 +324,8 @@ void NativeGeneralJump::insert_unconditional(address code_pos, address entry) {
   MacroAssembler a(&cb);
 
   int32_t offset = 0;
-  a.movptr_with_offset(t0, entry, offset); // lui, addi, slli, addi, slli
-  a.jalr(x0, t0, offset); // jalr
+  a.auipc(t0, (int32_t)entry);
+  a.jalr(x0, t0, ((int32_t)entry << 20) >> 20); // jalr
 
   ICache::invalidate_range(code_pos, instruction_size);
 }
