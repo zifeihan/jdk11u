@@ -427,7 +427,7 @@ static void gen_c2i_adapter(MacroAssembler *masm,
           __ sw(t0, Address(sp, next_off), /*temp register*/esp);
 #ifdef ASSERT
           // Overwrite the unused slot with known junk
-          __ li(t0, 0xdeadffffdeadaaaaul);
+          __ li(t0, 0xdeadaaaa);
           __ sw(t0, Address(sp, st_off), /*temp register*/esp);
 #endif /* ASSERT */
         } else {
@@ -446,7 +446,7 @@ static void gen_c2i_adapter(MacroAssembler *masm,
           // long/double in gpr
 #ifdef ASSERT
           // Overwrite the unused slot with known junk
-          __ li(t0, 0xdeadffffdeadaaabul);
+          __ li(t0, 0xdeadaaab);
           __ sw(t0, Address(sp, st_off), /*temp register*/esp);
 #endif /* ASSERT */
           __ sw(r, Address(sp, next_off));
@@ -462,7 +462,7 @@ static void gen_c2i_adapter(MacroAssembler *masm,
       } else {
 #ifdef ASSERT
         // Overwrite the unused slot with known junk
-        __ li(t0, 0xdeadffffdeadaaacul);
+        __ li(t0, 0xdeadaaac);
         __ sw(t0, Address(sp, st_off), /*temp register*/esp);
 #endif /* ASSERT */
         __ fsd(r_1->as_FloatRegister(), Address(sp, next_off));
