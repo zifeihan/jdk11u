@@ -1956,8 +1956,8 @@ class StubGenerator: public StubCodeGenerator {
     //
     //  Fill large chunks
     //
+/*
     __ srli(cnt_words, count, 3 - shift); // number of words
-
     // 32 bit -> 64 bit
     __ andi(value, value, 0xffffffff);
     __ mv(tmp_reg, value);
@@ -1966,10 +1966,11 @@ class StubGenerator: public StubCodeGenerator {
 
     __ slli(tmp_reg, cnt_words, 3 - shift);
     __ sub(count, count, tmp_reg);
+
     {
       __ fill_words(to, cnt_words, value);
     }
-
+*/
     // Remaining count is less than 8 bytes. Fill it by a single store.
     // Note that the total length is no less than 8 bytes.
     if (t == T_BYTE || t == T_SHORT) {
