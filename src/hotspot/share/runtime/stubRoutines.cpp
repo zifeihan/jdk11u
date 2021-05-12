@@ -337,9 +337,9 @@ void StubRoutines::initialize2() {
     }                                                                                        \
   }                                                                                          \
 
-  TEST_FILL(jbyte);
-  TEST_FILL(jshort);
-  TEST_FILL(jint);
+//  TEST_FILL(jbyte);
+//  TEST_FILL(jshort);
+//  TEST_FILL(jint);
 
 #undef TEST_FILL
 
