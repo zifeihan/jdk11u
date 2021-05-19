@@ -896,8 +896,11 @@ void TemplateTable::iload(int n)
 
 void TemplateTable::lload(int n)
 {
-  transition(vtos, ltos);
-  __ lw(x10, laddress(n));
+  if (n <= 3)
+  {
+    transition(vtos, ltos);
+    __ lw(x10, laddress(n));
+  }
 }
 
 void TemplateTable::fload(int n)
