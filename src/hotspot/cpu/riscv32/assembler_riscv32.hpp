@@ -426,11 +426,9 @@ public:
   }                                                                                                \
   void NAME(Register Rd, address dest) {                                                           \
     assert_cond(dest != NULL);                                                                     \
-    int64_t distance = (dest - pc());                                                              \
-    if (is_offset_in_range(distance, 32)) {                                                        \
-      auipc(Rd, (int32_t)distance + 0x800);                                                        \
-      NAME(Rd, Rd, ((int32_t)distance << 20) >> 20);                                               \
-    }                                                                                              \
+    int32_t distance = dest - pc();                                                                \
+    auipc(Rd, distance + 0x800);                                                                   \
+    NAME(Rd, Rd, (distance << 20) >> 20);                                                          \
   }                                                                                                \
   INSN_ENTRY_RELOC(void, NAME(Register Rd, address dest, relocInfo::relocType rtype))              \
     NAME(Rd, dest);                                                                                \
