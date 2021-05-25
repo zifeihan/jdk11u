@@ -281,7 +281,7 @@ void StubRoutines::initialize2() {
       vm_exit_out_of_memory(code_size2, OOM_MALLOC_ERROR, "CodeCache: no room for StubRoutines (2)");
     }
     CodeBuffer buffer(_code2);
-//    StubGenerator_generate(&buffer, true);
+    StubGenerator_generate(&buffer, true);
     // When new stubs added we need to make sure there is some space left
     // to catch situation when we should increase size again.
     assert(code_size2 == 0 || buffer.insts_remaining() > 200, "increase code_size2");
@@ -337,9 +337,9 @@ void StubRoutines::initialize2() {
     }                                                                                        \
   }                                                                                          \
 
-//  TEST_FILL(jbyte);
-//  TEST_FILL(jshort);
-//  TEST_FILL(jint);
+  TEST_FILL(jbyte);
+  TEST_FILL(jshort);
+  TEST_FILL(jint);
 
 #undef TEST_FILL
 
