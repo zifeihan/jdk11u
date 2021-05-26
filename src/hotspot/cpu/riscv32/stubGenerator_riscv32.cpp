@@ -1892,7 +1892,7 @@ class StubGenerator: public StubCodeGenerator {
         __ slli(tmp_reg, tmp_reg, 16);
         __ orr(value, value, tmp_reg);
 
-        __ mv(tmp_reg, 8 >> shift); // Short arrays (< 8 bytes) fill by element
+        __ mv(tmp_reg, 4 >> shift); // Short arrays (< 4 bytes) fill by element
         __ bltu(count, tmp_reg, L_fill_elements);
         break;
       case T_SHORT:
@@ -1904,21 +1904,21 @@ class StubGenerator: public StubCodeGenerator {
         __ slli(tmp_reg, tmp_reg, 16);
         __ orr(value, value, tmp_reg);
 
-        // Short arrays (< 8 bytes) fill by element
-        __ mv(tmp_reg, 8 >> shift);
+        // Short arrays (< 4 bytes) fill by element
+        __ mv(tmp_reg, 4 >> shift);
         __ bltu(count, tmp_reg, L_fill_elements);
         break;
       case T_INT:
         shift = 2;
 
-        // Short arrays (< 8 bytes) fill by element
-        __ mv(tmp_reg, 8 >> shift);
+        // Short arrays (< 4 bytes) fill by element
+        __ mv(tmp_reg, 4 >> shift);
         __ bltu(count, tmp_reg, L_fill_elements);
         break;
       default: ShouldNotReachHere();
     }
 
-    // Align source address at 8 bytes address boundary.
+    // Align source address at 4 bytes address boundary.
     Label L_skip_align1, L_skip_align2, L_skip_align4;
     if (!aligned) {
       switch (t) {
@@ -1941,7 +1941,7 @@ class StubGenerator: public StubCodeGenerator {
           __ bind(L_skip_align2);
           // Fallthrough
         case T_INT:
-          // Align to 8 bytes, we know we are 4 byte aligned to start.
+          // Align to 4 bytes, we know we are 4 byte aligned to start.
           __ andi(t0, to, 4);
           __ beqz(t0, L_skip_align4);
           __ sw(value, Address(to, 0));
@@ -1956,28 +1956,30 @@ class StubGenerator: public StubCodeGenerator {
     //
     //  Fill large chunks
     //
-    __ srli(cnt_words, count, 3 - shift); // number of words
-    __ slli(tmp_reg, cnt_words, 3 - shift);
+    __ srli(cnt_words, count, 2 - shift); // number of words
+    __ andi(value, value, 0xffffffff);
+    __ slli(tmp_reg, cnt_words, 2 - shift);
     __ sub(count, count, tmp_reg);
+
 
     {
       __ fill_words(to, cnt_words, value);
     }
 
-    // Remaining count is less than 8 bytes. Fill it by a single store.
+    // Remaining count is less than 4 bytes. Fill it by a single store.
     // Note that the total length is no less than 8 bytes.
     if (t == T_BYTE || t == T_SHORT) {
       Label L_exit1;
       __ beqz(count, L_exit1);
       __ slli(tmp_reg, count, shift);
       __ add(to, to, tmp_reg); // points to the end
-      __ sw(value, Address(to, -8)); // overwrite some elements
+      __ sw(value, Address(to, -4)); // overwrite some elements
       __ bind(L_exit1);
       __ leave();
       __ ret();
     }
 
-    // Handle copies less than 8 bytes.
+    // Handle copies less than 4 bytes.
     Label L_fill_2, L_fill_4, L_exit2;
     __ bind(L_fill_elements);
     switch (t) {
