@@ -93,7 +93,7 @@ class NativeInstruction {
   }
 
   // the instruction sequence of movptr is as below:
-  //     luipc
+  //     lui
   //     addi
   static bool check_movptr_data_dependency(address instr) {
     return compare_instr_field(instr, 11, 7, instr + 4, 19, 15);          // check the rd field of lui and the rs1 field of addi
