@@ -689,7 +689,6 @@ void TemplateTable::dload()
   __ slli(x11, x11, LogBytesPerWord);
   __ sub(x11, xlocals, x11);
   __ fld(f10, Address(x11, Interpreter::local_offset_in_bytes(1)));
-  __ fld(f11, Address(x11, Interpreter::local_offset_in_bytes(0)));
 }
 
 void TemplateTable::aload()
@@ -738,7 +737,6 @@ void TemplateTable::wide_dload()
   __ slli(x11, x11, LogBytesPerWord);
   __ sub(x11, xlocals, x11);
   __ fld(f10, Address(x11, Interpreter::local_offset_in_bytes(1)));
-  __ fld(f11, Address(x11, Interpreter::local_offset_in_bytes(0)));
 }
 
 void TemplateTable::wide_aload()
@@ -926,8 +924,7 @@ void TemplateTable::fload(int n)
 void TemplateTable::dload(int n)
 {
   transition(vtos, dtos);
-  __ fld(f10, laddress(n));
-  __ fld(f11, haddress(n));
+  __ fld(f10, daddress(n));
 }
 
 void TemplateTable::aload(int n)
@@ -1034,9 +1031,8 @@ void TemplateTable::fstore() {
 
 void TemplateTable::dstore() {
   transition(dtos, vtos);
-  locals_index(x12);
-  __ fsd(f10, laddress(x12, t0, _masm));
-  __ fsd(f11, haddress(x12, t0, _masm));
+  locals_index(x11);
+  __ fsd(f10, daddress(x11, t0, _masm));
 }
 
 void TemplateTable::astore()
@@ -1072,9 +1068,8 @@ void TemplateTable::wide_fstore() {
 void TemplateTable::wide_dstore() {
   transition(vtos, vtos);
   __ pop_d();
-  locals_index_wide(x12);
-  __ fsd(f10, laddress(x12, t0, _masm));
-  __ fsd(f11, haddress(x12, t0, _masm));
+  locals_index_wide(x11);
+  __ fsd(f10, daddress(x11, t0, _masm));
 }
 
 void TemplateTable::wide_astore() {
@@ -1264,8 +1259,7 @@ void TemplateTable::fstore(int n)
 void TemplateTable::dstore(int n)
 {
   transition(dtos, vtos);
-  __ fsd(f10, laddress(n));
-  __ fsd(f11, haddress(n));
+  __ fsd(f10, daddress(n));
 }
 
 void TemplateTable::astore(int n)
