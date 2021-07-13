@@ -31,7 +31,7 @@
 #include "asm/register.hpp"
 #include "assembler_riscv32.inline.hpp"
 
-#define registerSize 64
+#define registerSize 32
 
 // definitions of various symbolic names for machine registers
 
