@@ -1871,7 +1871,7 @@ void TemplateInterpreterGenerator::count_bytecode() {
   __ push_reg(x10);
   __ mv(x10, (address) &BytecodeCounter::_counter_value);
   __ li(t0, 1);
-  __ amoadd_d(zr, x10, t0, Assembler::aqrl);
+  __ amoadd_w(zr, x10, t0, Assembler::aqrl);
   __ pop_reg(x10);
   __ pop_reg(t0);
 }
