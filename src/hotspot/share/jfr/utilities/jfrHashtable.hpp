@@ -83,7 +83,7 @@ class JfrBasicHashtable : public CHeapObj<mtTracing> {
 
   size_t hash_to_index(uintptr_t full_hash) const {
     const uintptr_t h = full_hash % _table_size;
-    assert(h >= 0 && h < _table_size, "Illegal hash value");
+    assert(h < _table_size, "Illegal hash value");
     return (size_t)h;
   }
   size_t entry_size() const { return _entry_size; }
