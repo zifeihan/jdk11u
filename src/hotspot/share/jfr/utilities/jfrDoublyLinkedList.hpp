@@ -135,7 +135,6 @@ T* JfrDoublyLinkedList<T>::remove(T* const node) {
     prev->set_next(next);
   }
   --_count;
-  assert(_count >= 0, "invariant");
   assert(!in_list(node), "still in list error");
   return node;
 }
