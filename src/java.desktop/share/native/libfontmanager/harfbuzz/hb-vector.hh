@@ -182,7 +182,7 @@ struct hb_vector_t
       return false;
 
     if (size > length)
-      memset (arrayZ() + length, 0, (size - length) * sizeof (*arrayZ()));
+      memset (static_cast < void *> (arrayZ() + length), 0, (size - length) * sizeof (*arrayZ()));
 
     length = size;
     return true;
