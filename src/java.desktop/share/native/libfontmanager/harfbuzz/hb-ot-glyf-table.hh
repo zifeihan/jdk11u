@@ -230,7 +230,7 @@ struct glyf
   {
     void init (hb_face_t *face)
     {
-      memset (this, 0, sizeof (accelerator_t));
+      memset (static_cast < void *> (this), 0, sizeof (accelerator_t));
 
       const OT::head &head = *face->table.head;
       if (head.indexToLocFormat > 1 || head.glyphDataFormat != 0)

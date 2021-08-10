@@ -157,7 +157,7 @@ template <typename Type>
 static inline Type& Crap () {
   static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
-  memcpy (obj, &Null(Type), sizeof (*obj));
+  memcpy (static_cast < void *> (obj), &Null(Type), sizeof (*obj));
   return *obj;
 }
 template <typename QType>
