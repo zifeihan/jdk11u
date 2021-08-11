@@ -158,8 +158,7 @@ void PrintMachineDependentOptions();
 /*
  * Block current thread and continue execution in new thread
  */
-int ContinueInNewThread0(int (JNICALL *continuation)(void *),
-                        jlong stack_size, void * args);
+int CallJavaMainInNewThread(jlong stack_size, void* args);
 
 /* sun.java.launcher.* platform properties. */
 void SetJavaLauncherPlatformProps(void);
@@ -224,7 +223,10 @@ jobjectArray CreateApplicationArgs(JNIEnv *env, char **strv, int argc);
 jobjectArray NewPlatformStringArray(JNIEnv *env, char **strv, int strc);
 jclass GetLauncherHelperClass(JNIEnv *env);
 
-int JNICALL JavaMain(void * args); /* entry point                  */
+/*
+ * Entry point.
+ */
+int JavaMain(void* args);
 
 enum LaunchMode {               // cf. sun.launcher.LauncherHelper
     LM_UNKNOWN = 0,
