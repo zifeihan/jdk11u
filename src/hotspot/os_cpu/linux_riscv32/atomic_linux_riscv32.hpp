@@ -110,7 +110,7 @@ inline T Atomic::PlatformCmpxchg<4>::operator()(T exchange_value,
   return rv;
 }
 
-template<>
+/*template<>
 template<typename T>
 inline T Atomic::PlatformLoad<8>::operator()(T const volatile* src) const {}
 
@@ -118,5 +118,5 @@ template<>
 template<typename T>
 inline void Atomic::PlatformStore<8>::operator()(T store_value,
                                                  T volatile* dest) const {}
-
+*/
 #endif // OS_CPU_LINUX_RISCV32_VM_ATOMIC_LINUX_RISCV32_HPP
