@@ -520,11 +520,11 @@ void InterpreterMacroAssembler::dispatch_base(TosState state,
   if (table == Interpreter::dispatch_table(state)) {
     li(t1, Interpreter::distance_from_dispatch_table(state));
     add(t1, Rs, t1);
-    slli(t1, t1, 3);
+    slli(t1, t1, 2);
     add(t1, xdispatch, t1);
   } else {
     mv(t1, (address)table);
-    slli(Rs, Rs, 3);
+    slli(Rs, Rs, 2);
     add(t1, t1, Rs);
   }
   lw(t1, Address(t1));
@@ -533,7 +533,7 @@ void InterpreterMacroAssembler::dispatch_base(TosState state,
   if (needs_thread_local_poll) {
     bind(safepoint);
     la(t1, ExternalAddress((address)safepoint_table));
-    slli(Rs, Rs, 3);
+    slli(Rs, Rs, 2);
     add(t1, t1, Rs);
     lw(t1, Address(t1));
     jr(t1);
