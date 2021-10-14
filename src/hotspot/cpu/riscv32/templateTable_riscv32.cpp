@@ -3347,7 +3347,7 @@ void TemplateTable::prepare_invoke(int byte_no,
   {
     const address table_addr = (address) Interpreter::invoke_return_entry_table_for(code);
     __ mv(t0, table_addr);
-    __ slli(t1, t1, 3);
+    __ slli(t1, t1, 2);
     __ add(t0, t0, t1);
     __ lw(lr, Address(t0, 0));
   }

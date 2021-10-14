@@ -230,7 +230,7 @@ void InterpreterMacroAssembler::get_cache_and_index_at_bcp(Register cache,
   // install it in cache. instead we pre-add the indexed offset to
   // xcpool and return it in cache. All clients of this method need to
   // be modified accordingly.
-  slli(cache, index, 5);
+  slli(cache, index, 4);
   add(cache, xcpool, cache);
 }
 
