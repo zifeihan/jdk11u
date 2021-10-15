@@ -1402,37 +1402,9 @@ void MacroAssembler::store_sized_value(Address dst, Register src, size_t size_in
   }
 }
 
-void MacroAssembler::reverseb16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // This method is only used for grev16
-  // Rd = Rs[47:0] Rs[55:48] Rs[63:56]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1);
-  srli(Rtmp1, Rs, 48);
-  andi(Rtmp2, Rtmp1, 0xff);
-  slli(Rtmp2, Rtmp2, 8);
-  srli(Rtmp1, Rtmp1, 8);
-  orr(Rtmp1, Rtmp1, Rtmp2);
-  slli(Rd, Rs, 16);
-  orr(Rd, Rd, Rtmp1);
-}
-
-void MacroAssembler::reverseh32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // This method is only used for grev32
-  // Rd[63:0] = Rs[31:0] Rs[47:32] Rs[63:48]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1);
-  srli(Rtmp1, Rs, 32);
-  slli(Rtmp2, Rtmp1, 48);
-  srli(Rtmp2, Rtmp2, 32);
-  srli(Rtmp1, Rtmp1, 16);
-  orr(Rtmp1, Rtmp1, Rtmp2);
-  slli(Rd, Rs, 32);
-  orr(Rd, Rd, Rtmp1);
-}
-
 void MacroAssembler::grevh(Register Rd, Register Rs, Register Rtmp) {
   // Reverse bytes in half-word
-  // Rd[15:0] = Rs[7:0] Rs[15:8] (sign-extend to 64 bits)
+  // Rd[15:0] = Rs[7:0] Rs[15:8] (sign-extend to 32 bits)
   assert_different_registers(Rs, Rtmp);
   assert_different_registers(Rd, Rtmp);
   srli(Rtmp, Rs, 8);
@@ -1444,7 +1416,7 @@ void MacroAssembler::grevh(Register Rd, Register Rs, Register Rtmp) {
 
 void MacroAssembler::grevhu(Register Rd, Register Rs, Register Rtmp) {
   // Reverse bytes in half-word
-  // Rd[15:0] = Rs[7:0] Rs[15:8] (zero-extend to 64 bits)
+  // Rd[15:0] = Rs[7:0] Rs[15:8] (zero-extend to 32 bits)
   assert_different_registers(Rs, Rtmp);
   assert_different_registers(Rd, Rtmp);
   srli(Rtmp, Rs, 8);
@@ -1456,7 +1428,7 @@ void MacroAssembler::grevhu(Register Rd, Register Rs, Register Rtmp) {
 
 void MacroAssembler::grev16w(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
   // Reverse bytes in half-word (32bit)
-  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8] (sign-extend to 64 bits)
+  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   srli(Rtmp2, Rs, 16);
@@ -1468,7 +1440,7 @@ void MacroAssembler::grev16w(Register Rd, Register Rs, Register Rtmp1, Register 
 
 void MacroAssembler::grev16wu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
   // Reverse bytes in half-word (32bit)
-  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8] (zero-extend to 64 bits)
+  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   srli(Rtmp2, Rs, 16);
@@ -1480,12 +1452,11 @@ void MacroAssembler::grev16wu(Register Rd, Register Rs, Register Rtmp1, Register
 
 void MacroAssembler::grevw(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
   // Reverse bytes in word (32bit)
-  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24] (sign-extend to 64 bits)
+  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   grev16wu(Rd, Rs, Rtmp1, Rtmp2);
-  slli(Rtmp2, Rd, 48);
-  srai(Rtmp2, Rtmp2, 32); // sign-extend
+  slli(Rtmp2, Rd, 16);
   srli(Rd, Rd, 16);
   orr(Rd, Rd, Rtmp2);
 }
@@ -1503,24 +1474,26 @@ void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register R
 }
 
 void MacroAssembler::grev16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in half-word (64bit)
-  // Rd[63:0] = Rs[55:48] Rs[63:56] Rs[39:32] Rs[47:40] Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
+  // Reverse bytes in half-word (32bit)
+  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
-  reverseb16(Rd, Rs, Rtmp1, Rtmp2);
-  for (int i = 0; i < 3; ++i) {
-    reverseb16(Rd, Rd, Rtmp1, Rtmp2);
-  }
+  srli(Rtmp2, Rs, 16);
+  grevhu(Rtmp2, Rtmp2, Rtmp1);
+  grevhu(Rd, Rs, Rtmp1);
+  slli(Rtmp2, Rtmp2, 16);
+  orr(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grev32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in word (64bit)
-  // Rd[63:0] = Rs[39:32] Rs[47:40] Rs[55:48] Rs[63:56] Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
+  // Reverse bytes in word (32bit)
+  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
-  grev16(Rd, Rs, Rtmp1, Rtmp2);
-  reverseh32(Rd, Rd, Rtmp1, Rtmp2);
-  reverseh32(Rd, Rd, Rtmp1, Rtmp2);
+  grev16wu(Rd, Rs, Rtmp1, Rtmp2);
+  slli(Rtmp2, Rd, 16);
+  srli(Rd, Rd, 16);
+  orr(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::andi(Register Rd, Register Rn, int32_t increment, Register tmp) {
