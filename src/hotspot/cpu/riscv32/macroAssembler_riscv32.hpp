@@ -506,8 +506,6 @@ class MacroAssembler: public Assembler {
   void xorrw(Register Rd, Register Rs1, Register Rs2);
 
   // grev
-  void reverseb16(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2= t1);  // reverse bytes in 16-bit and move to lower
-  void reverseh32(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2= t1);  // reverse half-words in 32-bit and move to lower
   void grevh(Register Rd, Register Rs, Register Rtmp = t0);                            // basic reverse bytes in 16-bit halfwords, sign-extend
   void grev16w(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);    // reverse bytes in 16-bit halfwords(32), sign-extend
   void grevw(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);      // reverse bytes(32), sign-extend
