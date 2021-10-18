@@ -406,10 +406,10 @@ inline NativeJump* nativeJump_at(address addr) {
 class NativeGeneralJump: public NativeJump {
 public:
   enum RISCV32_specific_constants {
-    instruction_size            =    6 * NativeInstruction::instruction_size, // lui, addi, slli, addi, slli, jalr
+    instruction_size            =    2 * NativeInstruction::instruction_size, // lui, jalr
     instruction_offset          =    0,
     data_offset                 =    0,
-    next_instruction_offset     =    6 * NativeInstruction::instruction_size  // lui, addi, slli, addi, slli, jalr
+    next_instruction_offset     =    2 * NativeInstruction::instruction_size  // lui, jalr
   };
 
   address jump_destination() const;
