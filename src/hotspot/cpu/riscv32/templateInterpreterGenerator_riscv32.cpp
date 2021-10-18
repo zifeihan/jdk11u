@@ -456,7 +456,7 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
   __ lw(x11, Address(x11, ConstantPoolCache::base_offset() + ConstantPoolCacheEntry::flags_offset()));
   __ andi(x11, x11, ConstantPoolCacheEntry::parameter_size_mask);
 
-  __ slli(t0, x11, 3);
+  __ slli(t0, x11, 2);
   __ add(esp, esp, t0);
 
   // Restore machine SP
@@ -1425,7 +1425,7 @@ address TemplateInterpreterGenerator::generate_normal_entry(bool synchronized) {
   generate_stack_overflow_check();
 
   // compute beginning of parameters (xlocals)
-  __ slli(t1, x12, 3);
+  __ slli(t1, x12, 2);
   __ add(xlocals, esp, t1);
   __ add(xlocals, xlocals, -wordSize);
 
