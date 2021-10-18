@@ -1439,8 +1439,8 @@ void MacroAssembler::grevh(Register Rd, Register Rs, Register Rtmp) {
   assert_different_registers(Rd, Rtmp);
   srli(Rtmp, Rs, 8);
   andi(Rtmp, Rtmp, 0xFF);
-  slli(Rd, Rs, 56);
-  srai(Rd, Rd, 48); // sign-extend
+  slli(Rd, Rs, 24);
+  srai(Rd, Rd, 16); // sign-extend
   orr(Rd, Rd, Rtmp);
 }
 
