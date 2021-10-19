@@ -3333,7 +3333,7 @@ void TemplateTable::prepare_invoke(int byte_no,
   // load receiver if needed (note: no return address pushed yet)
   if (load_receiver) {
     __ andi(recv, flags, ConstantPoolCacheEntry::parameter_size_mask); // parameter_size_mask = 1 << 8
-    __ slli(t0, recv, 3);
+    __ slli(t0, recv, 2);
     __ add(t0, esp, t0);
     __ lw(recv, Address(t0, -Interpreter::expr_offset_in_bytes(1)));
     __ verify_oop(recv);
