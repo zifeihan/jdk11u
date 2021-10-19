@@ -2100,10 +2100,10 @@ void MacroAssembler::cmpxchgptr(Register oldv, Register newv, Register addr, Reg
   bind(retry_load);
   // flush and load exclusive from the memory location
   // and fail if it is not what we expect
-  lr_d(tmp, addr, Assembler::aqrl);
+  lr_w(tmp, addr, Assembler::aqrl);
   bne(tmp, oldv, nope);
   // if we store+flush with no intervening write tmp wil be zero
-  sc_d(tmp, newv, addr, Assembler::rl);
+  sc_w(tmp, newv, addr, Assembler::rl);
   beqz(tmp, succeed);
   // retry so we only ever return after a load fails to compare
   // ensures we don't return a stale value after a failed write.
