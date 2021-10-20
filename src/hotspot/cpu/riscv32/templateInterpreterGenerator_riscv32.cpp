@@ -1003,7 +1003,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   // for natives the size of locals is zero
 
   // compute beginning of parameters (xlocals)
-  __ slli(xlocals, x12, 3);
+  __ slli(xlocals, x12, 2);
   __ add(xlocals, esp, xlocals);
   __ addi(xlocals, xlocals, -wordSize);
 
