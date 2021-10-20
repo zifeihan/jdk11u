@@ -2196,14 +2196,6 @@ encode %{
 
   // arithmetic encodings
 
-  enc_class riscv32_enc_divw(iRegI dst, iRegI src1, iRegI src2) %{
-    MacroAssembler _masm(&cbuf);
-    Register dst_reg = as_Register($dst$$reg);
-    Register src1_reg = as_Register($src1$$reg);
-    Register src2_reg = as_Register($src2$$reg);
-    __ corrected_idivl(dst_reg, src1_reg, src2_reg, false);
-  %}
-
   enc_class riscv32_enc_div(iRegI dst, iRegI src1, iRegI src2) %{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
@@ -3789,7 +3781,7 @@ pipe_class ialu_imm(iRegI dst)
 //------- Multiply pipeline operations --------------------
 
 // Multiply reg-reg
-// E.g. MULW   Rd, Rs1, Rs2
+// E.g. MUL   Rd, Rs1, Rs2
 pipe_class imul_reg_reg(iRegI dst, iRegI src1, iRegI src2)
 %{
   single_instruction;
@@ -3814,7 +3806,7 @@ pipe_class lmul_reg_reg(iRegI dst, iRegI src1, iRegI src2)
 
 //------- Divide pipeline operations --------------------
 
-// E.g. DIVW   Rd, Rs1, Rs2
+// E.g. DIV   Rd, Rs1, Rs2
 pipe_class idiv_reg_reg(iRegI dst, iRegI src1, iRegI src2)
 %{
   single_instruction;
@@ -6011,12 +6003,12 @@ instruct addI_reg_reg(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (AddI src1 src2));
 
   ins_cost(ALU_COST);
-  format %{ "addw  $dst, $src1, $src2\t#@addI_reg_reg" %}
+  format %{ "add  $dst, $src1, $src2\t#@addI_reg_reg" %}
 
   ins_encode %{
-    __ addw(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
+    __ add(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
@@ -6026,13 +6018,13 @@ instruct addI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
   match(Set dst (AddI src1 src2));
 
   ins_cost(ALU_COST);
-  format %{ "addiw  $dst, $src1, $src2\t#@addI_reg_imm" %}
+  format %{ "addi  $dst, $src1, $src2\t#@addI_reg_imm" %}
 
   ins_encode %{
     int32_t con = (int32_t)$src2$$constant;
-    __ addiw(as_Register($dst$$reg),
-             as_Register($src1$$reg),
-             $src2$$constant);
+    __ addi(as_Register($dst$$reg),
+            as_Register($src1$$reg),
+            $src2$$constant);
   %}
 
   ins_pipe(ialu_reg_imm);
@@ -6042,12 +6034,12 @@ instruct addI_reg_imm_l2i(iRegINoSp dst, iRegL src1, immIAdd src2) %{
   match(Set dst (AddI (ConvL2I src1) src2));
 
   ins_cost(ALU_COST);
-  format %{ "addiw  $dst, $src1, $src2\t#@addI_reg_imm_l2i" %}
+  format %{ "addi  $dst, $src1, $src2\t#@addI_reg_imm_l2i" %}
 
   ins_encode %{
-    __ addiw(as_Register($dst$$reg),
-             as_Register($src1$$reg),
-             $src2$$constant);
+    __ addi(as_Register($dst$$reg),
+            as_Register($src1$$reg),
+            $src2$$constant);
   %}
 
   ins_pipe(ialu_reg_imm);
@@ -6136,12 +6128,12 @@ instruct subI_reg_reg(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (SubI src1 src2));
 
   ins_cost(ALU_COST);
-  format %{ "subw  $dst, $src1, $src2\t#@subI_reg_reg" %}
+  format %{ "sub  $dst, $src1, $src2\t#@subI_reg_reg" %}
 
   ins_encode %{
-    __ subw(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
+    __ sub(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
@@ -6152,13 +6144,13 @@ instruct subI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immISub src2) %{
   match(Set dst (SubI src1 src2));
 
   ins_cost(ALU_COST);
-  format %{ "addiw  $dst, $src1, -$src2\t#@subI_reg_imm" %}
+  format %{ "addi  $dst, $src1, -$src2\t#@subI_reg_imm" %}
 
   ins_encode %{
-    // src2 is imm, so actually call the addiw
-    __ subw(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            $src2$$constant);
+    // src2 is imm, so actually call the addi
+    __ sub(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           $src2$$constant);
   %}
 
   ins_pipe(ialu_reg_imm);
@@ -6200,10 +6192,10 @@ instruct subL_reg_imm(iRegLNoSp dst, iRegL src1, immLSub src2) %{
 instruct negI_reg(iRegINoSp dst, iRegIorL2I src, immI0 zero) %{
   match(Set dst (SubI zero src));
   ins_cost(ALU_COST);
-  format %{ "subw  $dst, x0, $src\t# int, #@negI_reg" %}
+  format %{ "sub  $dst, x0, $src\t# int, #@negI_reg" %}
 
   ins_encode %{
-    // actually call the subw
+    // actually call the sub
     __ negw(as_Register($dst$$reg),
             as_Register($src$$reg));
   %}
@@ -6232,14 +6224,13 @@ instruct negL_reg(iRegLNoSp dst, iRegL src, immL0 zero) %{
 instruct mulI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (MulI src1 src2));
   ins_cost(IMUL_COST);
-  format %{ "mulw  $dst, $src1, $src2\t#@mulI" %}
+  format %{ "mul  $dst, $src1, $src2\t#@mulI" %}
 
   //this means 2 word multi, and no sign extend to 32 bits
   ins_encode %{
-    // riscv32 mulw will sign-extension to high 32 bits in dst reg
-    __ mulw(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
+    __ mul(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           as_Register($src2$$reg));
   %}
 
   ins_pipe(imul_reg_reg);
@@ -6296,9 +6287,9 @@ instruct mulHiL_rReg(iRegLNoSp dst, iRegL src1, iRegL src2)
 instruct divI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (DivI src1 src2));
   ins_cost(IDIVSI_COST);
-  format %{ "divw  $dst, $src1, $src2\t#@divI"%}
+  format %{ "div  $dst, $src1, $src2\t#@divI"%}
 
-  ins_encode(riscv32_enc_divw(dst, src1, src2));
+  ins_encode(riscv32_enc_div(dst, src1, src2));
   ins_pipe(idiv_reg_reg);
 %}
 
@@ -7422,9 +7413,9 @@ instruct convI2L_reg_reg(iRegLNoSp dst, iRegIorL2I src)
   match(Set dst (ConvI2L src));
 
   ins_cost(ALU_COST);
-  format %{ "addw  $dst, $src\t#@convI2L_reg_reg" %}
+  format %{ "add  $dst, $src\t#@convI2L_reg_reg" %}
   ins_encode %{
-    __ addw(as_Register($dst$$reg), as_Register($src$$reg), zr);
+    __ add(as_Register($dst$$reg), as_Register($src$$reg), zr);
   %}
   ins_pipe(ialu_reg);
 %}
@@ -7433,10 +7424,10 @@ instruct convL2I_reg(iRegINoSp dst, iRegL src) %{
   match(Set dst (ConvL2I src));
 
   ins_cost(ALU_COST);
-  format %{ "addw  $dst, $src, zr\t#@convL2I_reg" %}
+  format %{ "add  $dst, $src, zr\t#@convL2I_reg" %}
 
   ins_encode %{
-    __ addw(as_Register($dst$$reg), as_Register($src$$reg), zr);
+    __ add(as_Register($dst$$reg), as_Register($src$$reg), zr);
   %}
 
   ins_pipe(ialu_reg);
@@ -8013,12 +8004,12 @@ instruct cmpLTMask_reg_reg(iRegINoSp dst, iRegIorL2I p, iRegIorL2I q)
   ins_cost(2 * ALU_COST);
 
   format %{ "slt $dst, $p, $q\t#@cmpLTMask_reg_reg\n\t"
-            "subw $dst, zr, $dst\t#@cmpLTMask_reg_reg"
+            "sub $dst, zr, $dst\t#@cmpLTMask_reg_reg"
   %}
 
   ins_encode %{
     __ slt(as_Register($dst$$reg), as_Register($p$$reg), as_Register($q$$reg));
-    __ subw(as_Register($dst$$reg), zr, as_Register($dst$$reg));
+    __ sub(as_Register($dst$$reg), zr, as_Register($dst$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
