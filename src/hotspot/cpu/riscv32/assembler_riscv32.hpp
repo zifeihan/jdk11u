@@ -837,8 +837,6 @@ enum operand_size { int8, int16, int32, uint32, int64 };
   }
 
   INSN(lr_w, 0b0101111, 0b010, 0b00010);
-  INSN(lr_d, 0b0101111, 0b011, 0b00010);
-
 #undef INSN
 
 #define INSN(NAME, op, funct3, funct7)                                                      \
@@ -856,7 +854,6 @@ enum operand_size { int8, int16, int32, uint32, int64 };
   }
 
   INSN(sc_w, 0b0101111, 0b010, 0b00011);
-  INSN(sc_d, 0b0101111, 0b011, 0b00011);
 #undef INSN
 
 #define INSN(NAME, op, funct5, funct7)                                                      \

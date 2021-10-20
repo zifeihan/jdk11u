@@ -4782,18 +4782,18 @@ instruct storeNKlass(iRegN src, memory mem)
 
 // Locked-load (load reserved) of the current heap-top
 // used when updating the eden heap top
-// implemented using lr_d on RISCV32
+// implemented using lr_w on RISCV32
 instruct loadPLocked(iRegPNoSp dst, indirect mem)
 %{
   match(Set dst (LoadPLocked mem));
 
   ins_cost(ALU_COST * 2 + LOAD_COST);
 
-  format %{ "lr_d $dst, $mem\t# ptr load reserved, #@loadPLocked" %}
+  format %{ "lr_w $dst, $mem\t# ptr load reserved, #@loadPLocked" %}
 
   ins_encode %{
     __ la(t0, Address(as_Register($mem$$base), $mem$$disp));
-    __ lr_d($dst$$Register, t0, Assembler::aq);
+    __ lr_w($dst$$Register, t0, Assembler::aq);
   %}
 
   ins_pipe(pipe_serial);
@@ -4801,7 +4801,7 @@ instruct loadPLocked(iRegPNoSp dst, indirect mem)
 
 // Conditional-store of the updated heap-top.
 // Used during allocation of the shared heap.
-// implemented using sc_d on RISCV32.
+// implemented using sc_w on RISCV32.
 instruct storePConditional(memory heap_top_ptr, iRegP oldval, iRegP newval, iRegI_R6 cr)
 %{
   match(Set cr (StorePConditional heap_top_ptr (Binary oldval newval)));
@@ -4809,12 +4809,12 @@ instruct storePConditional(memory heap_top_ptr, iRegP oldval, iRegP newval, iReg
   ins_cost(ALU_COST * 2 + STORE_COST);
 
   format %{
-    "sc_d t1, $newval $heap_top_ptr,\t# ptr store conditional, #@storePConditional"
+    "sc_w t1, $newval $heap_top_ptr,\t# ptr store conditional, #@storePConditional"
   %}
 
   ins_encode %{
     __ la(t0, Address(as_Register($heap_top_ptr$$base), $heap_top_ptr$$disp));
-    __ sc_d($cr$$Register, $newval$$Register, t0, Assembler::rl);
+    __ sc_w($cr$$Register, $newval$$Register, t0, Assembler::rl);
   %}
 
   ins_pipe(pipe_serial);
@@ -5084,7 +5084,7 @@ instruct compareAndSwapNAcq(iRegINoSp res, indirect mem, iRegNNoSp oldval, iRegN
 // need the volatile case to be sequentially consistent but there is
 // no trailing StoreLoad barrier emitted by C2.  Unfortunately we
 // can't check the type of memory ordering here, so we always emit a
-// sc_d(w) with rl bit set.
+// sc_w with rl bit set.
 instruct compareAndExchangeB(iRegINoSp res, indirect mem, iRegI_R12 oldval, iRegI_R13 newval, iRegI tmp1, iRegI tmp2, iRegI tmp3, iRegL_R6 cr)
 %{
   match(Set res (CompareAndExchangeB mem (Binary oldval newval)));
