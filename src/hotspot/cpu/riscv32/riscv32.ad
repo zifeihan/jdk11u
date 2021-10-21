@@ -7502,7 +7502,7 @@ instruct convF2L_reg_reg(iRegLNoSp dst, fRegF src) %{
   match(Set dst (ConvF2L src));
 
   ins_cost(XFER_COST);
-  format %{ "fcvt.l.s  $dst, $src\t#@convF2L_reg_reg" %}
+  format %{ "fcvt.w.s  $dst, $src\t#@convF2L_reg_reg" %}
 
   ins_encode %{
     __ fcvt_w_s_safe($dst$$Register, $src$$FloatRegister);
@@ -7515,7 +7515,7 @@ instruct convL2F_reg_reg(fRegF dst, iRegL src) %{
   match(Set dst (ConvL2F src));
 
   ins_cost(XFER_COST);
-  format %{ "fcvt.s.l  $dst, $src\t#@convL2F_reg_reg" %}
+  format %{ "fcvt.s.w  $dst, $src\t#@convL2F_reg_reg" %}
 
   ins_encode %{
     __ fcvt_s_w(as_FloatRegister($dst$$reg), as_Register($src$$reg));
@@ -7558,7 +7558,7 @@ instruct convD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
   match(Set dst (ConvD2L src));
 
   ins_cost(XFER_COST);
-  format %{ "fcvt.l.d  $dst, $src\t#@convD2L_reg_reg" %}
+  format %{ "fcvt.w.d  $dst, $src\t#@convD2L_reg_reg" %}
 
   ins_encode %{
     __ fcvt_w_d_safe($dst$$Register, $src$$FloatRegister);
@@ -7571,7 +7571,7 @@ instruct convL2D_reg_reg(fRegD dst, iRegL src) %{
   match(Set dst (ConvL2D src));
 
   ins_cost(XFER_COST);
-  format %{ "fcvt.d.l  $dst, $src\t#@convL2D_reg_reg" %}
+  format %{ "fcvt.d.w  $dst, $src\t#@convL2D_reg_reg" %}
 
   ins_encode %{
     __ fcvt_d_w(as_FloatRegister($dst$$reg), as_Register($src$$reg));
@@ -7901,7 +7901,7 @@ instruct MoveD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
 
   ins_cost(XFER_COST);
 
-  format %{ "fmv.x.d $dst, $src\t#@MoveD2L_reg_reg" %}
+  format %{ "fmv.x.w $dst, $src\t#@MoveD2L_reg_reg" %}
 
   ins_encode %{
     __ fmv_x_w(as_Register($dst$$reg), as_FloatRegister($src$$reg));
@@ -7919,7 +7919,7 @@ instruct MoveL2D_reg_reg(fRegD dst, iRegL src) %{
 
   ins_cost(XFER_COST);
 
-  format %{ "fmv.d.x  $dst, $src\t#@MoveD2L_reg_reg" %}
+  format %{ "fmv.w.x  $dst, $src\t#@MoveD2L_reg_reg" %}
 
   ins_encode %{
     __ fmv_w_x(as_FloatRegister($dst$$reg), as_Register($src$$reg));
