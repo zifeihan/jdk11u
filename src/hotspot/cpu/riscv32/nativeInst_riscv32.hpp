@@ -68,8 +68,8 @@ class NativeInstruction {
   static bool is_jalr_at(address instr)       { assert_cond(instr != NULL); return (Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b1100111 &&
                                                 Assembler::extract(((unsigned*)instr)[0], 14, 12) == 0b000); }
   static bool is_branch_at(address instr)     { assert_cond(instr != NULL); return Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b1100011; }
-  static bool is_ld_at(address instr)         { assert_cond(instr != NULL); return (Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0000011 &&
-                                                Assembler::extract(((unsigned*)instr)[0], 14, 12) == 0b011); }
+  static bool is_lw_at(address instr)         { assert_cond(instr != NULL); return (Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0000011 &&
+                                                Assembler::extract(((unsigned*)instr)[0], 14, 12) == 0b010); }
   static bool is_load_at(address instr)       { assert_cond(instr != NULL); return Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0000011; }
   static bool is_float_load_at(address instr) { assert_cond(instr != NULL); return Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0000111; }
   static bool is_auipc_at(address instr)      { assert_cond(instr != NULL); return Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0010111; }
@@ -133,7 +133,7 @@ class NativeInstruction {
     }
     return false;
   }
-  static bool is_lwu_to_zr(address instr);
+  static bool is_lw_to_zr(address instr);
 
   inline bool is_nop();
   inline bool is_illegal();
@@ -466,7 +466,7 @@ inline bool is_NativeCallTrampolineStub_at(address addr) {
   // 2). check if auipc[11:7] == t0 and ld[11:7] == t0 and ld[19:15] == t0 && jr[19:15] == t0
   // 3). check if the offset in ld[31:20] equals the data_offset
   assert_cond(addr != NULL);
-  if (NativeInstruction::is_auipc_at(addr) && NativeInstruction::is_ld_at(addr + 4) && NativeInstruction::is_jalr_at(addr + 8) &&
+  if (NativeInstruction::is_auipc_at(addr) && NativeInstruction::is_lw_at(addr + 4) && NativeInstruction::is_jalr_at(addr + 8) &&
       ((Register)(intptr_t)Assembler::extract(((unsigned*)addr)[0], 11, 7)     == x5) &&
       ((Register)(intptr_t)Assembler::extract(((unsigned*)addr)[1], 11, 7)     == x5) &&
       ((Register)(intptr_t)Assembler::extract(((unsigned*)addr)[1], 19, 15)    == x5) &&

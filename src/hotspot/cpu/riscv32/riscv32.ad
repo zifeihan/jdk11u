@@ -889,8 +889,8 @@ int MachCallRuntimeNode::ret_addr_offset() {
   //   la(t1, retaddr)
   //   la(t0, RuntimeAddress(addr))
   //   addi(sp, sp, -2 * wordSize)
-  //   sd(zr, Address(sp))
-  //   sd(t1, Address(sp, wordSize))
+  //   sw(zr, Address(sp))
+  //   sw(t1, Address(sp, wordSize))
   //   jalr(t0)
   CodeBlob *cb = CodeCache::find_blob(_entry_point);
   if (cb != NULL) {
@@ -989,8 +989,8 @@ void MachPrologNode::format(PhaseRegAlloc *ra_, outputStream *st) const {
     st->print("# stack bang size=%d\n\t", framesize);
   }
 
-  st->print("sd  fp, [sp, #%d]", - 2 * wordSize);
-  st->print("sd  lr, [sp, #%d]", - wordSize);
+  st->print("sw  fp, [sp, #%d]", - 2 * wordSize);
+  st->print("sw  lr, [sp, #%d]", - wordSize);
   if (PreserveFramePointer) { st->print("\n\tsub  fp, sp, #%d", 2 * wordSize); }
   st->print("sub sp, sp, #%d\n\t", framesize);
 }
@@ -1055,19 +1055,19 @@ void MachEpilogNode::format(PhaseRegAlloc *ra_, outputStream *st) const {
   st->print("# pop frame %d\n\t", framesize);
 
   if (framesize == 0) {
-    st->print("ld  lr, [sp,#%d]\n\t", (2 * wordSize));
-    st->print("ld  fp, [sp,#%d]\n\t", (3 * wordSize));
+    st->print("lw  lr, [sp,#%d]\n\t", (2 * wordSize));
+    st->print("lw  fp, [sp,#%d]\n\t", (3 * wordSize));
     st->print("add sp, sp, #%d\n\t", (2 * wordSize));
   } else {
     st->print("add  sp, sp, #%d\n\t", framesize);
-    st->print("ld  lr, [sp,#%d]\n\t", - 2 * wordSize);
-    st->print("ld  fp, [sp,#%d]\n\t", - wordSize);
+    st->print("lw  lr, [sp,#%d]\n\t", - 2 * wordSize);
+    st->print("lw  fp, [sp,#%d]\n\t", - wordSize);
   }
 
   if (do_polling() && C->is_method_compilation()) {
     st->print("# touch polling page\n\t");
     st->print("li  t0, #0x%lx\n\t", p2i(os::get_polling_page()));
-    st->print("ld zr, [t0]");
+    st->print("lw zr, [t0]");
   }
 }
 #endif
@@ -1319,7 +1319,7 @@ void MachUEPNode::format(PhaseRegAlloc* ra_, outputStream* st) const
       st->print_cr("\tdecode_klass_not_null t0, t0");
     }
   } else {
-   st->print_cr("\tld t0, [j_rarg0, oopDesc::klass_offset_in_bytes()]\t# compressed klass");
+   st->print_cr("\tlw t0, [j_rarg0, oopDesc::klass_offset_in_bytes()]\t# compressed klass");
   }
   st->print_cr("\tbne x10, t0, SharedRuntime::_ic_miss_stub\t # Inline cache check");
 }
@@ -2017,8 +2017,8 @@ encode %{
       __ la(t0, RuntimeAddress(entry));
       // Leave a breadcrumb for JavaFrameAnchor::capture_last_Java_pc()
       __ addi(sp, sp, -2 * wordSize);
-      __ sd(zr, Address(sp));
-      __ sd(t1, Address(sp, wordSize));
+      __ sw(zr, Address(sp));
+      __ sw(t1, Address(sp, wordSize));
       __ jalr(t0);
       __ bind(retaddr);
       __ addi(sp, sp, 2 * wordSize);
@@ -2039,7 +2039,7 @@ encode %{
     assert_different_registers(oop, box, tmp, disp_hdr, t0);
 
     // Load markOop from object into displaced_header.
-    __ ld(disp_hdr, Address(oop, oopDesc::mark_offset_in_bytes()));
+    __ lw(disp_hdr, Address(oop, oopDesc::mark_offset_in_bytes()));
 
     // Always do locking in runtime.
     if (EmitSync & 0x01) {
@@ -2062,7 +2062,7 @@ encode %{
     __ ori(tmp, disp_hdr, markOopDesc::unlocked_value);
 
     // Initialize the box. (Must happen before we update the object mark!)
-    __ sd(tmp, Address(box, BasicLock::displaced_header_offset_in_bytes()));
+    __ sw(tmp, Address(box, BasicLock::displaced_header_offset_in_bytes()));
 
     // Compare object markOop with an unlocked value (tmp) and if
     // equal exchange the stack address of our box with object markOop.
@@ -2086,7 +2086,7 @@ encode %{
     // hence we can store 0 as the displaced header in the box, which indicates that it is a
     // recursive lock.
     __ andr(tmp/*==0?*/, disp_hdr, tmp);
-    __ sd(tmp/*==0, perhaps*/, Address(box, BasicLock::displaced_header_offset_in_bytes()));
+    __ sw(tmp/*==0, perhaps*/, Address(box, BasicLock::displaced_header_offset_in_bytes()));
     __ mv(flag, tmp); // we can use the value of tmp as the result here
 
     if ((EmitSync & 0x02) == 0) {
@@ -2107,7 +2107,7 @@ encode %{
       // markOopDesc::monitor_value so use markOopDesc::unused_mark which has the
       // relevant bit set, and also matches ObjectSynchronizer::slow_enter.
       __ mv(tmp, (address)markOopDesc::unused_mark());
-      __ sd(tmp, Address(box, BasicLock::displaced_header_offset_in_bytes()));
+      __ sw(tmp, Address(box, BasicLock::displaced_header_offset_in_bytes()));
     }
 
     __ bind(cont);
@@ -2137,7 +2137,7 @@ encode %{
     }
 
     // Find the lock address and load the displaced header from the stack.
-    __ ld(disp_hdr, Address(box, BasicLock::displaced_header_offset_in_bytes()));
+    __ lw(disp_hdr, Address(box, BasicLock::displaced_header_offset_in_bytes()));
 
     // If the displaced header is 0, we have a recursive unlock.
     __ mv(flag, disp_hdr);
@@ -2145,7 +2145,7 @@ encode %{
 
     // Handle existing monitor.
     if ((EmitSync & 0x02) == 0) {
-      __ ld(tmp, Address(oop, oopDesc::mark_offset_in_bytes()));
+      __ lw(tmp, Address(oop, oopDesc::mark_offset_in_bytes()));
       __ andi(t0, disp_hdr, markOopDesc::monitor_value);
       __ bnez(t0, object_has_monitor);
     }
@@ -2165,20 +2165,20 @@ encode %{
     if ((EmitSync & 0x02) == 0) {
       __ bind(object_has_monitor);
       __ add(tmp, tmp, -markOopDesc::monitor_value); // monitor
-      __ ld(flag, Address(tmp, ObjectMonitor::owner_offset_in_bytes()));
-      __ ld(disp_hdr, Address(tmp, ObjectMonitor::recursions_offset_in_bytes()));
+      __ lw(flag, Address(tmp, ObjectMonitor::owner_offset_in_bytes()));
+      __ lw(disp_hdr, Address(tmp, ObjectMonitor::recursions_offset_in_bytes()));
       __ xorr(flag, flag, xthread); // Will be 0 if we are the owner.
       __ orr(flag, flag, disp_hdr); // Will be 0 if there are 0 recursions
       __ bnez(flag, cont);
 
-      __ ld(flag, Address(tmp, ObjectMonitor::EntryList_offset_in_bytes()));
-      __ ld(disp_hdr, Address(tmp, ObjectMonitor::cxq_offset_in_bytes()));
+      __ lw(flag, Address(tmp, ObjectMonitor::EntryList_offset_in_bytes()));
+      __ lw(disp_hdr, Address(tmp, ObjectMonitor::cxq_offset_in_bytes()));
       __ orr(flag, flag, disp_hdr); // Will be 0 if both are 0.
       __ bnez(flag, cont);
       // need a release store here
       __ la(tmp, Address(tmp, ObjectMonitor::owner_offset_in_bytes()));
       __ membar(MacroAssembler::LoadStore | MacroAssembler::StoreStore);
-      __ sd(zr, Address(tmp)); // set unowned
+      __ sw(zr, Address(tmp)); // set unowned
     }
 
     __ bind(cont);
@@ -3834,7 +3834,7 @@ pipe_class iload_reg_mem(iRegI dst, memory mem)
 %}
 
 // Load - reg, reg
-// E.g. LD    Rd, Rs
+// E.g. LW    Rd, Rs
 pipe_class iload_reg_reg(iRegI dst, iRegI src)
 %{
   single_instruction;
@@ -3847,7 +3847,7 @@ pipe_class iload_reg_reg(iRegI dst, iRegI src)
 //------- Store pipeline operations -----------------------
 
 // Store - zr, mem
-// E.g. SD    zr, mem
+// E.g. SW    zr, mem
 pipe_class istore_mem(memory mem)
 %{
   single_instruction;
@@ -3857,7 +3857,7 @@ pipe_class istore_mem(memory mem)
 %}
 
 // Store - reg, mem
-// E.g. SD    Rs, mem
+// E.g. SW    Rs, mem
 pipe_class istore_reg_mem(iRegI src, memory mem)
 %{
   single_instruction;
@@ -3868,7 +3868,7 @@ pipe_class istore_reg_mem(iRegI src, memory mem)
 %}
 
 // Store - reg, reg
-// E.g. SD    Rs2, Rs1
+// E.g. SW    Rs2, Rs1
 pipe_class istore_reg_reg(iRegI dst, iRegI src)
 %{
   single_instruction;
@@ -4161,10 +4161,10 @@ instruct loadUI2L(iRegLNoSp dst, memory mem, immL_32bits mask)
   match(Set dst (AndL (ConvI2L (LoadI mem)) mask));
 
   ins_cost(LOAD_COST);
-  format %{ "lwu  $dst, $mem\t# int, #@loadUI2L" %}
+  format %{ "lw  $dst, $mem\t# int, #@loadUI2L" %}
 
   ins_encode %{
-    __ lwu(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4176,10 +4176,10 @@ instruct loadL(iRegLNoSp dst, memory mem)
   match(Set dst (LoadL mem));
 
   ins_cost(LOAD_COST);
-  format %{ "ld  $dst, $mem\t# int, #@loadL" %}
+  format %{ "lw  $dst, $mem\t# int, #@loadL" %}
 
   ins_encode %{
-    __ ld(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4191,10 +4191,10 @@ instruct loadRange(iRegINoSp dst, memory mem)
   match(Set dst (LoadRange mem));
 
   ins_cost(LOAD_COST);
-  format %{ "lwu  $dst, $mem\t# range, #@loadRange" %}
+  format %{ "lw  $dst, $mem\t# range, #@loadRange" %}
 
   ins_encode %{
-    __ lwu(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4206,10 +4206,10 @@ instruct loadP(iRegPNoSp dst, memory mem)
   match(Set dst (LoadP mem));
 
   ins_cost(LOAD_COST);
-  format %{ "ld  $dst, $mem\t# ptr, #@loadP" %}
+  format %{ "lw  $dst, $mem\t# ptr, #@loadP" %}
 
   ins_encode %{
-    __ ld(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4221,10 +4221,10 @@ instruct loadN(iRegNNoSp dst, memory mem)
   match(Set dst (LoadN mem));
 
   ins_cost(LOAD_COST);
-  format %{ "lwu  $dst, $mem\t# loadN, compressed ptr, #@loadN" %}
+  format %{ "lw  $dst, $mem\t# loadN, compressed ptr, #@loadN" %}
 
   ins_encode %{
-    __ lwu(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4236,10 +4236,10 @@ instruct loadKlass(iRegPNoSp dst, memory mem)
   match(Set dst (LoadKlass mem));
 
   ins_cost(LOAD_COST);
-  format %{ "ld  $dst, $mem\t# class, #@loadKlass" %}
+  format %{ "lw  $dst, $mem\t# class, #@loadKlass" %}
 
   ins_encode %{
-    __ ld(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4251,10 +4251,10 @@ instruct loadNKlass(iRegNNoSp dst, memory mem)
   match(Set dst (LoadNKlass mem));
 
   ins_cost(LOAD_COST);
-  format %{ "lwu  $dst, $mem\t# loadNKlass, compressed class ptr, #@loadNKlass" %}
+  format %{ "lw  $dst, $mem\t# loadNKlass, compressed class ptr, #@loadNKlass" %}
 
   ins_encode %{
-    __ lwu(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(iload_reg_mem);
@@ -4608,10 +4608,10 @@ instruct storeL(iRegL src, memory mem)
   match(Set mem (StoreL mem src));
 
   ins_cost(STORE_COST);
-  format %{ "sd  $src, $mem\t# long, #@storeL" %}
+  format %{ "sw  $src, $mem\t# long, #@storeL" %}
 
   ins_encode %{
-    __ sd(as_Register($src$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ sw(as_Register($src$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(istore_reg_mem);
@@ -4623,10 +4623,10 @@ instruct storeimmL0(immL0 zero, memory mem)
   match(Set mem (StoreL mem zero));
 
   ins_cost(STORE_COST);
-  format %{ "sd  zr, $mem\t# long, #@storeimmL0" %}
+  format %{ "sw  zr, $mem\t# long, #@storeimmL0" %}
 
   ins_encode %{
-    __ sd(zr, Address(as_Register($mem$$base), $mem$$disp));
+    __ sw(zr, Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(istore_mem);
@@ -4638,10 +4638,10 @@ instruct storeP(iRegP src, memory mem)
   match(Set mem (StoreP mem src));
 
   ins_cost(STORE_COST);
-  format %{ "sd  $src, $mem\t# ptr, #@storeP" %}
+  format %{ "sw  $src, $mem\t# ptr, #@storeP" %}
 
   ins_encode %{
-    __ sd(as_Register($src$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ sw(as_Register($src$$reg), Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(istore_reg_mem);
@@ -4653,10 +4653,10 @@ instruct storeimmP0(immP0 zero, memory mem)
   match(Set mem (StoreP mem zero));
 
   ins_cost(STORE_COST);
-  format %{ "sd zr, $mem\t# ptr, #@storeimmP0" %}
+  format %{ "sw zr, $mem\t# ptr, #@storeimmP0" %}
 
   ins_encode %{
-    __ sd(zr, Address(as_Register($mem$$base), $mem$$disp));
+    __ sw(zr, Address(as_Register($mem$$base), $mem$$disp));
   %}
 
   ins_pipe(istore_mem);
@@ -7757,10 +7757,10 @@ instruct MoveD2L_stack_reg(iRegLNoSp dst, stackSlotD src) %{
 
   ins_cost(LOAD_COST);
 
-  format %{ "ld  $dst, $src\t#@MoveD2L_stack_reg" %}
+  format %{ "lw  $dst, $src\t#@MoveD2L_stack_reg" %}
 
   ins_encode %{
-    __ ld(as_Register($dst$$reg), Address(sp, $src$$disp));
+    __ lw(as_Register($dst$$reg), Address(sp, $src$$disp));
   %}
 
   ins_pipe(iload_reg_reg);
@@ -7847,10 +7847,10 @@ instruct MoveL2D_reg_stack(stackSlotD dst, iRegL src) %{
 
   ins_cost(STORE_COST);
 
-  format %{ "sd  $src, $dst\t#@MoveL2D_reg_stack" %}
+  format %{ "sw  $src, $dst\t#@MoveL2D_reg_stack" %}
 
   ins_encode %{
-    __ sd(as_Register($src$$reg), Address(sp, $dst$$disp));
+    __ sw(as_Register($src$$reg), Address(sp, $dst$$disp));
   %}
 
   ins_pipe(istore_reg_reg);
@@ -9759,7 +9759,7 @@ instruct safePoint(iRegP poll)
 
   ins_cost(2 * LOAD_COST);
   format %{
-    "lwu zr, [$poll]\t# Safepoint: poll for GC, #@safePoint"
+    "lw zr, [$poll]\t# Safepoint: poll for GC, #@safePoint"
   %}
   ins_encode %{
     __ read_polling_page(as_Register($poll$$reg), 0, relocInfo::poll_type);

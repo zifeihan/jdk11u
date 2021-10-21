@@ -3047,7 +3047,7 @@ address MacroAssembler::emit_trampoline_stub(int insts_call_instruction_offset,
   // - load the call
   // - call
   Label target;
-  lw(t0, target);  // auipc + ld
+  lw(t0, target);  // auipc + lw
   jr(t0);          // jalr
   bind(target);
   assert(offset() - stub_start_offset == NativeCallTrampolineStub::data_offset,
@@ -3674,7 +3674,7 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
   const int firstStep = isLL ? 7 : 3;
 
   const int ASIZE = 256;
-  const int STORE_BYTES = 8; // 8 bytes stored per instruction(sd)
+  const int STORE_BYTES = 4; // 8 bytes stored per instruction(sw)
 
   sub(sp, sp, ASIZE);
 
@@ -3902,8 +3902,8 @@ void MacroAssembler::string_indexof_linearscan(Register haystack, Register needl
                               (chr_insn)&MacroAssembler::lhu;
   chr_insn haystack_load_1chr = haystack_isL ? (chr_insn)&MacroAssembler::lbu :
                                 (chr_insn)&MacroAssembler::lhu;
-  chr_insn load_2chr = isLL ? (chr_insn)&MacroAssembler::lhu : (chr_insn)&MacroAssembler::lwu;
-  chr_insn load_4chr = isLL ? (chr_insn)&MacroAssembler::lwu : (chr_insn)&MacroAssembler::ld;
+  chr_insn load_2chr = isLL ? (chr_insn)&MacroAssembler::lhu : (chr_insn)&MacroAssembler::lw;
+  chr_insn load_4chr = (chr_insn)&MacroAssembler::lw;
 
   Label DO1, DO2, DO3, MATCH, NOMATCH, DONE;
 
@@ -4299,7 +4299,7 @@ void MacroAssembler::fill_words(Register base, Register cnt, Register value)
   slli(t1, t0, 2);
   add(base, base, t1); // align 4, so first sw n % 8 = mod, next loop sw 8 * n.
   la(t1, entry);
-  slli(t0, t0, 2); // sd_inst_nums * 4; t0 is cnt % 8, so t1 = t1 - sd_inst_nums * 4, 4 is sizeof(inst)
+  slli(t0, t0, 2); // sw_inst_nums * 4; t0 is cnt % 8, so t1 = t1 - sw_inst_nums * 4, 4 is sizeof(inst)
   sub(t1, t1, t0);
   jr(t1);
 
