@@ -112,7 +112,7 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
     }
     case T_DOUBLE: {
       __ fld(f28, Address(roffset, 0)); // f28 as temporaries
-      __ fmv_x_d(result, f28); // d{63--0}-->x
+      __ fmv_x_w(result, f28); // d{31--0}-->x
       break;
     }
     default:        ShouldNotReachHere();
@@ -126,7 +126,7 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
 
   switch (type) {
     case T_FLOAT:   __ fmv_w_x(f10, result); break;
-    case T_DOUBLE:  __ fmv_d_x(f10, result); break;
+    case T_DOUBLE:  __ fmv_w_x(f10, result); break;
     default:        __ mv(x10, result);   break;
   }
   __ ret();

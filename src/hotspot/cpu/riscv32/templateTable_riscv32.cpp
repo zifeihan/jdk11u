@@ -292,7 +292,7 @@ void TemplateTable::dconst(int value)
   __ mv(t0, (intptr_t)dBuf);
   switch (value) {
   case 0:
-    __ fmv_d_x(f10, zr);
+    __ fmv_w_x(f10, zr);
     break;
   case 1:
     __ fld(f10, t0, 0);
@@ -1680,16 +1680,16 @@ void TemplateTable::convert()
     __ add(x10, x10, zr);
     break;
   case Bytecodes::_l2f:
-    __ fcvt_s_l(f10, x10);
+    __ fcvt_s_w(f10, x10);
     break;
   case Bytecodes::_l2d:
-    __ fcvt_d_l(f10, x10);
+    __ fcvt_d_w(f10, x10);
     break;
   case Bytecodes::_f2i:
     __ fcvt_w_s_safe(x10, f10);
     break;
   case Bytecodes::_f2l:
-    __ fcvt_l_s_safe(x10, f10);
+    __ fcvt_w_s_safe(x10, f10);
     break;
   case Bytecodes::_f2d:
     __ fcvt_d_s(f10, f10);
@@ -1698,7 +1698,7 @@ void TemplateTable::convert()
     __ fcvt_w_d_safe(x10, f10);
     break;
   case Bytecodes::_d2l:
-    __ fcvt_l_d_safe(x10, f10);
+    __ fcvt_w_d_safe(x10, f10);
     break;
   case Bytecodes::_d2f:
     __ fcvt_s_d(f10, f10);
