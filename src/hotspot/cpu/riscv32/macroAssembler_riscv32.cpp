@@ -1180,7 +1180,7 @@ static int patch_addr_in_movptr(address branch, address target) {
 }
 
 static int patch_imm_in_li(address branch, int32_t target) {
-  const int LI32_INSTRUCTIONS_NUM = 2;                                                      // lui + addiw
+  const int LI32_INSTRUCTIONS_NUM = 2;                                                      // lui + addi
   int32_t upper = target;
   int32_t lower = (target << 20) >> 20;
   upper -= lower;
@@ -1338,22 +1338,16 @@ void MacroAssembler::mv(Register Rd, RegisterOrConstant src) {
 
 void MacroAssembler::andrw(Register Rd, Register Rs1, Register Rs2) {
   andr(Rd, Rs1, Rs2);
-  // addw: The result is clipped to 32 bits, then the sign bit is extended,
-  // and the result is stored in Rd
   add(Rd, Rd, zr);
 }
 
 void MacroAssembler::orrw(Register Rd, Register Rs1, Register Rs2) {
   orr(Rd, Rs1, Rs2);
-  // addw: The result is clipped to 32 bits, then the sign bit is extended,
-  // and the result is stored in Rd
   add(Rd, Rd, zr);
 }
 
 void MacroAssembler::xorrw(Register Rd, Register Rs1, Register Rs2) {
   xorr(Rd, Rs1, Rs2);
-  // addw: The result is clipped to 32 bits, then the sign bit is extended,
-  // and the result is stored in Rd
   add(Rd, Rd, zr);
 }
 
