@@ -292,7 +292,7 @@ void TemplateTable::dconst(int value)
   __ mv(t0, (intptr_t)dBuf);
   switch (value) {
   case 0:
-    __ fmv_d_x(f10, zr);
+    __ fmv_w_x(f10, zr);
     break;
   case 1:
     __ fld(f10, t0, 0);

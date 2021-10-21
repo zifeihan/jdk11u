@@ -4330,9 +4330,7 @@ void MacroAssembler:: FLOATCVT##_safe(Register dst, FloatRegister src, Register 
 }
 
 FCVT_SAFE(fcvt_w_s, feq_s)
-FCVT_SAFE(fcvt_l_s, feq_s)
 FCVT_SAFE(fcvt_w_d, feq_d)
-FCVT_SAFE(fcvt_l_d, feq_d)
 
 #undef FCVT_SAFE
 
