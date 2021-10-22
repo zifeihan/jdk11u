@@ -2690,7 +2690,7 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
 
 #ifdef ASSERT
     // Verify the correct encoding of the poll we're about to skip.
-    // See NativeInstruction::is_lwu_to_zr()
+    // See NativeInstruction::is_lw_to_zr()
     __ lw(t0, Address(x18));
     __ andi(t1, t0, 0b0000011);
     __ mv(t2, 0b0000011);

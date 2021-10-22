@@ -50,10 +50,10 @@ bool NativeInstruction::is_pc_relative_at(address instr) {
   return false;
 }
 
-// ie:ld(Rd, Label)
+// ie:lw(Rd, Label)
 bool NativeInstruction::is_load_pc_relative_at(address instr) {
   if (is_auipc_at(instr) && // auipc
-      is_ld_at(instr + 4) && // ld
+      is_lw_at(instr + 4) && // lw
       check_load_pc_relative_data_dependency(instr)) {
       return true;
   }
@@ -259,14 +259,14 @@ address NativeGeneralJump::jump_destination() const {
 //-------------------------------------------------------------------
 
 bool NativeInstruction::is_safepoint_poll() {
-  return is_lwu_to_zr(address(this));
+  return is_lw_to_zr(address(this));
 }
 
-bool NativeInstruction::is_lwu_to_zr(address instr) {
+bool NativeInstruction::is_lw_to_zr(address instr) {
   assert_cond(instr != NULL);
   unsigned insn = *(unsigned*)instr;
   return (Assembler::extract(insn, 6, 0) == 0b0000011 &&
-          Assembler::extract(insn, 14, 12) == 0b110 &&
+          Assembler::extract(insn, 14, 12) == 0b010 &&
           Assembler::extract(insn, 11, 7) == 0b00000); // zr
 }
 
