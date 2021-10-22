@@ -1924,7 +1924,7 @@ void MacroAssembler::lookup_interface_method(Register recv_klass,
   lw(scan_temp, Address(recv_klass, Klass::vtable_length_offset()));
 
   // %%% Could store the aligned, prescaled offset in the klassoop.
-  slli(scan_temp, scan_temp, 3);
+  slli(scan_temp, scan_temp, 2);
   add(scan_temp, recv_klass, scan_temp);
   add(scan_temp, scan_temp, vtable_base);
 
@@ -1932,9 +1932,9 @@ void MacroAssembler::lookup_interface_method(Register recv_klass,
     // Adjust recv_klass by scaled itable_index, so we can free itable_index.
     assert(itableMethodEntry::size() * wordSize == wordSize, "adjust the scaling in the code below");
     if (itable_index.is_register()) {
-      slli(t0, itable_index.as_register(), 3);
+      slli(t0, itable_index.as_register(), 2);
     } else {
-      li(t0, itable_index.as_constant() << 3);
+      li(t0, itable_index.as_constant() << 2);
     }
     add(recv_klass, recv_klass, t0);
     if (itentry_off) {
