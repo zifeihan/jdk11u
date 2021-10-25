@@ -498,7 +498,7 @@ void TemplateTable::condy_helper(Label& Done)
   // VMr2 = flags = (tos, off) using format of CPCE::_flags
   __ mv(off, flags);
   __ mv(t0, ConstantPoolCacheEntry::field_index_mask);
-  __ andrw(off, off, t0);
+  __ andr(off, off, t0);
 
   __ add(off, obj, off);
   const Address field(off, 0); // base + R---->base + offset

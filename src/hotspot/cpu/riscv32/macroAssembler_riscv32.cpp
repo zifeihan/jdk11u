@@ -1336,21 +1336,6 @@ void MacroAssembler::mv(Register Rd, RegisterOrConstant src) {
   }
 }
 
-void MacroAssembler::andrw(Register Rd, Register Rs1, Register Rs2) {
-  andr(Rd, Rs1, Rs2);
-  add(Rd, Rd, zr);
-}
-
-void MacroAssembler::orrw(Register Rd, Register Rs1, Register Rs2) {
-  orr(Rd, Rs1, Rs2);
-  add(Rd, Rd, zr);
-}
-
-void MacroAssembler::xorrw(Register Rd, Register Rs1, Register Rs2) {
-  xorr(Rd, Rs1, Rs2);
-  add(Rd, Rd, zr);
-}
-
 // Note: load_unsigned_short used to be called load_unsigned_word.
 int MacroAssembler::load_unsigned_short(Register dst, Address src) {
   int off = offset();

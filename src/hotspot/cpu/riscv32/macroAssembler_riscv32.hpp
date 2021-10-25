@@ -500,11 +500,6 @@ class MacroAssembler: public Assembler {
   void mv(Register Rd, address addr);
   void mv(Register Rd, RegisterOrConstant src);
 
-  // logic
-  void andrw(Register Rd, Register Rs1, Register Rs2);
-  void orrw(Register Rd, Register Rs1, Register Rs2);
-  void xorrw(Register Rd, Register Rs1, Register Rs2);
-
   // grev
   void grevh(Register Rd, Register Rs, Register Rtmp = t0);                            // basic reverse bytes in 16-bit halfwords, sign-extend
   void grev16w(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);    // reverse bytes in 16-bit halfwords(32), sign-extend
