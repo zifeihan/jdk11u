@@ -495,7 +495,6 @@ class MacroAssembler: public Assembler {
 
   // mv
   void mv(Register Rd, int imm);
-  void mvw(Register Rd, int32_t imm32);
   void mv(Register Rd, Address dest);
   void mv(Register Rd, address addr);
   void mv(Register Rd, RegisterOrConstant src);

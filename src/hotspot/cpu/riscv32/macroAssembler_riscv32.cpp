@@ -1312,10 +1312,6 @@ void MacroAssembler::mv(Register Rd, int imm) {
   li(Rd, imm);
 }
 
-void MacroAssembler::mvw(Register Rd, int32_t imm32) {
-  mv(Rd, imm32);
-}
-
 void MacroAssembler::mv(Register Rd, Address dest) {
   assert(dest.getMode() == Address::literal, "Address mode should be Address::literal");
   code_section()->relocate(pc(), dest.rspec());

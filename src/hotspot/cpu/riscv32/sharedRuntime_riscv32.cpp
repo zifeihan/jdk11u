@@ -2146,7 +2146,7 @@ void SharedRuntime::generate_deopt_blob() {
   map = RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
   // Normal deoptimization.  Save exec mode for unpack_frames.
-  __ mvw(xcpool, Deoptimization::Unpack_deopt); // callee-saved
+  __ mv(xcpool, Deoptimization::Unpack_deopt); // callee-saved
   __ j(cont);
 
   int reexecute_offset = __ pc() - start;
@@ -2157,7 +2157,7 @@ void SharedRuntime::generate_deopt_blob() {
   // No need to update map as each call to save_live_registers will produce identical oopmap
   (void) RegisterSaver::save_live_registers(masm, 0, &frame_size_in_words);
 
-  __ mvw(xcpool, Deoptimization::Unpack_reexecute); // callee-saved
+  __ mv(xcpool, Deoptimization::Unpack_reexecute); // callee-saved
   __ j(cont);
 
   int exception_offset = __ pc() - start;
@@ -2452,7 +2452,7 @@ void SharedRuntime::generate_uncommon_trap_blob() {
   // n.b. 3 gp args, 0 fp args, integral return type
 
   __ mv(c_rarg0, xthread);
-  __ mvw(c_rarg2, (unsigned)Deoptimization::Unpack_uncommon_trap);
+  __ mv(c_rarg2, (unsigned)Deoptimization::Unpack_uncommon_trap);
   int32_t offset = 0;
   __ la_patchable(t0,
         RuntimeAddress(CAST_FROM_FN_PTR(address,
@@ -2477,7 +2477,7 @@ void SharedRuntime::generate_uncommon_trap_blob() {
 #ifdef ASSERT
   { Label L;
     __ lw(t0, Address(x14, Deoptimization::UnrollBlock::unpack_kind_offset_in_bytes()));
-    __ mvw(t1, Deoptimization::Unpack_uncommon_trap);
+    __ mv(t1, Deoptimization::Unpack_uncommon_trap);
     __ beq(t0, t1, L);
     __ stop("SharedRuntime::generate_deopt_blob: last_Java_fp not cleared");
     __ bind(L);
@@ -2580,7 +2580,7 @@ void SharedRuntime::generate_uncommon_trap_blob() {
 
   // sp should already be aligned
   __ mv(c_rarg0, xthread);
-  __ mvw(c_rarg1, (unsigned)Deoptimization::Unpack_uncommon_trap);
+  __ mv(c_rarg1, (unsigned)Deoptimization::Unpack_uncommon_trap);
   offset = 0;
   __ la_patchable(t0, RuntimeAddress(CAST_FROM_FN_PTR(address, Deoptimization::unpack_frames)), offset);
   __ jalr(x1, t0, offset);

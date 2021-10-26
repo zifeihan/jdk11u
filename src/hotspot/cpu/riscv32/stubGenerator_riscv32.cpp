@@ -1663,7 +1663,7 @@ class StubGenerator: public StubCodeGenerator {
     // Handle objArrays completely differently...
     const jint objArray_lh = Klass::array_layout_helper(T_OBJECT);
     __ lw(lh, Address(scratch_src_klass, lh_offset));
-    __ mvw(t0, objArray_lh);
+    __ mv(t0, objArray_lh);
     __ beq(lh, t0, L_objArray);
 
     // if [src->klass() != dst->klass()] then return -1
@@ -1680,7 +1680,7 @@ class StubGenerator: public StubCodeGenerator {
     {
       BLOCK_COMMENT("assert primitive array {");
       Label L;
-      __ mvw(t1, Klass::_lh_array_tag_type_value << Klass::_lh_array_tag_shift);
+      __ mv(t1, Klass::_lh_array_tag_type_value << Klass::_lh_array_tag_shift);
       __ bge(lh, t1, L);
       __ stop("must be a primitive array");
       __ bind(L);
@@ -1757,7 +1757,7 @@ class StubGenerator: public StubCodeGenerator {
       Label L;
       __ andi(lh, lh, Klass::_lh_log2_element_size_mask); // lh -> x22_elsize
       __ add(lh, lh, zr);
-      __ mvw(t0, LogBytesPerLong);
+      __ mv(t0, LogBytesPerLong);
       __ beq(x22_elsize, t0, L);
       __ stop("must be long copy, but elsize is wrong");
       __ bind(L);
@@ -1799,7 +1799,7 @@ class StubGenerator: public StubCodeGenerator {
     {
       // Before looking at dst.length, make sure dst is also an objArray.
       __ lw(t0, Address(t2, lh_offset));
-      __ mvw(t1, objArray_lh);
+      __ mv(t1, objArray_lh);
       __ bne(t0, t1, L_failed);
 
       // It is safe to examine both src.length and dst.length.
