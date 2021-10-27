@@ -88,7 +88,7 @@ static inline Address iaddress(Register r,  Register temp, InterpreterMacroAssem
 static inline Address laddress(Register r, Register temp,
                                InterpreterMacroAssembler* _masm) {
   assert_cond(_masm != NULL);
-  _masm->slli(temp, r, 3);
+  _masm->slli(temp, r, 2);
   _masm->add(temp, xlocals, temp);
   return Address(temp, Interpreter::local_offset_in_bytes(1));;
 }
@@ -96,7 +96,7 @@ static inline Address laddress(Register r, Register temp,
 static inline Address haddress(Register r, Register temp,
                                InterpreterMacroAssembler* _masm) {
   assert_cond(_masm != NULL);
-  _masm->slli(temp, r, 3);
+  _masm->slli(temp, r, 2);
   _masm->add(temp, xlocals, temp);
   return Address(temp, Interpreter::local_offset_in_bytes(0));;
 }
