@@ -548,9 +548,11 @@ class MacroAssembler: public Assembler {
   void atomic_addalw(Register prev, RegisterOrConstant incr, Register addr);
 
   void atomic_xchg(Register prev, Register newv, Register addr);
+  void atomic_xchgw(Register prev, Register newv, Register addr);
   void atomic_xchgal(Register prev, Register newv, Register addr);
-  void atomic_xchgu(Register prev, Register newv, Register addr);
-  void atomic_xchgalu(Register prev, Register newv, Register addr);
+  void atomic_xchgalw(Register prev, Register newv, Register addr);
+  void atomic_xchgwu(Register prev, Register newv, Register addr);
+  void atomic_xchgalwu(Register prev, Register newv, Register addr);
 
   // Biased locking support
   // lock_reg and obj_reg must be loaded up with the appropriate values.

@@ -5622,10 +5622,10 @@ instruct get_and_setN(indirect mem, iRegN newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgu $prev, $newv, [$mem]\t#@get_and_setN" %}
+  format %{ "atomic_xchgwu $prev, $newv, [$mem]\t#@get_and_setN" %}
 
   ins_encode %{
-    __ atomic_xchgu($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchgwu($prev$$Register, $newv$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5688,10 +5688,10 @@ instruct get_and_setNAcq(indirect mem, iRegN newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgu_acq $prev, $newv, [$mem]\t#@get_and_setNAcq" %}
+  format %{ "atomic_xchgwu_acq $prev, $newv, [$mem]\t#@get_and_setNAcq" %}
 
   ins_encode %{
-    __ atomic_xchgalu($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchgalwu($prev$$Register, $newv$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);

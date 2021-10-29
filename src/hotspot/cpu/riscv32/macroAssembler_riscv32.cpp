@@ -2318,7 +2318,9 @@ void MacroAssembler::atomic_##NAME(Register prev, RegisterOrConstant incr, Regis
 }
 
 ATOMIC_OP(add, amoadd_w, Assembler::relaxed, Assembler::relaxed)
+ATOMIC_OP(addw, amoadd_w, Assembler::relaxed, Assembler::relaxed)
 ATOMIC_OP(addal, amoadd_w, Assembler::aq, Assembler::rl)
+ATOMIC_OP(addalw, amoadd_w, Assembler::aq, Assembler::rl)
 
 #undef ATOMIC_OP
 
@@ -2330,19 +2332,20 @@ void MacroAssembler::atomic_##OP(Register prev, Register newv, Register addr) { 
 }
 
 ATOMIC_XCHG(xchg, amoswap_w, Assembler::relaxed, Assembler::relaxed)
+ATOMIC_XCHG(xchgw, amoswap_w, Assembler::relaxed, Assembler::relaxed)
 ATOMIC_XCHG(xchgal, amoswap_w, Assembler::aq, Assembler::rl)
+ATOMIC_XCHG(xchgalw, amoswap_w, Assembler::aq, Assembler::rl)
 
 #undef ATOMIC_XCHG
 
 #define ATOMIC_XCHGU(OP1, OP2)                                                       \
 void MacroAssembler::atomic_##OP1(Register prev, Register newv, Register addr) {     \
   atomic_##OP2(prev, newv, addr);                                                    \
-  clear_upper_bits(prev, 16);                                                        \
   return;                                                                            \
 }
 
-ATOMIC_XCHGU(xchgu, xchg)
-ATOMIC_XCHGU(xchgalu, xchgal)
+ATOMIC_XCHGU(xchgwu, xchgw)
+ATOMIC_XCHGU(xchgalwu, xchgalw)
 
 #undef ATOMIC_XCHGU
 
