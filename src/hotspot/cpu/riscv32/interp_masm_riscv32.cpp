@@ -119,6 +119,8 @@ void InterpreterMacroAssembler::load_earlyret_value(TosState state) {
   const Address tos_addr(x12, JvmtiThreadState::earlyret_tos_offset());
   const Address oop_addr(x12, JvmtiThreadState::earlyret_oop_offset());
   const Address val_addr(x12, JvmtiThreadState::earlyret_value_offset());
+  const Address val_addr_hi(x12, JvmtiThreadState::earlyret_value_offset()
+                             + in_ByteSize(wordSize));
   switch (state) {
     case atos:
       lw(x10, oop_addr);
@@ -126,8 +128,7 @@ void InterpreterMacroAssembler::load_earlyret_value(TosState state) {
       verify_oop(x10);
       break;
     case ltos:
-      lw(x10, val_addr);
-      break;
+      lw(x11, val_addr_hi);
     case btos:  // fall through
     case ztos:  // fall through
     case ctos:  // fall through
@@ -340,7 +341,8 @@ void InterpreterMacroAssembler::pop_i(Register r) {
 
 void InterpreterMacroAssembler::pop_l(Register r) {
   lw(r, Address(esp, 0));
-  addi(esp, esp, 2 * Interpreter::stackElementSize);
+  lw(x11, Address(esp, wordSize));
+  addi(esp, esp, 2 * wordSize);
 }
 
 void InterpreterMacroAssembler::push_ptr(Register r) {
