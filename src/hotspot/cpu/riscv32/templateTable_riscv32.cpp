@@ -262,6 +262,7 @@ void TemplateTable::lconst(int value)
 {
   transition(vtos, ltos);
   __ li(x10, value);
+  __ li(x11, 0);
 }
 
 void TemplateTable::fconst(int value)
