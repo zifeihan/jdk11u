@@ -69,9 +69,11 @@ void InterpreterRuntime::SignatureHandlerGenerator::pass_int() {
 
 void InterpreterRuntime::SignatureHandlerGenerator::pass_long() {
   const Address src(from(), Interpreter::local_offset_in_bytes(offset() + 1));
+  const Address high(from(), Interpreter::local_offset_in_bytes(offset()));
 
   if (_num_int_args < Argument::n_int_register_parameters_c - 1) {
     __ lw(g_INTArgReg[++_num_int_args], src);
+    __ lw(g_INTArgReg[++_num_int_args], high);
   } else {
     __ lw(x10, src);
     __ sw(x10, Address(to(), _stack_offset));
