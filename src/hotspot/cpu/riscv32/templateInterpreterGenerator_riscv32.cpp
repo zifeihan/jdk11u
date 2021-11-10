@@ -1616,7 +1616,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ lhu(t0, Address(t0, ConstMethod::max_stack_offset()));
   __ add(t0, t0, frame::interpreter_frame_monitor_size() + 4);
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
-  __ slli(t0, t0, 3);
+  __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
   __ andi(sp, t0, -16);
 
@@ -1748,7 +1748,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ lhu(t0, Address(t0, ConstMethod::max_stack_offset()));
   __ add(t0, t0, frame::interpreter_frame_monitor_size() + 4);
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
-  __ slli(t0, t0, 3);
+  __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
   __ andi(sp, t0, -16);
 
@@ -1774,7 +1774,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   // sp: expression stack of caller
   // fp: fp of caller
   // FIXME: There's no point saving LR here because VM calls don't trash it
-  __ sub(sp, sp, 2 * wordSize);
+  __ sub(sp, sp, wordSize);
   __ sw(x10, Address(sp, 0));                   // save exception
   __ sw(lr, Address(sp, wordSize));             // save return address
   __ super_call_VM_leaf(CAST_FROM_FN_PTR(address,
@@ -1783,7 +1783,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ mv(x11, x10);                              // save exception handler
   __ lw(x10, Address(sp, 0));                   // restore exception
   __ lw(lr, Address(sp, wordSize));             // restore return address
-  __ add(sp, sp, 2 * wordSize);
+  __ add(sp, sp, wordSize);
   // We might be returning to a deopt handler that expects x13 to
   // contain the exception pc
   __ mv(x13, lr);
