@@ -458,7 +458,7 @@ void TemplateTable::ldc2_w()
     __ bne(x12, t1, notDouble);
 
     // dtos
-    __ slli(x12, x10, 3);
+    __ slli(x12, x10, 2);
     __ add(x12, x11, x12);
     __ fld(f10, Address(x12, base_offset));
     __ push_d(f10);
@@ -469,8 +469,9 @@ void TemplateTable::ldc2_w()
     __ bne(x12, t1, notLong);
 
     // ltos
-    __ slli(x10, x10, 3);
+    __ slli(x10, x10, 2);
     __ add(x10, x11, x10);
+    __ lw(x11, Address(x10, base_offset + wordSize));
     __ lw(x10, Address(x10, base_offset));
     __ push_l(x10);
     __ j(Done);
