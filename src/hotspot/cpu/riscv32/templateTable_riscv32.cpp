@@ -368,7 +368,7 @@ void TemplateTable::ldc(bool wide)
   __ bne(x13, t1, notFloat);
 
   // ftos
-  __ slli(x11, x11, 3);
+  __ slli(x11, x11, 2);
   __ add(x11, x12, x11);
   __ flw(f10, Address(x11, base_offset));
   __ push_f(f10);
@@ -380,7 +380,7 @@ void TemplateTable::ldc(bool wide)
   __ bne(x13, t1, notInt);
 
   // itos
-  __ slli(x11, x11, 3);
+  __ slli(x11, x11, 2);
   __ add(x11, x12, x11);
   __ lw(x10, Address(x11, base_offset));
   __ push_i(x10);
