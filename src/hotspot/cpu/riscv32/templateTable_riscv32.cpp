@@ -4076,7 +4076,7 @@ void TemplateTable::wide()
 {
   __ load_unsigned_byte(x9, at_bcp(1));
   __ mv(t0, (address)Interpreter::_wentry_point);
-  __ slli(t1, x9, 3);
+  __ slli(t1, x9, 2);
   __ add(t0, t1, t0);
   __ lw(t0, Address(t0));
   __ jr(t0);
@@ -4088,13 +4088,13 @@ void TemplateTable::multianewarray() {
   __ load_unsigned_byte(x10, at_bcp(3)); // get number of dimensions
   // last dim is on top of stack; we want address of first one:
   // first_addr = last_addr + (ndims - 1) * wordSize
-  __ slli(c_rarg1, x10, 3);
+  __ slli(c_rarg1, x10, 2);
   __ add(c_rarg1, c_rarg1, esp);
   __ sub(c_rarg1, c_rarg1, wordSize);
   call_VM(x10,
           CAST_FROM_FN_PTR(address, InterpreterRuntime::multianewarray),
           c_rarg1);
   __ load_unsigned_byte(x11, at_bcp(3));
-  __ slli(t0, x11, 3);
+  __ slli(t0, x11, 2);
   __ add(esp, esp, t0);
 }
