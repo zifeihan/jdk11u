@@ -1055,9 +1055,9 @@ void TemplateTable::wide_istore() {
 void TemplateTable::wide_lstore() {
   transition(vtos, vtos);
   __ pop_l();
-  locals_index_wide(x12);
-  __ sw(x10, laddress(x12, t0, _masm));
-  __ sw(x11, haddress(x12, t0, _masm));
+  locals_index_wide(x13);
+  __ sw(x10, laddress(x13, t0, _masm));
+  __ sw(x11, haddress(x13, t0, _masm));
 }
 
 void TemplateTable::wide_fstore() {
@@ -1402,14 +1402,14 @@ void TemplateTable::lop2(Operation op)
 {
   transition(ltos, ltos);
   // x10 <== x11 op x10
-  __ pop_l(x11);
+  __ pop_l(x12, x13);
   switch (op) {
-  case add  : __ add(x10, x11, x10);  break;
-  case sub  : __ sub(x10, x11, x10);  break;
-  case mul  : __ mul(x10, x11, x10);  break;
-  case _and : __ andr(x10, x11, x10); break;
-  case _or  : __ orr(x10, x11, x10);  break;
-  case _xor : __ xorr(x10, x11, x10); break;
+  case add  : __ add(x10, x12, x10);  break;
+  case sub  : __ sub(x10, x12, x10);  break;
+  case mul  : __ mul(x10, x12, x10);  break;
+  case _and : __ andr(x10, x12, x10); break;
+  case _or  : __ orr(x10, x12, x10);  break;
+  case _xor : __ xorr(x10, x12, x10); break;
   default   : ShouldNotReachHere();
   }
 }
@@ -1445,8 +1445,8 @@ void TemplateTable::irem()
 void TemplateTable::lmul()
 {
   transition(ltos, ltos);
-  __ pop_l(x11);
-  __ mul(x10, x10, x11);
+  __ pop_l(x12, x13);
+  __ mul(x10, x10, x12);
 }
 
 void TemplateTable::ldiv()
@@ -1458,9 +1458,9 @@ void TemplateTable::ldiv()
   __ mv(t0, Interpreter::_throw_ArithmeticException_entry);
   __ jr(t0);
   __ bind(no_div0);
-  __ pop_l(x11);
+  __ pop_l(x12, x13);
   // x10 <== x11 ldiv x10
-  __ corrected_idivq(x10, x11, x10, /* want_remainder */ false);
+  __ corrected_idivq(x10, x12, x10, /* want_remainder */ false);
 }
 
 void TemplateTable::lrem()
@@ -1472,33 +1472,33 @@ void TemplateTable::lrem()
   __ mv(t0, Interpreter::_throw_ArithmeticException_entry);
   __ jr(t0);
   __ bind(no_div0);
-  __ pop_l(x11);
+  __ pop_l(x12, x13);
   // x10 <== x11 lrem x10
-  __ corrected_idivq(x10, x11, x10, /* want_remainder */ true);
+  __ corrected_idivq(x10, x12, x10, /* want_remainder */ true);
 }
 
 void TemplateTable::lshl()
 {
   transition(itos, ltos);
   // shift count is in x10
-  __ pop_l(x11);
-  __ sll(x10, x11, x10);
+  __ pop_l(x12, x13);
+  __ sll(x10, x12, x10);
 }
 
 void TemplateTable::lshr()
 {
   transition(itos, ltos);
   // shift count is in x10
-  __ pop_l(x11);
-  __ sra(x10, x11, x10);
+  __ pop_l(x12, x13);
+  __ sra(x10, x12, x10);
 }
 
 void TemplateTable::lushr()
 {
   transition(itos, ltos);
   // shift count is in x10
-  __ pop_l(x11);
-  __ srl(x10, x11, x10);
+  __ pop_l(x12, x13);
+  __ srl(x10, x12, x10);
 }
 
 void TemplateTable::fop2(Operation op)
@@ -1713,8 +1713,8 @@ void TemplateTable::convert()
 void TemplateTable::lcmp()
 {
   transition(ltos, itos);
-  __ pop_l(x11);
-  __ cmp_l2i(t0, x11, x10);
+  __ pop_l(x12, x13);
+  __ cmp_l2i(t0, x12, x10);
   __ mv(x10, t0);
 }
 
@@ -3038,7 +3038,7 @@ void TemplateTable::jvmti_post_fast_field_mod()
     case Bytecodes::_fast_iputfield: __ pop_i(x10); break;
     case Bytecodes::_fast_dputfield: __ pop_d(); break;
     case Bytecodes::_fast_fputfield: __ pop_f(); break;
-    case Bytecodes::_fast_lputfield: __ pop_l(x10); break;
+    case Bytecodes::_fast_lputfield: __ pop_l(); break;
     }
     __ bind(L2);
   }
