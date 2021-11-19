@@ -4455,7 +4455,7 @@ void MacroAssembler::cmp_l2i(Register dst, Register src1, Register src2, Registe
     mv(dst, zr);
     return;
   }
-  Label done_hi,done;
+  Label done;
   Register left_lo  = src1;
   Register left_hi  = src1 + 1;
   Register right_lo = src2;
