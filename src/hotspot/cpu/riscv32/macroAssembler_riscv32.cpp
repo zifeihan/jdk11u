@@ -4456,22 +4456,25 @@ void MacroAssembler::cmp_l2i(Register dst, Register src1, Register src2, Registe
     return;
   }
   Label done;
-  Register left = src1;
-  Register right = src2;
-  if (dst == src1) {
-    assert_different_registers(dst, src2, tmp);
-    mv(tmp, src1);
-    left = tmp;
-  } else if (dst == src2) {
-    assert_different_registers(dst, src1, tmp);
-    mv(tmp, src2);
-    right = tmp;
-  }
+  Register left_lo  = src1;
+  Register left_hi  = src1 + 1;
+  Register right_lo = src2;
+  Register right_hi = src2 + 1;
 
+  // compare high 32-bit
   // installs 1 if gt else 0
-  slt(dst, right, left);
+  slt(dst, right_hi, left_hi);
   bnez(dst, done);
-  slt(dst, left, right);
+  slt(dst, left_hi, right_hi);
+  // dst = -1 if lt; else if eq , jump to compare low 32-bit
+  neg(dst, dst);
+  bnez(dst, done);
+
+  // compare low 32-bit
+  // installs 1 if gt else 0
+  slt(dst, right_lo, left_lo);
+  bnez(dst, done);
+  slt(dst, left_lo, right_lo);
   // dst = -1 if lt; else if eq , dst = 0
   neg(dst, dst);
   bind(done);

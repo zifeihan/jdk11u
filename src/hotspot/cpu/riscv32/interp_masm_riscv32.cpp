@@ -339,9 +339,11 @@ void InterpreterMacroAssembler::pop_i(Register r) {
   addi(esp, esp, wordSize);
 }
 
-void InterpreterMacroAssembler::pop_l(Register r) {
-  lw(r, Address(esp, 0));
-  lw(x11, Address(esp, wordSize));
+void InterpreterMacroAssembler::pop_l(Register lo, Register hi) {
+  assert_different_registers(lo, hi);
+  assert(lo < hi, "lo must be < hi");
+  lw(lo, Address(esp, 0));
+  lw(hi, Address(esp, wordSize));
   addi(esp, esp, 2 * wordSize);
 }
 
