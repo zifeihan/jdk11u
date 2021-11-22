@@ -2719,7 +2719,7 @@ class StubGenerator: public StubCodeGenerator {
 
     __ enter(); // Save FP and LR before call
 
-    assert(is_even(framesize / 2), "sp not 16-byte aligned");
+    assert(is_even(framesize / 2), "sp not 8-byte aligned");
 
     // lr and fp are already in place
     __ addi(sp, fp, 0 - (((unsigned)framesize - 4) << LogBytesPerInt)); // prolog

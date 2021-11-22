@@ -124,7 +124,7 @@ class RegisterSaver {
 
 OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_frame_words, int* total_frame_words) {
   assert_cond(masm != NULL && total_frame_words != NULL);
-  int frame_size_in_bytes = align_up(additional_frame_words * wordSize + reg_save_size * BytesPerInt, 16);
+  int frame_size_in_bytes = align_up(additional_frame_words * wordSize + reg_save_size * BytesPerInt, 8);
   // OopMap frame size is in compiler stack slots (jint's) not bytes or words
   int frame_size_in_slots = frame_size_in_bytes / BytesPerInt;
   // The caller will allocate additional_frame_words
@@ -184,7 +184,7 @@ void RegisterSaver::restore_result_registers(MacroAssembler* masm) {
   __ lw(x10, Address(sp, x10_offset_in_bytes()));
 
   // Pop all of the register save are off the stack
-  __ add(sp, sp, align_up(return_offset_in_bytes(), 16));
+  __ add(sp, sp, align_up(return_offset_in_bytes(), 8));
 }
 
 // Is vector's size (in bytes) bigger than a size saved by default?
@@ -486,7 +486,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
   int comp_words_on_stack = align_up(comp_args_on_stack * VMRegImpl::stack_slot_size, wordSize) >> LogBytesPerWord;
   if (comp_args_on_stack != 0) {
     __ sub(t0, sp, comp_words_on_stack * wordSize);
-    __ andi(sp, t0, -16);
+    __ andi(sp, t0, -8);
   }
 
   // Will jump to the compiled code just as if compiled code was doing it.
@@ -2419,12 +2419,12 @@ void SharedRuntime::generate_uncommon_trap_blob() {
   MacroAssembler* masm = new MacroAssembler(&buffer);
   assert_cond(masm != NULL);
 
-  assert(SimpleRuntimeFrame::framesize % 4 == 0, "sp not 16-byte aligned");
+  assert(SimpleRuntimeFrame::framesize % 4 == 0, "sp not 8-byte aligned");
 
   address start = __ pc();
 
   // Push self-frame.  We get here with a return address in LR
-  // and sp should be 16 byte aligned
+  // and sp should be 8 byte aligned
   // push fp and retaddr by hand
   __ addi(sp, sp, -2 * wordSize);
   __ sw(lr, Address(sp, wordSize));
@@ -2851,7 +2851,7 @@ void OptoRuntime::generate_exception_blob() {
   assert(!OptoRuntime::is_callee_saved_register(R10_num), "");
   assert(!OptoRuntime::is_callee_saved_register(R12_num), "");
 
-  assert(SimpleRuntimeFrame::framesize % 4 == 0, "sp not 16-byte aligned");
+  assert(SimpleRuntimeFrame::framesize % 4 == 0, "sp not 8-byte aligned");
 
   // Allocate space for the code
   ResourceMark rm;
