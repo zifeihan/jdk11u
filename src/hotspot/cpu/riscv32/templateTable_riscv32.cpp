@@ -1949,7 +1949,7 @@ void TemplateTable::branch(bool is_jsr, bool is_wide)
       // remove frame anchor
       __ leave();
       // Ensure compiled code always sees stack at proper alignment
-      __ andi(sp, esp, -16);
+      __ andi(sp, esp, -8);
 
       // and begin the OSR nmethod
       __ lw(t0, Address(x9, nmethod::osr_entry_point_offset()));

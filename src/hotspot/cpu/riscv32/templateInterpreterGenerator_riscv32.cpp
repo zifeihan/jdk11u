@@ -72,7 +72,7 @@ int TemplateInterpreter::InterpreterCodeSize = 256 * 1024;
 address TemplateInterpreterGenerator::generate_slow_signature_handler() {
   address entry = __ pc();
 
-  __ andi(esp, esp, -16);
+  __ andi(esp, esp, -8);
   __ mv(c_rarg3, esp);
   // xmethod
   // xlocals
@@ -467,7 +467,7 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
         Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
   __ slli(t0, t0, 3);
   __ sub(t0, t1, t0);
-  __ andi(sp, t0, -16);
+  __ andi(sp, t0, -8);
 
  __ check_and_handle_popframe(xthread);
  __ check_and_handle_earlyret(xthread);
@@ -495,7 +495,7 @@ address TemplateInterpreterGenerator::generate_deopt_entry_for(TosState state,
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
   __ slli(t0, t0, 3);
   __ sub(t0, t1, t0);
-  __ andi(sp, t0, -16);
+  __ andi(sp, t0, -8);
 
   // Restore expression stack pointer
   __ lw(esp, Address(fp, frame::interpreter_frame_last_sp_offset * wordSize));
@@ -712,7 +712,7 @@ void TemplateInterpreterGenerator::generate_stack_overflow_check(void) {
   // correct call stack that we can always unwind.  The ANDI should be
   // unnecessary because the sender SP in x30 is always aligned, but
   // it doesn't hurt.
-  __ andi(sp, x30, -16);
+  __ andi(sp, x30, -8);
 
   // Note: the restored frame is not necessarily interpreted.
   // Use the shared runtime version of the StackOverflowError.
@@ -853,7 +853,7 @@ void TemplateInterpreterGenerator::generate_fixed_frame(bool native_call) {
     __ add(t0, t0, frame::interpreter_frame_monitor_size() + 2);
     __ slli(t0, t0, 3);
     __ sub(t0, sp, t0);
-    __ andi(sp, t0, -16);
+    __ andi(sp, t0, -8);
   }
 }
 
@@ -916,7 +916,7 @@ address TemplateInterpreterGenerator::generate_Reference_get_entry(void) {
   bs->load_at(_masm, IN_HEAP | ON_WEAK_OOP_REF, T_OBJECT, local_0, field_address, /*tmp1*/ t1, /*tmp2*/ t0);
 
   // areturn
-  __ andi(sp, x9, -16);  // done with stack
+  __ andi(sp, x9, -8);  // done with stack
   __ ret();
 
   // generate a vanilla interpreter entry as the slow path
@@ -1008,7 +1008,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   __ addi(xlocals, xlocals, -wordSize);
 
   // Pull SP back to minimum size: this avoids holes in the stack
-  __ andi(sp, esp, -16);
+  __ andi(sp, esp, -8);
 
   // initialize fixed part of activation frame
   generate_fixed_frame(true);
@@ -1102,7 +1102,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
 
   __ slli(t, t, Interpreter::logStackElementSize);
   __ sub(x30, esp, t);
-  __ andi(sp, x30, -16);
+  __ andi(sp, x30, -8);
   __ mv(esp, x30);
 
   // get signature handler
@@ -1203,8 +1203,8 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   // result potentially in x10 or f10
 
   // make room for the pushes we're about to do
-  __ sub(t0, esp, 4 * wordSize);
-  __ andi(sp, t0, -16);
+  __ sub(t0, esp, 2 * wordSize);
+  __ andi(sp, t0, -8);
 
   // NOTE: The order of these pushes is known to frame::interpreter_frame_result
   // in order to extract the result of a method call. If the order of these
@@ -1434,8 +1434,8 @@ address TemplateInterpreterGenerator::generate_normal_entry(bool synchronized) {
   __ sub(t0, esp, t1);
 
   // Padding between locals and fixed part of activation frame to ensure
-  // SP is always 16-byte aligned.
-  __ andi(sp, t0, -16);
+  // SP is always 8-byte aligned.
+  __ andi(sp, t0, -8);
 
   // x13 - # of additional locals
   // allocate space for locals
@@ -1618,7 +1618,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
   __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
-  __ andi(sp, t0, -16);
+  __ andi(sp, t0, -8);
 
   // x10: exception handler entry point
   // x13: preserved exception oop
@@ -1750,7 +1750,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
   __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
-  __ andi(sp, t0, -16);
+  __ andi(sp, t0, -8);
 
   __ dispatch_next(vtos);
   // end of PopFrame support

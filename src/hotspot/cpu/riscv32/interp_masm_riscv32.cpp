@@ -742,7 +742,7 @@ void InterpreterMacroAssembler::remove_activation(
   // adjusting SP to allow some space for ESP.  If we're returning to
   // compiled code the saved sender SP was saved in sender_sp, so this
   // restores it.
-  andi(sp, esp, -16);
+  andi(sp, esp, -8);
 }
 
 // Lock object
