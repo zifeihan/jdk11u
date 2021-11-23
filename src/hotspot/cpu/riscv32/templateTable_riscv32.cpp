@@ -1055,9 +1055,9 @@ void TemplateTable::wide_istore() {
 void TemplateTable::wide_lstore() {
   transition(vtos, vtos);
   __ pop_l();
-  locals_index_wide(x13);
-  __ sw(x10, laddress(x13, t0, _masm));
-  __ sw(x11, haddress(x13, t0, _masm));
+  locals_index_wide(x12);
+  __ sw(x10, laddress(x12, t0, _masm));
+  __ sw(x11, haddress(x12, t0, _masm));
 }
 
 void TemplateTable::wide_fstore() {
@@ -1404,12 +1404,28 @@ void TemplateTable::lop2(Operation op)
   // x10 <== x11 op x10
   __ pop_l(x12, x13);
   switch (op) {
-  case add  : __ add(x10, x12, x10);  break;
-  case sub  : __ sub(x10, x12, x10);  break;
-  case mul  : __ mul(x10, x12, x10);  break;
-  case _and : __ andr(x10, x12, x10); break;
-  case _or  : __ orr(x10, x12, x10);  break;
-  case _xor : __ xorr(x10, x12, x10); break;
+  case add  : __ mv(x14, x10);
+              __ add(x10, x10, x12);
+              __ sltu(x14, x10, x14);
+              __ add(x11, x11, x13);
+              __ add(x11, x14, x11);  break;
+  case sub  : __ mv(x14, x10);
+              __ sub(x10, x10, x12);
+              __ sltu(x14, x14, x10);
+              __ sub(x11, x11, x13);
+              __ sub(x11, x11, x14);  break;
+  case mul  : __ mul(x13, x13, x10);
+              __ mul(x11, x11, x12);
+              __ mulhu(x14, x10, x12);
+              __ add(x11, x11, x13);
+              __ mul(x10, x10,x12);
+              __ add(x11, x11, x14);  break;
+  case _and : __ andr(x10, x12, x10);
+              __ andr(x11, x13, x11); break;
+  case _or  : __ orr(x10, x12, x10);
+              __ orr(x11, x13, x11);  break;
+  case _xor : __ xorr(x10, x12, x10);
+              __ xorr(x11, x13, x11); break;
   default   : ShouldNotReachHere();
   }
 }
