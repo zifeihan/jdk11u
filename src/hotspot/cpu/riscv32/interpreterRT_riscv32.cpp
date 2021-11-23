@@ -73,12 +73,21 @@ void InterpreterRuntime::SignatureHandlerGenerator::pass_long() {
 
   if (_num_int_args < Argument::n_int_register_parameters_c - 1) {
     __ lw(g_INTArgReg[++_num_int_args], src);
-    __ lw(g_INTArgReg[++_num_int_args], high);
+    if (_num_int_args < Argument::n_int_register_parameters_c - 1) {
+      __ lw(g_INTArgReg[++_num_int_args], high);
+    } else {
+      __ lw(x10, high);
+      __ sw(x10, Address(to(), _stack_offset));
+      _stack_offset += wordSize;
+      _num_int_args ++;
+    }
   } else {
     __ lw(x10, src);
     __ sw(x10, Address(to(), _stack_offset));
-    _stack_offset += wordSize;
-    _num_int_args++;
+    __ lw(x10, high);
+    __ sw(x10, Address(to(), _stack_offset + wordSize));
+    _stack_offset += 2 * wordSize;
+    _num_int_args += 2;
   }
 }
 
