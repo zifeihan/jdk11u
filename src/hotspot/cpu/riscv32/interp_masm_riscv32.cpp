@@ -75,7 +75,7 @@ void InterpreterMacroAssembler::narrow(Register result) {
   bind(notByte);
   mv(t1, T_CHAR);
   bne(t0, t1, notChar);
-  zero_ext(result, result, registerSize - 16); // turncate upper 48 bits
+  zero_ext(result, result, registerSize - 16); // turncate upper 16 bits
   j(done);
 
   bind(notChar);

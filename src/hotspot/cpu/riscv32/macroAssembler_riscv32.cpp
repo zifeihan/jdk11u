@@ -1442,8 +1442,7 @@ void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register R
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   grev16wu(Rd, Rs, Rtmp1, Rtmp2);
-  slli(Rtmp2, Rd, 48);
-  srli(Rtmp2, Rtmp2, 32);
+  slli(Rtmp2, Rd, 16);
   srli(Rd, Rd, 16);
   orr(Rd, Rd, Rtmp2);
 }
