@@ -1669,10 +1669,9 @@ void TemplateTable::wide_iinc()
   transition(vtos, vtos);
   __ lw(x11, at_bcp(2)); // get constant and index
   __ grev16wu(x11, x11); // reverse bytes in half-word (32bit) and zero-extend
-  __ zero_ext(x12, x11, 48);
+  __ zero_ext(x12, x11, 16);
   __ neg(x12, x12);
-  __ slli(x11, x11, 32);
-  __ srai(x11, x11, 48);
+  __ srai(x11, x11, 16);
   __ lw(x10, iaddress(x12, t0, _masm));
   __ add(x10, x10, x11);
   __ sw(x10, iaddress(x12, t0, _masm));
