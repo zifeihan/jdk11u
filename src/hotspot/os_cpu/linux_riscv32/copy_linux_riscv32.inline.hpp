@@ -87,8 +87,8 @@ static void pd_conjoint_jlongs_atomic(const jlong* from, jlong* to, size_t count
 }
 
 static void pd_conjoint_oops_atomic(const oop* from, oop* to, size_t count) {
-  assert(BytesPerLong == BytesPerOop, "jlongs and oops must be the same size.");
-  _Copy_conjoint_jlongs_atomic((const jlong*)from, (jlong*)to, count);
+  assert(BytesPerInt == BytesPerOop, "32-bit architecture");
+  _Copy_conjoint_jints_atomic((const jint*)from, (jint*)to, count);
 }
 
 static void pd_arrayof_conjoint_bytes(const HeapWord* from, HeapWord* to, size_t count) {
