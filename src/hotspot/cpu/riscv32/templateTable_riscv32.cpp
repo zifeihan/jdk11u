@@ -1731,7 +1731,7 @@ void TemplateTable::convert()
   // Conversion
   switch (bytecode()) {
   case Bytecodes::_i2l:
-    __ sign_ext(x10, x10, registerSize - 32);
+    __ srai(x11, x10, 0x1f);
     break;
   case Bytecodes::_i2f:
     __ fcvt_s_w(f10, x10);
