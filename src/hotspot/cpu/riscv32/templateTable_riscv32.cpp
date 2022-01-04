@@ -1410,10 +1410,10 @@ void TemplateTable::lop2(Operation op)
               __ sltu(x14, x10, x14);
               __ add(x11, x11, x13);
               __ add(x11, x14, x11);  break;
-  case sub  : __ mv(x14, x10);
-              __ sub(x10, x10, x12);
+  case sub  : __ mv(x14, x12);
+              __ sub(x10, x12, x10);
               __ sltu(x14, x14, x10);
-              __ sub(x11, x11, x13);
+              __ sub(x11, x13, x11);
               __ sub(x11, x11, x14);  break;
   case mul  : __ mul(x13, x13, x10);
               __ mul(x11, x11, x12);
