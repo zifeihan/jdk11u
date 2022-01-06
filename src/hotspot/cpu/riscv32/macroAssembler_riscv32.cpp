@@ -1749,7 +1749,7 @@ void MacroAssembler::encode_klass_not_null(Register dst, Register src, Register 
 
   if (((uint32_t)(uintptr_t)Universe::narrow_klass_base() & 0xffffffff) == 0 &&
       Universe::narrow_klass_shift() == 0) {
-    zero_ext(dst, src, 32); // clear upper 32 bits
+    mv(dst, src);
     return;
   }
 
