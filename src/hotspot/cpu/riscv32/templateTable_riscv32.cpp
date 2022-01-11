@@ -572,6 +572,7 @@ void TemplateTable::condy_helper(Label& Done)
         __ bne(flags, t1, notLong);
         // ltos
         __ lw(x10, field);
+        __ lw(x11, Address(off, wordSize));
         __ push(ltos);
         __ j(Done);
 
@@ -757,9 +758,9 @@ void TemplateTable::index_check(Register array, Register index)
   // check index
   const Register length = t0;
   __ lw(length, Address(array, arrayOopDesc::length_offset_in_bytes()));
-  if (index != x11) {
-    assert(x11 != array, "different registers");
-    __ mv(x11, index);
+  if (index != x14) {
+    assert(x14 != array, "different registers");
+    __ mv(x14, index);
   }
   Label ok;
   __ add(index, index, zr);
@@ -1462,8 +1463,13 @@ void TemplateTable::irem()
 void TemplateTable::lmul()
 {
   transition(ltos, ltos);
-  __ pop_l(x12, x13);
-  __ mul(x10, x10, x12);
+ __ pop_l(x12, x13);
+ __ mul(x13, x13, x10);
+ __ mul(x11, x11, x12);
+ __ mulhu(x15, x10, x12);
+ __ add(x11, x11, x13);
+ __ mul(x10, x10, x12);
+ __ add(x11, x11, x15);
 }
 
 void TemplateTable::ldiv()
@@ -1471,13 +1477,14 @@ void TemplateTable::ldiv()
   transition(ltos, ltos);
   // explicitly check for div0
   Label no_div0;
-  __ bnez(x10, no_div0);
+  __ orr(t1, x10, x11);
+  __ bnez(t1, no_div0);
   __ mv(t0, Interpreter::_throw_ArithmeticException_entry);
   __ jr(t0);
   __ bind(no_div0);
   __ pop_l(x12, x13);
   // x10 <== x11 ldiv x10
-  __ corrected_idivq(x10, x12, x10, /* want_remainder */ false);
+  __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), x10, x11, x12, x13);
 }
 
 void TemplateTable::lrem()
@@ -1485,13 +1492,14 @@ void TemplateTable::lrem()
   transition(ltos, ltos);
   // explicitly check for div0
   Label no_div0;
-  __ bnez(x10, no_div0);
+  __ orr(t1, x10, x11);
+  __ bnez(t1, no_div0);
   __ mv(t0, Interpreter::_throw_ArithmeticException_entry);
   __ jr(t0);
   __ bind(no_div0);
   __ pop_l(x12, x13);
   // x10 <== x11 lrem x10
-  __ corrected_idivq(x10, x12, x10, /* want_remainder */ true);
+  __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), x10, x11, x12, x13);
 }
 
 void TemplateTable::lshl()
@@ -1499,6 +1507,9 @@ void TemplateTable::lshl()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
   Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
@@ -1524,7 +1535,10 @@ void TemplateTable::lshr()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
- Label blt_branch,done;
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
+  Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
   __ sra(x12, x13, x15);
@@ -1549,6 +1563,9 @@ void TemplateTable::lushr()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
   Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
@@ -1640,8 +1657,10 @@ void TemplateTable::ineg()
 void TemplateTable::lneg()
 {
   transition(ltos, ltos);
-  __ neg(x10, x10);
-  __ neg(x11, x11);
+  __ sltu(t0, zr, x10);
+  __ sub(x10, zr, x10);
+  __ sub(x11, zr, x11);
+  __ sub(x11, x11, t0);
 }
 
 void TemplateTable::fneg()
