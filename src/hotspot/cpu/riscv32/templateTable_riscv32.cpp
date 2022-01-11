@@ -1507,6 +1507,9 @@ void TemplateTable::lshl()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
   Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
@@ -1532,7 +1535,10 @@ void TemplateTable::lshr()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
- Label blt_branch,done;
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
+  Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
   __ sra(x12, x13, x15);
@@ -1557,6 +1563,9 @@ void TemplateTable::lushr()
   transition(itos, ltos);
   // shift count is in x10
   __ pop_l(x12, x13);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  __ andi(x10, x10, 0x3f);
+
   Label blt_branch,done;
   __ addi(x15, x10, -32);
   __ bltz(x15, blt_branch);
