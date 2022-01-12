@@ -1769,16 +1769,16 @@ void TemplateTable::convert()
     __ add(x10, x10, zr);
     break;
   case Bytecodes::_l2f:
-    __ fcvt_s_w(f10, x10);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2f), x10, x11);
     break;
   case Bytecodes::_l2d:
-    __ fcvt_d_w(f10, x10);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), x10, x11);
     break;
   case Bytecodes::_f2i:
     __ fcvt_w_s_safe(x10, f10);
     break;
   case Bytecodes::_f2l:
-    __ fcvt_w_s_safe(x10, f10);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::f2l), f10);
     break;
   case Bytecodes::_f2d:
     __ fcvt_d_s(f10, f10);
@@ -1787,7 +1787,7 @@ void TemplateTable::convert()
     __ fcvt_w_d_safe(x10, f10);
     break;
   case Bytecodes::_d2l:
-    __ fcvt_w_d_safe(x10, f10);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), f10);
     break;
   case Bytecodes::_d2f:
     __ fcvt_s_d(f10, f10);
