@@ -289,17 +289,17 @@ void TemplateTable::fconst(int value)
 void TemplateTable::dconst(int value)
 {
   transition(vtos, dtos);
-  static double dBuf[2] = {1.0, 2.0};
+  static double dBuf[3] = {0.0, 1.0, 2.0};
   __ mv(t0, (intptr_t)dBuf);
   switch (value) {
   case 0:
-    __ fmv_w_x(f10, zr);
-    break;
-  case 1:
     __ fld(f10, t0, 0);
     break;
-  case 2:
+  case 1:
     __ fld(f10, t0, sizeof(double));
+    break;
+  case 2:
+    __ fld(f10, t0, sizeof(double) * 2);
     break;
   default:
     ShouldNotReachHere();
