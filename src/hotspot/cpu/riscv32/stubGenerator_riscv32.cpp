@@ -298,14 +298,14 @@ class StubGenerator: public StubCodeGenerator {
     return_address = __ pc();
 
     // store result depending on type (everything that is not
-    // T_OBJECT, T_LONG, T_FLOAT or T_DOUBLE is treated as T_INT)
+    // T_OBJECT, T_FLOAT or T_DOUBLE is treated as T_INT)
     // n.b. this assumes Java returns an integral result in x10
     // and a floating result in j_farg0
     __ lw(j_rarg2, result);
-    Label is_long, is_float, is_double, exit;
+    Label is_int, is_long, is_float, is_double, exit;
     __ lw(j_rarg1, result_type);
     __ li(t0, T_OBJECT);
-    __ beq(j_rarg1, t0, is_long);
+    __ beq(j_rarg1, t0, is_int);
     __ li(t0, T_LONG);
     __ beq(j_rarg1, t0, is_long);
     __ li(t0, T_FLOAT);
@@ -365,8 +365,13 @@ class StubGenerator: public StubCodeGenerator {
 
     // handle return types different from T_INT
 
+    __ BIND(is_int);
+    __ sw(x10, Address(j_rarg2, 0));
+    __ j(exit);
+
     __ BIND(is_long);
     __ sw(x10, Address(j_rarg2, 0));
+    __ sw(x11, Address(j_rarg2, wordSize));
     __ j(exit);
 
     __ BIND(is_float);
@@ -819,7 +824,7 @@ class StubGenerator: public StubCodeGenerator {
   // }
   // copy_small:
   //   load element one by one;
-  // done; 
+  // done;
 
   typedef void (MacroAssembler::*copy_insn)(Register Rd, const Address &adr, Register temp);
 
@@ -829,7 +834,7 @@ class StubGenerator: public StubCodeGenerator {
     int granularity = uabs(step);
 
     const Register src = x30, dst = x31, cnt = x15, tmp3 = x16, tmp4 = x17;
-   
+
     Label same_aligned;
     Label copy8, copy_small, done;
 
