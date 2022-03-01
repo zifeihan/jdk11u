@@ -1430,7 +1430,7 @@ address TemplateInterpreterGenerator::generate_normal_entry(bool synchronized) {
   __ add(xlocals, xlocals, -wordSize);
 
   // Make room for additional locals
-  __ slli(t1, x13, 3);
+  __ slli(t1, x13, 2);
   __ sub(t0, esp, t1);
 
   // Padding between locals and fixed part of activation frame to ensure
