@@ -1204,7 +1204,7 @@ static int patch_imm_in_li(address branch, int32_t target) {
   const int LI32_INSTRUCTIONS_NUM = 2;                                          // lui + addi
   int32_t lower = ((intptr_t)target << 20) >> 20;
   int32_t upper = (intptr_t)target >> 12;
-  Assembler::patch(branch + 0,  31, 12, (upper >> 12) & 0xfffff);               // Lui.
+  Assembler::patch(branch + 0,  31, 12, upper & 0xfffff);                       // Lui.
   Assembler::patch(branch + 4,  31, 20, lower & 0xfff);                         // Addi.
   return LI32_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
 }
