@@ -1825,8 +1825,8 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
 #ifndef EM_AARCH64
   #define EM_AARCH64    183               /* ARM AARCH64 */
 #endif
-#ifndef EM_RISCV32
-  #define EM_RISCV32      243               /* RISC-V */
+#ifndef EM_RISCV
+  #define EM_RISCV      243               /* RISC-V */
 #endif
 
   static const arch_t arch_array[]={
@@ -1853,7 +1853,7 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
     {EM_PARISC,      EM_PARISC,  ELFCLASS32, ELFDATA2MSB, (char*)"PARISC"},
     {EM_68K,         EM_68K,     ELFCLASS32, ELFDATA2MSB, (char*)"M68k"},
     {EM_AARCH64,     EM_AARCH64, ELFCLASS64, ELFDATA2LSB, (char*)"AARCH64"},
-    {EM_RISCV32,     EM_RISCV32, ELFCLASS32, ELFDATA2LSB, (char*)"RISCV32"},
+    {EM_RISCV,       EM_RISCV,   ELFCLASS32, ELFDATA2LSB, (char*)"RISCV32"},
   };
 
 #if  (defined IA32)
@@ -1889,7 +1889,7 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen) {
 #elif  (defined SH)
   static  Elf32_Half running_arch_code=EM_SH;
 #elif  (defined RISCV32)
-  static  Elf32_Half running_arch_code=EM_RISCV32;
+  static  Elf32_Half running_arch_code=EM_RISCV;
 #else
     #error Method os::dll_load requires that one of following is defined:\
         AARCH64, ALPHA, ARM, AMD64, IA32, IA64, M68K, MIPS, MIPSEL, PARISC, __powerpc__, __powerpc64__, RISCV32, S390, SH, __sparc
