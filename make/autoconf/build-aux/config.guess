@@ -104,4 +104,13 @@ if test $? = 0; then
   OUT=$REAL_CPU`echo $OUT | sed -e 's/[^-]*//'`
 fi
 
+# Test and fix RISC-V 32Bit.
+if [ "x$OUT" = x ]; then
+  if [ `uname -s` = Linux ]; then
+    if [ `uname -m` = riscv32 ]; then
+      OUT=riscv32-unknown-linux-gnu
+    fi
+  fi
+fi
+
 echo $OUT
