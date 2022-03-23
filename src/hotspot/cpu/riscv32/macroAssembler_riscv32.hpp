@@ -617,34 +617,20 @@ class MacroAssembler: public Assembler {
   #define call_Unimplemented() _call_Unimplemented((address)__PRETTY_FUNCTION__)
 
 #ifdef COMPILER2
-  void spill(Register Rx, bool is32, int offset) {
-    if (is32) {
-      sw(Rx, Address(sp, offset));
-    }
+  void spill(Register Rx, int offset) {
+    sw(Rx, Address(sp, offset));
   }
 
-  void spill(FloatRegister Rx, bool is32, int offset) {
-    if (is32) {
-      fsw(Rx, Address(sp, offset));
-    }
+  void spill(FloatRegister Rx, int offset) {
+    fsw(Rx, Address(sp, offset));
   }
 
-  void unspill(Register Rx, bool is32, int offset) {
-    if (is32) {
-      lw(Rx, Address(sp, offset));
-    }
+  void unspill(Register Rx, int offset) {
+    lw(Rx, Address(sp, offset));
   }
 
-  void unspillu(Register Rx, bool is32, int offset) {
-    if (is32) {
-      lw(Rx, Address(sp, offset));
-    }
-  }
-
-  void unspill(FloatRegister Rx, bool is32, int offset) {
-    if (is32) {
-      flw(Rx, Address(sp, offset));
-    }
+  void unspill(FloatRegister Rx, int offset) {
+    flw(Rx, Address(sp, offset));
   }
 #endif // COMPILER2
 
