@@ -1193,13 +1193,8 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
         __ fmv_x_w(as_Register(Matcher::_regEncode[dst_lo]),
             as_FloatRegister(Matcher::_regEncode[src_lo]));
       } else if (dst_lo_rc == rc_float) { // fpr --> fpr copy
-          if (is64) {
-            __ fmv_d(as_FloatRegister(Matcher::_regEncode[dst_lo]),
-                     as_FloatRegister(Matcher::_regEncode[src_lo]));
-        } else {
             __ fmv_s(as_FloatRegister(Matcher::_regEncode[dst_lo]),
                      as_FloatRegister(Matcher::_regEncode[src_lo]));
-        }
       } else {                    // fpr --> stack spill
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
         __ spill(as_FloatRegister(Matcher::_regEncode[src_lo]),
