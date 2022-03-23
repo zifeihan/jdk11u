@@ -44,27 +44,24 @@ class JNITypes : private AllStatic {
   // reverse the argument list constructed by JavaCallArguments (see
   // javaCalls.hpp).
 
+private:
+
+  // 32bit Helper routines.
+  static inline void put_int2r(jint *from, intptr_t *to)           { *(jint *)(to++) = from[1];
+                                                                        *(jint *)(to  ) = from[0]; }
+  static inline void put_int2r(jint *from, intptr_t *to, int& pos) { put_int2r(from, to + pos); pos += 2; }
+
 public:
   // Ints are stored in native format in one JavaCallArgument slot at *to.
   static inline void    put_int(jint  from, intptr_t *to)           { *(jint *)(to +   0  ) =  from; }
   static inline void    put_int(jint  from, intptr_t *to, int& pos) { *(jint *)(to + pos++) =  from; }
   static inline void    put_int(jint *from, intptr_t *to, int& pos) { *(jint *)(to + pos++) = *from; }
 
-  // Longs are stored in native format in one JavaCallArgument slot at
-  // *(to+1).
-  static inline void put_long(jlong  from, intptr_t *to) {
-    *(jlong*) (to + 1) = from;
-  }
-
-  static inline void put_long(jlong  from, intptr_t *to, int& pos) {
-    *(jlong*) (to + 1 + pos) = from;
-    pos += 2;
-  }
-
-  static inline void put_long(jlong *from, intptr_t *to, int& pos) {
-    *(jlong*) (to + 1 + pos) = *from;
-    pos += 2;
-  }
+  // Longs are stored in big-endian word format in two JavaCallArgument slots at *to.
+  // The high half is in *to and the low half in *(to+1).
+  static inline void put_long(jlong  from, intptr_t *to)           { put_int2r((jint *)&from, to); }
+  static inline void put_long(jlong  from, intptr_t *to, int& pos) { put_int2r((jint *)&from, to, pos); }
+  static inline void put_long(jlong *from, intptr_t *to, int& pos) { put_int2r((jint *) from, to, pos); }
 
   // Oops are stored in native format in one JavaCallArgument slot at *to.
   static inline void    put_obj(oop  from, intptr_t *to)           { *(oop *)(to +   0  ) =  from; }
