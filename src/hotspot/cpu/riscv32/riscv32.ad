@@ -1185,7 +1185,7 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
             as_Register(Matcher::_regEncode[src_lo]));
       } else {                    // gpr --> stack spill
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
-        __ spill(as_Register(Matcher::_regEncode[src_lo]), is64, dst_offset);
+        __ spill(as_Register(Matcher::_regEncode[src_lo]), dst_offset);
       }
       break;
     case rc_float:
@@ -1197,28 +1197,18 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
             as_FloatRegister(Matcher::_regEncode[src_lo]));
       } else {                    // fpr --> stack spill
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
-        __ spill(as_FloatRegister(Matcher::_regEncode[src_lo]),
-                 is64, dst_offset);
+        __ spill(as_FloatRegister(Matcher::_regEncode[src_lo]), dst_offset);
       }
       break;
     case rc_stack:
       if (dst_lo_rc == rc_int) {  // stack --> gpr load
-        if (this->ideal_reg() == Op_RegI) {
-          __ unspill(as_Register(Matcher::_regEncode[dst_lo]), is64, src_offset);
-        } else { // // zero extended for narrow oop or klass
-          __ unspillu(as_Register(Matcher::_regEncode[dst_lo]), is64, src_offset);
-        }
+        __ unspill(as_Register(Matcher::_regEncode[dst_lo]), src_offset);
       } else if (dst_lo_rc == rc_float) { // stack --> fpr load
-        __ unspill(as_FloatRegister(Matcher::_regEncode[dst_lo]),
-                   is64, src_offset);
+        __ unspill(as_FloatRegister(Matcher::_regEncode[dst_lo]), src_offset);
       } else {                    // stack --> stack copy
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
-        if (this->ideal_reg() == Op_RegI) {
-          __ unspill(t0, is64, src_offset);
-        } else { // zero extended for narrow oop or klass
-          __ unspillu(t0, is64, src_offset);
-        }
-        __ spill(t0, is64, dst_offset);
+        __ unspill(t0, src_offset);
+        __ spill(t0, dst_offset);
       }
       break;
     default:
