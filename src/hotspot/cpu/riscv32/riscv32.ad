@@ -1232,7 +1232,7 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
     if (bottom_type() == NULL || bottom_type()->isa_vect() != NULL) {
       ShouldNotReachHere();
     } else {
-      st->print("\t# spill size = %d", is64 ? 64 : 32);
+      st->print("\t# spill size = %d", 32);
     }
   }
 
