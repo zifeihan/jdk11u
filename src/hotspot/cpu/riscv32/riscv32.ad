@@ -1164,8 +1164,6 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
     return 0;            // Self copy, no move.
   }
 
-  bool is64 = (src_lo & 1) == 0 && src_lo + 1 == src_hi &&
-              (dst_lo & 1) == 0 && dst_lo + 1 == dst_hi;
   int src_offset = ra_->reg2offset(src_lo);
   int dst_offset = ra_->reg2offset(dst_lo);
 
@@ -1178,7 +1176,7 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
       if (dst_lo_rc == rc_int) {  // gpr --> gpr copy
         __ mv(as_Register(Matcher::_regEncode[dst_lo]),
             as_Register(Matcher::_regEncode[src_lo]));
-        if (!is64 && this->ideal_reg() != Op_RegI) // zero extended for narrow oop or klass
+        if (this->ideal_reg() != Op_RegI) // zero extended for narrow oop or klass
           __ clear_upper_bits(as_Register(Matcher::_regEncode[dst_lo]), 16);
       } else if (dst_lo_rc == rc_float) { // gpr --> fpr copy
         __ fmv_w_x(as_FloatRegister(Matcher::_regEncode[dst_lo]),
