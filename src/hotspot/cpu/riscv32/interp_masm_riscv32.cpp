@@ -591,9 +591,6 @@ void InterpreterMacroAssembler::remove_activation(
   // result check if synchronized method
   Label unlocked, unlock, no_unlock;
 
-  // store value of x11
-  mv(x15, x11);
-
   // get the value of _do_not_unlock_if_synchronized into x13
   const Address do_not_unlock_if_synchronized(xthread,
     in_bytes(JavaThread::do_not_unlock_if_synchronized_offset()));
@@ -601,8 +598,8 @@ void InterpreterMacroAssembler::remove_activation(
   sb(zr, do_not_unlock_if_synchronized); // reset the flag
 
   // get method access flags
-  lw(x11, Address(fp, frame::interpreter_frame_method_offset * wordSize));
-  lw(x12, Address(x11, Method::access_flags_offset()));
+  lw(x15, Address(fp, frame::interpreter_frame_method_offset * wordSize));
+  lw(x12, Address(x15, Method::access_flags_offset()));
   andi(t0, x12, JVM_ACC_SYNCHRONIZED);
   beqz(t0, unlocked);
 
@@ -620,9 +617,9 @@ void InterpreterMacroAssembler::remove_activation(
                         wordSize - (int) sizeof(BasicObjectLock));
   // We use c_rarg1 so that if we go slow path it will be the correct
   // register for unlock_object to pass to VM directly
-  la(c_rarg1, monitor); // address of first monitor
+  la(c_rarg5, monitor); // address of first monitor
 
-  lw(x10, Address(c_rarg1, BasicObjectLock::obj_offset_in_bytes()));
+  lw(x10, Address(c_rarg5, BasicObjectLock::obj_offset_in_bytes()));
   bnez(x10, unlock);
 
   pop(state);
@@ -643,6 +640,7 @@ void InterpreterMacroAssembler::remove_activation(
   }
 
   bind(unlock);
+  mv(c_rarg1, c_rarg5);
   unlock_object(c_rarg1);
   pop(state);
 
@@ -664,7 +662,7 @@ void InterpreterMacroAssembler::remove_activation(
     bind(restart);
     // We use c_rarg1 so that if we go slow path it will be the correct
     // register for unlock_object to pass to VM directly
-    lw(c_rarg1, monitor_block_top); // points to current entry, starting
+    lw(c_rarg5, monitor_block_top); // points to current entry, starting
                                      // with top-most entry
     la(x9, monitor_block_bot);  // points to word before bottom of
                                   // monitor block
@@ -687,6 +685,7 @@ void InterpreterMacroAssembler::remove_activation(
       // We don't have to preserve c_rarg1 since we are going to throw an exception.
 
       push(state);
+      mv(c_rarg1, c_rarg5);
       unlock_object(c_rarg1);
       pop(state);
 
@@ -701,13 +700,13 @@ void InterpreterMacroAssembler::remove_activation(
 
     bind(loop);
     // check if current entry is used
-    add(t0, c_rarg1, BasicObjectLock::obj_offset_in_bytes());
+    add(t0, c_rarg5, BasicObjectLock::obj_offset_in_bytes());
     lw(t0, Address(t0, 0));
     bnez(t0, exception);
 
-    add(c_rarg1, c_rarg1, entry_size); // otherwise advance to next entry
+    add(c_rarg5, c_rarg5, entry_size); // otherwise advance to next entry
     bind(entry);
-    bne(c_rarg1, x9, loop); // check if bottom reached if not at bottom then check this entry
+    bne(c_rarg5, x9, loop); // check if bottom reached if not at bottom then check this entry
   }
 
   bind(no_unlock);
@@ -741,8 +740,6 @@ void InterpreterMacroAssembler::remove_activation(
   }
   // remove frame anchor
   leave();
-  // restore value of x11
-  mv(x11, x15);
   // If we're returning to interpreted code we will shortly be
   // adjusting SP to allow some space for ESP.  If we're returning to
   // compiled code the saved sender SP was saved in sender_sp, so this
