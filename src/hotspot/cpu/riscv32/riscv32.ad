@@ -358,39 +358,14 @@ reg_class int_r13_reg(R13);
 // Singleton class for R14 int register
 reg_class int_r14_reg(R14);
 
-// Class for all long integer registers
+// Class for all long registers
 reg_class all_reg(
-    R0,
-    R1,
-    R2,
-    R3,
-    R4,
-    R7,
-    R8,
-    R9,
-    R10,
-    R11,
-    R12,
-    R13,
-    R14,
-    R15,
-    R16,
-    R17,
-    R18,
-    R19,
-    R20,
-    R21,
-    R22,
-    R23,
-    R24,
-    R25,
-    R26,
-    R27,
-    R28,
-    R29,
-    R30,
-    R31
+    R0,R1,
+    R2,R3
 );
+
+reg_class long_r0r1_reg(R0, R1);
+reg_class long_r2r3_reg(R2, R3);
 
 // Class for all long integer registers (excluding zr)
 reg_class any_reg %{
@@ -2790,12 +2765,12 @@ operand iRegI_R14()
   interface(REG_INTER);
 %}
 
-// Integer 32 bit Register Operands
+// Long Register Operands
 operand iRegL()
 %{
   constraint(ALLOC_IN_RC(any_reg));
-  match(RegL);
-  match(iRegLNoSp);
+  match(iRegL_R0R1);
+  match(iRegL_R2R3);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
@@ -2805,40 +2780,25 @@ operand iRegL()
 operand iRegLNoSp()
 %{
   constraint(ALLOC_IN_RC(no_special_reg));
-  match(RegL);
-  match(iRegL_R10);
+  match(iRegL_R0R1);
+  match(iRegL_R2R3);
   format %{ %}
   interface(REG_INTER);
 %}
 
-// Long 32 bit Register R28 only
-operand iRegL_R28()
+operand iRegL_R0R1()
 %{
-  constraint(ALLOC_IN_RC(r28_reg));
+  constraint(ALLOC_IN_RC(long_r0r1_reg));
   match(RegL);
-  match(iRegLNoSp);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
 %}
 
-// Long 32 bit Register R29 only
-operand iRegL_R29()
+operand iRegL_R2R3()
 %{
-  constraint(ALLOC_IN_RC(r29_reg));
+  constraint(ALLOC_IN_RC(long_r2r3_reg));
   match(RegL);
-  match(iRegLNoSp);
-  op_cost(0);
-  format %{ %}
-  interface(REG_INTER);
-%}
-
-// Long 32 bit Register R30 only
-operand iRegL_R30()
-%{
-  constraint(ALLOC_IN_RC(r30_reg));
-  match(RegL);
-  match(iRegLNoSp);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
@@ -9421,11 +9381,11 @@ instruct partialSubtypeCheckVsZero(iRegP_R14 sub, iRegP_R10 super, iRegP_R12 tem
 %}
 
 instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R29 tmp2, iRegL_R30 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UU);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
-  effect(KILL tmp1, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
+  effect(KILL tmp1, KILL tmp2, KILL tmp3, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
 
   format %{ "String Compare $str1, $cnt1, $str2, $cnt2 -> $result\t#@string_compareU" %}
   ins_encode %{
@@ -9439,11 +9399,11 @@ instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R29 tmp2, iRegL_R30 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
-  effect(KILL tmp1, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
+  effect(KILL tmp1, KILL tmp2, KILL tmp3, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
 
   format %{ "String Compare $str1, $cnt1, $str2, $cnt2 -> $result\t#@string_compareL" %}
   ins_encode %{
@@ -9456,11 +9416,11 @@ instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R29 tmp2, iRegL_R30 tmp3, rFlagsReg cr)
+                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
-  effect(KILL tmp1, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
+  effect(KILL tmp1, KILL tmp2, KILL tmp3, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
 
   format %{"String Compare $str1, $cnt1, $str2, $cnt2 -> $result\t#@string_compareUL" %}
   ins_encode %{
@@ -9473,12 +9433,12 @@ instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_
 %}
 
 instruct string_compareLU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R29 tmp2, iRegL_R30 tmp3,
+                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3,
                           rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LU);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
-  effect(KILL tmp1, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
+  effect(KILL tmp1, KILL tmp2, KILL tmp3, USE_KILL str1, USE_KILL str2, USE_KILL cnt1, USE_KILL cnt2, KILL cr);
 
   format %{ "String Compare $str1, $cnt1, $str2, $cnt2 -> $result\t#@string_compareLU" %}
   ins_encode %{
@@ -9617,10 +9577,10 @@ instruct string_indexof_conUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2,
 %}
 
 // clearing of an array
-instruct clearArray_reg_reg(iRegL_R29 cnt, iRegP_R28 base, Universe dummy, rFlagsReg cr)
+instruct clearArray_reg_reg(iRegL_R0R1 cnt, iRegP_R28 base, Universe dummy, rFlagsReg cr)
 %{
   match(Set dummy (ClearArray cnt base));
-  effect(USE_KILL base, KILL cr);
+  effect(USE_KILL cnt, USE_KILL base, KILL cr);
 
   ins_cost(4 * DEFAULT_COST);
   format %{ "ClearArray $cnt, $base\t#@clearArray_reg_reg" %}
