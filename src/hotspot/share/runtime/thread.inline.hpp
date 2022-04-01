@@ -120,23 +120,15 @@ inline void JavaThread::set_pending_async_exception(oop e) {
   set_has_async_exception();
 }
 
-inline JavaThreadState JavaThread::thread_state() const    {
 #if defined(PPC64) || defined(AARCH64) || defined(RISCV32)
+inline JavaThreadState JavaThread::thread_state() const    {
   return (JavaThreadState) OrderAccess::load_acquire((volatile jint*)&_thread_state);
-#else
-  return _thread_state;
-#endif
 }
 
 inline void JavaThread::set_thread_state(JavaThreadState s) {
-  assert(current_or_null() == NULL || current_or_null() == this,
-         "state change should only be called by the current thread");
-#if defined(PPC64) || defined(AARCH64) || defined(RISCV32)
   OrderAccess::release_store((volatile jint*)&_thread_state, (jint)s);
-#else
-  _thread_state = s;
-#endif
 }
+#endif
 
 inline void JavaThread::set_done_attaching_via_jni() {
   _jni_attach_state = _attached_via_jni;
