@@ -75,21 +75,11 @@ public:
 
 #undef _JNI_SLOT_OFFSET
 #define _JNI_SLOT_OFFSET 1
-  // Doubles are stored in native word format in one JavaCallArgument
-  // slot at *(to+1).
-  static inline void put_double(jdouble  from, intptr_t *to) {
-    *(jdouble*) (to + 1) = from;
-  }
-
-  static inline void put_double(jdouble  from, intptr_t *to, int& pos) {
-    *(jdouble*) (to + 1 + pos) = from;
-    pos += 2;
-  }
-
-  static inline void put_double(jdouble *from, intptr_t *to, int& pos) {
-    *(jdouble*) (to + 1 + pos) = *from;
-    pos += 2;
-  }
+  // Doubles are stored in big-endian word format in two JavaCallArgument slots at *to.
+  // The high half is in *to and the low half in *(to+1).
+  static inline void put_double(jdouble  from, intptr_t *to)           { put_int2r((jint *)&from, to); }
+  static inline void put_double(jdouble  from, intptr_t *to, int& pos) { put_int2r((jint *)&from, to, pos); }
+  static inline void put_double(jdouble *from, intptr_t *to, int& pos) { put_int2r((jint *) from, to, pos); }
 
   // The get_xxx routines, on the other hand, actually _do_ fetch
   // java primitive types from the interpreter stack.
