@@ -104,7 +104,8 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
     case T_CHAR:    __ lhu(result, Address(roffset, 0)); break;
     case T_SHORT:   __ lh(result, Address(roffset, 0)); break;
     case T_INT:     __ lw(result, Address(roffset, 0)); break;
-    case T_LONG:    __ lw(result, Address(roffset, 0)); break;
+    case T_LONG:    __ lw(result, Address(roffset, 0)); 
+                    __ lw(x11, Address(roffset, wordSize)); break;
     case T_FLOAT: {
       __ flw(f28, Address(roffset, 0)); // f28 as temporaries
       __ fmv_x_w(result, f28); // f{31--0}-->x
