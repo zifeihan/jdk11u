@@ -1139,6 +1139,8 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
     return 0;            // Self copy, no move.
   }
 
+  bool is64 = (src_lo & 1) == 0 && src_lo + 1 == src_hi &&
+              (dst_lo & 1) == 0 && dst_lo + 1 == dst_hi;
   int src_offset = ra_->reg2offset(src_lo);
   int dst_offset = ra_->reg2offset(dst_lo);
 
@@ -1166,18 +1168,25 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
         __ fmv_x_w(as_Register(Matcher::_regEncode[dst_lo]),
             as_FloatRegister(Matcher::_regEncode[src_lo]));
       } else if (dst_lo_rc == rc_float) { // fpr --> fpr copy
-        __ fmv_s(as_FloatRegister(Matcher::_regEncode[dst_lo]),
-            as_FloatRegister(Matcher::_regEncode[src_lo]));
+          if (is64) {
+            __ fmv_d(as_FloatRegister(Matcher::_regEncode[dst_lo]),
+                     as_FloatRegister(Matcher::_regEncode[src_lo]));
+        } else {
+            __ fmv_s(as_FloatRegister(Matcher::_regEncode[dst_lo]),
+                     as_FloatRegister(Matcher::_regEncode[src_lo]));
+        }
       } else {                    // fpr --> stack spill
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
-        __ spill(as_FloatRegister(Matcher::_regEncode[src_lo]), dst_offset);
+        __ spill(as_FloatRegister(Matcher::_regEncode[src_lo]),
+                 is64, dst_offset);
       }
       break;
     case rc_stack:
       if (dst_lo_rc == rc_int) {  // stack --> gpr load
         __ unspill(as_Register(Matcher::_regEncode[dst_lo]), src_offset);
       } else if (dst_lo_rc == rc_float) { // stack --> fpr load
-        __ unspill(as_FloatRegister(Matcher::_regEncode[dst_lo]), src_offset);
+        __ unspill(as_FloatRegister(Matcher::_regEncode[dst_lo]),
+                   is64, src_offset);
       } else {                    // stack --> stack copy
         assert(dst_lo_rc == rc_stack, "spill to bad register class");
         __ unspill(t0, src_offset);
@@ -1205,7 +1214,7 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
     if (bottom_type() == NULL || bottom_type()->isa_vect() != NULL) {
       ShouldNotReachHere();
     } else {
-      st->print("\t# spill size = %d", 32);
+      st->print("\t# spill size = %d", is64 ? 64 : 32);
     }
   }
 
