@@ -621,16 +621,24 @@ class MacroAssembler: public Assembler {
     sw(Rx, Address(sp, offset));
   }
 
-  void spill(FloatRegister Rx, int offset) {
-    fsw(Rx, Address(sp, offset));
+  void spill(FloatRegister Rx, bool is64, int offset) {
+    if (is64) {
+      fsd(Rx, Address(sp, offset));
+    } else {
+      fsw(Rx, Address(sp, offset));
+    }
   }
 
   void unspill(Register Rx, int offset) {
     lw(Rx, Address(sp, offset));
   }
 
-  void unspill(FloatRegister Rx, int offset) {
-    flw(Rx, Address(sp, offset));
+  void unspill(FloatRegister Rx, bool is64, int offset) {
+    if (is64) {
+      fld(Rx, Address(sp, offset));
+    } else {
+      flw(Rx, Address(sp, offset));
+    }
   }
 #endif // COMPILER2
 
