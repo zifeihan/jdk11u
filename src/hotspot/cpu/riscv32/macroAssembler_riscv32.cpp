@@ -3036,9 +3036,11 @@ address MacroAssembler::emit_trampoline_stub(int insts_call_instruction_offset,
   // with the call instruction at insts_call_instruction_offset in the
   // instructions code-section.
 
-  // make sure 4 byte aligned here, so that the destination address would be
-  // 8 byte aligned after 3 intructions
-  while (offset() % wordSize == 0) { nop(); }
+  // Before repair, original code while (offset() % wordSize == 0) { nop(); } ,
+  // Therefore, under 32-bit, this judgment is always true. Causes constant writing of nop operations. 
+  // After repair, rv32 (probably) will not execute this code, and then when merging with rv64, 
+  // We can use ifdef to determine whether this logic needs to be executed.
+  align(wordSize);
 
   relocate(trampoline_stub_Relocation::spec(code()->insts()->start() +
                                             insts_call_instruction_offset));
