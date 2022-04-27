@@ -1194,7 +1194,7 @@ static int patch_offset_in_pc_relative(address branch, int32_t offset) {
 static int patch_addr_in_movptr(address branch, address target) {
   const int MOVPTR_INSTRUCTIONS_NUM = 2;                                        // lui + addi
   int32_t lower = ((intptr_t)target << 20) >> 20;
-  int32_t upper = (intptr_t)target >> 12;
+  int32_t upper = ((intptr_t)target - lower) >> 12;
   Assembler::patch(branch,  31, 12, upper & 0xfffff);                           // Lui.             target[31:12] ==> branch[31:12]
   Assembler::patch(branch + 4,  31, 20, lower & 0xfff);                         // Addi.            target[11: 0] ==> branch[31:20]
   return MOVPTR_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
@@ -1202,10 +1202,8 @@ static int patch_addr_in_movptr(address branch, address target) {
 
 static int patch_imm_in_li(address branch, int32_t target) {
   const int LI32_INSTRUCTIONS_NUM = 2;                                          // lui + addi
-  int32_t lower = ((intptr_t)target << 20) >> 20;
-  int32_t upper = (intptr_t)target >> 12;
-  Assembler::patch(branch,  31, 12, upper & 0xfffff);                           // Lui.
-  Assembler::patch(branch + 4,  31, 20, lower & 0xfff);                         // Addi.
+  Assembler::patch(branch, 31, 12, ((target + 0x800) >> 12) & 0xfffff);         // Lui.
+  Assembler::patch(branch + 4, 31, 20, target & 0xfff);                         // Addi.
   return LI32_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
 }
 
