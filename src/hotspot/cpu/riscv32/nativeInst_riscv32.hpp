@@ -96,14 +96,15 @@ class NativeInstruction {
   //     lui
   //     addi
   static bool check_movptr_data_dependency(address instr) {
-    return compare_instr_field(instr, 11, 7, instr + 4, 19, 15);          // check the rd field of lui and the rs1 field of addi
+    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7) &&     // check the rs1 field of addi and the rd field of lui
+           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addi
   }
 
   // the instruction sequence of li is as below:
   //     lui
-  //     addiw
+  //     addi
   static bool check_li_data_dependency(address instr) {
-    return compare_instr_field(instr, 19, 15, instr, 11, 7) &&     // check the rs1 field of addi and the rd field of lui
+    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7) &&     // check the rs1 field of addi and the rd field of lui
            compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addi
   }
 
