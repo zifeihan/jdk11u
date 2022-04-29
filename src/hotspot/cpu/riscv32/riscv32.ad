@@ -853,7 +853,7 @@ int MachCallStaticJavaNode::ret_addr_offset()
 
 int MachCallDynamicJavaNode::ret_addr_offset()
 {
-  return 28; // movptr, jal
+  return 12; // movptr(lui, addi), jal
 }
 
 int MachCallRuntimeNode::ret_addr_offset() {
@@ -4304,7 +4304,7 @@ instruct loadConPollPage(iRegPNoSp dst, immPollPage con)
 %{
   match(Set dst con);
 
-  ins_cost(ALU_COST * 6);
+  ins_cost(ALU_COST * 2);
   format %{ "movptr  $dst, $con\t# Poll Page Ptr, #@loadConPollPage" %}
 
   ins_encode(riscv32_enc_mov_poll_page(dst, con));
