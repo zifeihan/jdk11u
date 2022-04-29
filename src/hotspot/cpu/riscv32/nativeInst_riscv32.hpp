@@ -92,14 +92,6 @@ class NativeInstruction {
     return Assembler::extract(((unsigned*)instr1)[0], index1, index2) == Assembler::extract(((unsigned*)instr2)[0], index3, index4);
   }
 
-  // the instruction sequence of movptr is as below:
-  //     lui
-  //     addi
-  static bool check_movptr_data_dependency(address instr) {
-    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7) &&     // check the rs1 field of addi and the rd field of lui
-           compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addi
-  }
-
   // the instruction sequence of li is as below:
   //     lui
   //     addi

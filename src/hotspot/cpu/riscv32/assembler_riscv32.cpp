@@ -703,13 +703,11 @@ void Assembler::wrap_label(Register Rt, Label &L, jal_jalr_insn insn) {
 }
 
 void Assembler::movptr(Register Rd, uintptr_t imm32) {
-  movptr(Rd, (address)imm32);
+  li(Rd, (int32_t)imm32);
 }
 
 void Assembler::movptr(Register Rd, address addr) {
-  int offset = 0;
-  lui(Rd, (int32_t)addr + 0x800);
-  addi(Rd, Rd, ((int32_t)addr << 20) >> 20);
+  li(Rd, (int32_t)addr);
 }
 
 void Assembler::ifence() {

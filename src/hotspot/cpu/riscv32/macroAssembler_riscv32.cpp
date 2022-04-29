@@ -1191,20 +1191,15 @@ static int patch_offset_in_pc_relative(address branch, int32_t offset) {
   return PC_RELATIVE_INSTRUCTION_NUM * NativeInstruction::instruction_size;
 }
 
-static int patch_addr_in_movptr(address branch, address target) {
-  const int MOVPTR_INSTRUCTIONS_NUM = 2;                                        // lui + addi
-  int32_t lower = ((intptr_t)target << 20) >> 20;
-  int32_t upper = ((intptr_t)target - lower) >> 12;
-  Assembler::patch(branch,  31, 12, upper & 0xfffff);                           // Lui.             target[31:12] ==> branch[31:12]
-  Assembler::patch(branch + 4,  31, 20, lower & 0xfff);                         // Addi.            target[11: 0] ==> branch[31:20]
-  return MOVPTR_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
-}
-
 static int patch_imm_in_li(address branch, int32_t target) {
   const int LI32_INSTRUCTIONS_NUM = 2;                                          // lui + addi
   Assembler::patch(branch, 31, 12, ((target + 0x800) >> 12) & 0xfffff);         // Lui.
   Assembler::patch(branch + 4, 31, 20, target & 0xfff);                         // Addi.
   return LI32_INSTRUCTIONS_NUM * NativeInstruction::instruction_size;
+}
+
+static int patch_addr_in_movptr(address branch, address target) {
+  return patch_imm_in_li(branch, (int32_t)target);
 }
 
 static long get_offset_of_jal(address insn_addr) {
@@ -1240,18 +1235,15 @@ static long get_offset_of_pc_relative(address insn_addr) {
   return offset;
 }
 
-static address get_target_of_movptr(address insn_addr) {
+static address get_target_of_li(address insn_addr) {
   assert_cond(insn_addr != NULL);
   intptr_t target_address = (((int32_t)Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) & 0xfffff) << 12;    // Lui.
   target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20));                                       // Addi.
   return (address)target_address;
 }
 
-static address get_target_of_li(address insn_addr) {
-  assert_cond(insn_addr != NULL);
-  intptr_t target_address = (((int32_t)Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) & 0xfffff) << 12;    // Lui.
-  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20));                                       // Addi.
-  return (address)target_address;
+static address get_target_of_movptr(address insn_addr) {
+  return get_target_of_li(insn_addr);
 }
 
 // Patch any kind of instruction; there may be several instructions.
