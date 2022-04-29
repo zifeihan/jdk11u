@@ -1243,14 +1243,14 @@ static long get_offset_of_pc_relative(address insn_addr) {
 static address get_target_of_movptr(address insn_addr) {
   assert_cond(insn_addr != NULL);
   intptr_t target_address = (((int32_t)Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) & 0xfffff) << 12;    // Lui.
-  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20) & 0xfff);                               // Addi.
+  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20));                                       // Addi.
   return (address)target_address;
 }
 
 static address get_target_of_li(address insn_addr) {
   assert_cond(insn_addr != NULL);
   intptr_t target_address = (((int32_t)Assembler::sextract(((unsigned*)insn_addr)[0], 31, 12)) & 0xfffff) << 12;    // Lui.
-  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20) & 0xfff);                               // Addi.
+  target_address += (Assembler::sextract(((unsigned*)insn_addr)[1], 31, 20));                                       // Addi.
   return (address)target_address;
 }
 
