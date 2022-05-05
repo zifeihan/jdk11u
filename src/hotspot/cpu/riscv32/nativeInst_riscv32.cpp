@@ -60,15 +60,6 @@ bool NativeInstruction::is_load_pc_relative_at(address instr) {
   return false;
 }
 
-bool NativeInstruction::is_movptr_at(address instr) {
-  if (is_lui_at(instr) && // lui
-      is_addi_at(instr + 4) && // Addi
-      check_movptr_data_dependency(instr)) {
-    return true;
-  }
-  return false;
-}
-
 bool NativeInstruction::is_li_at(address instr) {
   if (is_lui_at(instr) && // lui
       is_addi_at(instr + 4) && // addi
@@ -76,6 +67,10 @@ bool NativeInstruction::is_li_at(address instr) {
     return true;
   }
   return false;
+}
+
+bool NativeInstruction::is_movptr_at(address instr) {
+  return is_li_at(instr);
 }
 
 void NativeCall::verify() {

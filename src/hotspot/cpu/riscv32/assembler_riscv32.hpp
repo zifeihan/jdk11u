@@ -298,7 +298,7 @@ public:
 
   void li(Register Rd, int32_t imm);
   void movptr(Register Rd, address addr);
-  void movptr(Register Rd, uintptr_t imm64);
+  void movptr(Register Rd, uintptr_t imm32);
   void ifence();
   void j(const address &dest, Register temp = t0);
   void j(const Address &adr, Register temp = t0) ;
