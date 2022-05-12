@@ -5980,7 +5980,7 @@ instruct addI_reg_imm_l2i(iRegINoSp dst, iRegL src1, immIAdd src2) %{
 %}
 
 // Pointer Addition
-instruct addP_reg_reg(iRegPNoSp dst, iRegP src1, iRegL src2) %{
+instruct addP_reg_reg(iRegPNoSp dst, iRegP src1, iRegI src2) %{
   match(Set dst (AddP src1 src2));
 
   ins_cost(ALU_COST);
