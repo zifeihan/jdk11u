@@ -5999,10 +5999,10 @@ instruct addP_reg_reg(iRegPNoSp dst, iRegP src1, iRegI src2) %{
 instruct lShiftL_regI_immGE32(iRegLNoSp dst, iRegIorL2I src, uimmI6_ge32 scale) %{
   match(Set dst (LShiftL (ConvI2L src) scale));
   ins_cost(ALU_COST);
-  format %{ "slli  $dst, $src, $scale & 63\t#@lShiftL_regI_immGE32" %}
+  format %{ "slli  $dst, $src, $scale & 0x1f\t#@lShiftL_regI_immGE32" %}
 
   ins_encode %{
-    __ slli(as_Register($dst$$reg), as_Register($src$$reg), $scale$$constant & 63);
+    __ slli(as_Register($dst$$reg), as_Register($src$$reg), $scale$$constant & 0x1f);
   %}
 
   ins_pipe(ialu_reg_shift);
@@ -6401,14 +6401,14 @@ instruct lShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2) %{
   match(Set dst (LShiftL src1 src2));
 
   ins_cost(ALU_COST);
-  format %{ "slli  $dst, $src1, ($src2 & 0x3f)\t#@lShiftL_reg_imm" %}
+  format %{ "slli  $dst, $src1, ($src2 & 0x1f)\t#@lShiftL_reg_imm" %}
 
   ins_encode %{
     // the shift amount is encoded in the lower
     // 6 bits of the I-immediate field for RV32I
     __ slli(as_Register($dst$$reg),
             as_Register($src1$$reg),
-            (unsigned) $src2$$constant & 0x3f);
+            (unsigned) $src2$$constant & 0x1f);
   %}
 
   ins_pipe(ialu_reg_shift);
