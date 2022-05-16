@@ -358,14 +358,9 @@ reg_class int_r13_reg(R13);
 // Singleton class for R14 int register
 reg_class int_r14_reg(R14);
 
-// Class for all long registers
-reg_class all_reg(
-    R0,R1,
-    R2,R3
-);
-
-reg_class long_r0r1_reg(R0, R1);
-reg_class long_r2r3_reg(R2, R3);
+reg_class long_reg (R10, R11, R12, R13);
+reg_class long_r10r11_reg(R10, R11);
+reg_class long_r12r13_reg(R12, R13);
 
 // Class for all long integer registers (excluding zr)
 reg_class any_reg %{
@@ -711,14 +706,17 @@ source %{
     _ANY_REG32_mask = _ALL_REG32_mask;
     _ANY_REG32_mask.Remove(OptoReg::as_OptoReg(x0->as_VMReg()));
 
-    _ANY_REG_mask = _ALL_REG_mask;
+    _ANY_REG_mask = _ALL_REG32_mask;
     _ANY_REG_mask.SUBTRACT(_ZR_REG_mask);
 
-    _PTR_REG_mask = _ALL_REG_mask;
+    _PTR_REG_mask = _ALL_REG32_mask;
     _PTR_REG_mask.SUBTRACT(_ZR_REG_mask);
 
     _NO_SPECIAL_REG32_mask = _ALL_REG32_mask;
     _NO_SPECIAL_REG32_mask.SUBTRACT(_NON_ALLOCATABLE_REG32_mask);
+
+    _NO_SPECIAL_REG_mask = _ALL_REG32_mask;
+    _NO_SPECIAL_REG_mask.SUBTRACT(_NON_ALLOCATABLE_REG32_mask);
 
     _NO_SPECIAL_PTR_REG_mask = _ALL_REG32_mask;
     _NO_SPECIAL_PTR_REG_mask.SUBTRACT(_NON_ALLOCATABLE_REG32_mask);
@@ -1156,8 +1154,6 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
       if (dst_lo_rc == rc_int) {  // gpr --> gpr copy
         __ mv(as_Register(Matcher::_regEncode[dst_lo]),
             as_Register(Matcher::_regEncode[src_lo]));
-        if (this->ideal_reg() != Op_RegI) // zero extended for narrow oop or klass
-          __ clear_upper_bits(as_Register(Matcher::_regEncode[dst_lo]), 16);
       } else if (dst_lo_rc == rc_float) { // gpr --> fpr copy
         __ fmv_w_x(as_FloatRegister(Matcher::_regEncode[dst_lo]),
             as_Register(Matcher::_regEncode[src_lo]));
@@ -2355,7 +2351,18 @@ frame %{
       R10_num                            // Op_RegL
     };
 
-    return OptoRegPair(lo[ideal_reg]);
+    static const int hi[Op_RegL + 1] = { // enum name
+      0,                                 // Op_Node
+      0,                                 // Op_Set
+      OptoReg::Bad,                      // Op_RegN
+      OptoReg::Bad,                      // Op_RegI
+      OptoReg::Bad,                      // Op_RegP
+      OptoReg::Bad,                      // Op_RegF
+      F10_H_num,                         // Op_RegD
+      R11_num                            // Op_RegL
+    };
+
+    return OptoRegPair(hi[ideal_reg], lo[ideal_reg]);
   %}
 %}
 
@@ -2780,37 +2787,40 @@ operand iRegI_R14()
 // Long Register Operands
 operand iRegL()
 %{
-  constraint(ALLOC_IN_RC(any_reg));
-  match(iRegL_R0R1);
-  match(iRegL_R2R3);
+  constraint(ALLOC_IN_RC(long_reg));
+  match(RegL);
+  match(iRegL_R10R11);
+  match(iRegL_R12R13);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
 %}
 
-// Integer 32 bit Register not Special
+// Long Register not Special
 operand iRegLNoSp()
 %{
   constraint(ALLOC_IN_RC(no_special_reg));
-  match(iRegL_R0R1);
-  match(iRegL_R2R3);
+  match(RegL);
+  match(iRegL_R10R11);
   format %{ %}
   interface(REG_INTER);
 %}
 
-operand iRegL_R0R1()
+operand iRegL_R10R11()
 %{
-  constraint(ALLOC_IN_RC(long_r0r1_reg));
+  constraint(ALLOC_IN_RC(long_r10r11_reg));
   match(RegL);
+  match(iRegLNoSp);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
 %}
 
-operand iRegL_R2R3()
+operand iRegL_R12R13()
 %{
-  constraint(ALLOC_IN_RC(long_r2r3_reg));
+  constraint(ALLOC_IN_RC(long_r12r13_reg));
   match(RegL);
+  match(iRegLNoSp);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
@@ -2955,17 +2965,6 @@ operand iRegIHeapbase()
 %{
   constraint(ALLOC_IN_RC(heapbase_reg));
   match(RegI);
-  op_cost(0);
-  format %{ %}
-  interface(REG_INTER);
-%}
-
-// Long 32 bit Register R10 only
-operand iRegL_R10()
-%{
-  constraint(ALLOC_IN_RC(r10_reg));
-  match(RegL);
-  match(iRegLNoSp);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
@@ -9393,7 +9392,7 @@ instruct partialSubtypeCheckVsZero(iRegP_R14 sub, iRegP_R10 super, iRegP_R12 tem
 %}
 
 instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UU);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9411,7 +9410,7 @@ instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9428,7 +9427,7 @@ instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3, rFlagsReg cr)
+                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9445,7 +9444,7 @@ instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_
 %}
 
 instruct string_compareLU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R0R1 tmp2, iRegL_R2R3 tmp3,
+                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3,
                           rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LU);
@@ -9589,7 +9588,7 @@ instruct string_indexof_conUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2,
 %}
 
 // clearing of an array
-instruct clearArray_reg_reg(iRegL_R0R1 cnt, iRegP_R28 base, Universe dummy, rFlagsReg cr)
+instruct clearArray_reg_reg(iRegL_R10R11 cnt, iRegP_R28 base, Universe dummy, rFlagsReg cr)
 %{
   match(Set dummy (ClearArray cnt base));
   effect(USE_KILL cnt, USE_KILL base, KILL cr);
