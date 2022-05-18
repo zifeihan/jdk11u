@@ -27,7 +27,7 @@
 #ifndef CPU_RISCV32_VM_GLOBALDEFINITIONS_RISCV32_HPP
 #define CPU_RISCV32_VM_GLOBALDEFINITIONS_RISCV32_HPP
 
-const int StackAlignmentInBytes  = 8;
+const int StackAlignmentInBytes  = 16;
 
 // Indicates whether the C calling conventions require that
 // 32-bit integer argument values are extended to 64 bits.
