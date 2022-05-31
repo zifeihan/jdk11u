@@ -1416,8 +1416,8 @@ bool Matcher::is_short_branch_offset(int rule, int br_size, int offset) {
 
 const bool Matcher::isSimpleConstant64(jlong value) {
   // Will one (StoreL ConL) be cheaper than two (StoreI ConI)?.
-  // Probably always true, even if a temp register is required.
-  return true;
+  // Probably always false, due to a temp register is required.
+  return false;
 }
 
 // true just means we have fast l2f conversion
