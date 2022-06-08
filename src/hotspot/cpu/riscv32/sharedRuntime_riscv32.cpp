@@ -94,13 +94,13 @@ class RegisterSaver {
   // |---ra---|
   static int reg_offset_in_bytes(Register r) {
     assert (r->encoding() > 2, "ra and sp not saved");
-    return (32 /* floats*/ + r->encoding() - 2 /* x1, x2*/) * wordSize;
+    return (2 * 32 /* floats*/ + r->encoding() - 2 /* x1, x2*/) * wordSize;
   }
   static int x10_offset_in_bytes(void)        { return reg_offset_in_bytes(x10); } // x10
   static int xmethod_offset_in_bytes(void)    { return reg_offset_in_bytes(xmethod); } // x31
   static int tmp0_offset_in_bytes(void)       { return reg_offset_in_bytes(t0); } // x5
   static int f0_offset_in_bytes(void)         { return 0; }
-  static int f10_offset_in_bytes(void)        { return 10 /* floats*/ * wordSize; }
+  static int f10_offset_in_bytes(void)        { return 10 /* floats*/ * 2 * wordSize; }
   static int return_offset_in_bytes(void)     { return return_off * BytesPerInt; }
 
   // During deoptimization only the result registers need to be restored,
@@ -116,9 +116,9 @@ class RegisterSaver {
     // setting for it. We must therefore force the layout
     // so that it agrees with the frame sender code.
     x0_off        = fpu_state_off + FPUStateSizeInWords,
-    fp_off        = x0_off + 30 * 2,
-    return_off    = fp_off + 2,      // slot for return address
-    reg_save_size = return_off + 2
+    fp_off        = x0_off + 30,
+    return_off    = fp_off + 1,      // slot for return address
+    reg_save_size = return_off + 1
   };
 };
 
@@ -150,7 +150,7 @@ OopMap* RegisterSaver::save_live_registers(MacroAssembler* masm, int additional_
   for (int i = 3; i < RegisterImpl::number_of_registers; i++) {
     Register r = as_Register(i);
     if (r != xthread && r != t0 && r != t1) {
-      int sp_offset = 2 * ((i - 2) + 32); // SP offsets are in 4-byte words, register slots are 8 bytes
+      int sp_offset = (i - 2) + (32 * 2); // SP offsets are in 4-byte words, register slots are 4 bytes
                                           // wide, 32 floating-point registers
       oop_map->set_callee_saved(VMRegImpl::stack2reg(sp_offset + additional_frame_slots), r->as_VMReg());
     }
