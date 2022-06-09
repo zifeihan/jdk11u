@@ -913,7 +913,7 @@ void SharedRuntime::save_native_result(MacroAssembler *masm, BasicType ret_type,
     __ fsw(f10, Address(fp, -wordSize));
     break;
   case T_DOUBLE:
-    __ fsd(f10, Address(fp, -wordSize));
+    __ fsd(f10, Address(fp, -2 * wordSize));
     break;
   case T_VOID:  break;
   default: {
@@ -931,7 +931,7 @@ void SharedRuntime::restore_native_result(MacroAssembler *masm, BasicType ret_ty
     __ flw(f10, Address(fp, -wordSize));
     break;
   case T_DOUBLE:
-    __ fld(f10, Address(fp, -wordSize));
+    __ fld(f10, Address(fp, - 2 * wordSize));
     break;
   case T_VOID:  break;
   default: {

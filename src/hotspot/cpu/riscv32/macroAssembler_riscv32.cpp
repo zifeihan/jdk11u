@@ -1108,11 +1108,11 @@ void MacroAssembler::push_call_clobbered_registers() {
   push_reg(RegSet::of(x7) + RegSet::range(x10, x17) + RegSet::range(x28, x31), sp);
 
   // Push float registers f0-f7, f10-f17, f28-f31.
-  addi(sp, sp, - wordSize * 20);
+  addi(sp, sp, - wordSize * 2 * 20);
   int offset = 0;
   for (int i = 0; i <= 31; i ++) {
     if (i <= f7->encoding() || i >= f28->encoding() || (i >= f10->encoding() && i <= f17->encoding())) {
-      fsd(as_FloatRegister(i), Address(sp, wordSize * (offset ++)));
+      fsd(as_FloatRegister(i), Address(sp, wordSize * 2 * (offset ++)));
     }
   }
 }
@@ -1121,10 +1121,10 @@ void MacroAssembler::pop_call_clobbered_registers() {
   int offset = 0;
   for (int i = 0; i <= 31; i ++) {
     if (i <= f7->encoding() || i >= f28->encoding() || (i >= f10->encoding() && i <= f17->encoding())) {
-      fld(as_FloatRegister(i), Address(sp, wordSize * (offset ++)));
+      fld(as_FloatRegister(i), Address(sp, wordSize * 2 * (offset ++)));
     }
   }
-  addi(sp, sp, wordSize * 20);
+  addi(sp, sp, wordSize * 2 * 20);
 
   pop_reg(RegSet::of(x7) + RegSet::range(x10, x17) + RegSet::range(x28, x31), sp);
 }
