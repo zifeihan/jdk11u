@@ -2210,7 +2210,7 @@ class StubGenerator: public StubCodeGenerator {
 
     __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, wordSize);
-    __ inflate_hi32(tmp3, tmpL);
+    __ inflate_hi16(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);
@@ -2226,7 +2226,7 @@ class StubGenerator: public StubCodeGenerator {
 
     __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, wordSize);
-    __ inflate_hi32(tmp3, tmpL);
+    __ inflate_hi16(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);

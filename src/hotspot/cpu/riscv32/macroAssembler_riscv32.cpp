@@ -4158,9 +4158,9 @@ void MacroAssembler::inflate_lo16(Register Rd, Register Rs, Register Rtmp1, Regi
 
 // This instruction reads adjacent 4 bytes from the upper half of source register,
 // inflate into a register, for example:
-// Rs: A7A6A5A4A3A2A1A0
-// Rd: 00A700A600A500A4
-void MacroAssembler::inflate_hi32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
+// Rs: A3A2A1A0
+// Rd: 00A300A2
+void MacroAssembler::inflate_hi16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
 {
   assert_different_registers(Rd, Rs, Rtmp1, Rtmp2);
   srli(Rs, Rs, 16);   // only upper  bits are needed
