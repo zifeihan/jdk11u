@@ -3332,7 +3332,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       add(str1, str1, cnt2);
       sub(cnt2, zr, cnt2);
     } else if (isLU) { // LU case
-      lw(tmp1, Address(str1));
+      lhu(tmp1, Address(str1));
       lw(tmp2, Address(str2));
       li(t0, STUB_THRESHOLD);
       bge(cnt2, t0, STUB);
@@ -3347,7 +3347,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       addi(cnt1, cnt1, 4);
     } else { // UL case
       lw(tmp1, Address(str1));
-      lw(tmp2, Address(str2));
+      lhu(tmp2, Address(str2));
       li(t0, STUB_THRESHOLD);
       bge(cnt2, t0, STUB);
       addi(cnt2, cnt2, -4);
@@ -3375,7 +3375,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       addi(cnt2, cnt2, 8);
     } else if (isLU) { // LU case
       add(t0, str1, cnt1);
-      lw(tmp1, Address(t0));
+      lhu(tmp1, Address(t0));
       add(t0, str2, cnt2);
       lw(tmp2, Address(t0));
       addi(cnt1, cnt1, 4);
@@ -3384,7 +3384,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       addi(cnt2, cnt2, 8);
     } else { // UL case
       add(t0, str2, cnt2);
-      lw(tmp2, Address(t0));
+      lhu(tmp2, Address(t0));
       add(t0, str1, cnt1);
       lw(tmp1, Address(t0));
       inflate_lo32(tmp3, tmp2);
