@@ -2202,7 +2202,7 @@ class StubGenerator: public StubCodeGenerator {
     __ addi(tmp2, tmp2, wordSize);
     __ lw(tmpU, Address(cnt1));
     __ addi(cnt1, cnt1, wordSize);
-    __ inflate_lo32(tmp3, tmpL);
+    __ inflate_lo16(tmp3, tmpL);
     __ mv(t0, tmp3);
     // now we have 32 bytes of characters
     __ xorr(tmp3, tmp4, t0);
@@ -2219,7 +2219,7 @@ class StubGenerator: public StubCodeGenerator {
     __ addi(tmp2, tmp2, wordSize);
     __ lw(tmpU, Address(cnt1));
     __ addi(cnt1, cnt1, wordSize);
-    __ inflate_lo32(tmp3, tmpL);
+    __ inflate_lo16(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
@@ -2252,7 +2252,7 @@ class StubGenerator: public StubCodeGenerator {
 
     // cnt2 == amount of characters left to compare
     // Check already loaded first 4 symbols
-    __ inflate_lo32(tmp3, isLU ? tmp1 : tmp2);
+    __ inflate_lo16(tmp3, isLU ? tmp1 : tmp2);
     __ mv(isLU ? tmp1 : tmp2, tmp3);
     __ addi(str1, str1, isLU ? wordSize / 2 : wordSize);
     __ addi(str2, str2, isLU ? wordSize : wordSize / 2);
@@ -2309,7 +2309,7 @@ class StubGenerator: public StubCodeGenerator {
       // No need to load it again
       __ mv(tmpU, tmp4);
       __ lw(tmpL, Address(strL));
-      __ inflate_lo32(tmp3, tmpL);
+      __ inflate_lo16(tmp3, tmpL);
       __ mv(tmpL, tmp3);
       __ xorr(tmp3, tmpU, tmpL);
       __ beqz(tmp3, DONE);
@@ -2484,7 +2484,7 @@ class StubGenerator: public StubCodeGenerator {
     __ blez(haystack_len, L_SMALL);
 
     if (needle_isL != haystack_isL) {
-      __ inflate_lo32(ch1, tmp, match_mask, tailing_zero);
+      __ inflate_lo16(ch1, tmp, match_mask, tailing_zero);
     }
     // xorr, sub, orr, notr, andr
     // compare and set match_mask[i] with 0x80/0x8000 (Latin1/UTF16) if ch2[i] == first[i]
@@ -2529,7 +2529,7 @@ class StubGenerator: public StubCodeGenerator {
     __ slli(haystack_len, haystack_len, LogBitsPerByte + haystack_chr_shift);
     __ neg(haystack_len, haystack_len);
     if (needle_isL != haystack_isL) {
-      __ inflate_lo32(ch1, tmp, match_mask, tailing_zero);
+      __ inflate_lo16(ch1, tmp, match_mask, tailing_zero);
     }
     __ xorr(ch2, first, ch2);
     __ sub(match_mask, ch2, mask1);
