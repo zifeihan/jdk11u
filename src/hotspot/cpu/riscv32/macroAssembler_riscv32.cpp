@@ -3694,11 +3694,10 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
 
   // init BC offset table with default value: needle_len
   slli(t0, needle_len, 8);
-  orr(t0, t0, needle_len); // [63...16][needle_len][needle_len]
+  orr(t0, t0, needle_len); // [32...16][needle_len][needle_len]
   slli(tmp1, t0, 16);
-  orr(t0, tmp1, t0); // [63...32][needle_len][needle_len][needle_len][needle_len]
-  slli(tmp1, t0, 32);
-  orr(tmp5, tmp1, t0); // tmp5: 8 elements [needle_len]
+  orr(tmp5, tmp1, t0); // [needle_len][needle_len][needle_len][needle_len]
+
 
   mv(ch1, sp);  // ch1 is t0
   mv(tmp6, ASIZE / STORE_BYTES); // loop iterations
