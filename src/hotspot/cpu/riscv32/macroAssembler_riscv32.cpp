@@ -3332,7 +3332,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       add(str1, str1, cnt2);
       sub(cnt2, zr, cnt2);
     } else if (isLU) { // LU case
-      lw(tmp1, Address(str1));
+      lhu(tmp1, Address(str1));
       lw(tmp2, Address(str2));
       li(t0, STUB_THRESHOLD);
       bge(cnt2, t0, STUB);
@@ -3341,13 +3341,13 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       sub(cnt1, zr, cnt2);
       slli(cnt2, cnt2, 1);
       add(str2, str2, cnt2);
-      inflate_lo32(tmp3, tmp1);
+      inflate_lo16(tmp3, tmp1);
       mv(tmp1, tmp3);
       sub(cnt2, zr, cnt2);
       addi(cnt1, cnt1, 4);
     } else { // UL case
       lw(tmp1, Address(str1));
-      lw(tmp2, Address(str2));
+      lhu(tmp2, Address(str2));
       li(t0, STUB_THRESHOLD);
       bge(cnt2, t0, STUB);
       addi(cnt2, cnt2, -4);
@@ -3355,7 +3355,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       sub(cnt1, zr, t0);
       add(str1, str1, t0);
       add(str2, str2, cnt2);
-      inflate_lo32(tmp3, tmp2);
+      inflate_lo16(tmp3, tmp2);
       mv(tmp2, tmp3);
       sub(cnt2, zr, cnt2);
       addi(cnt1, cnt1, 8);
@@ -3375,19 +3375,19 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       addi(cnt2, cnt2, 8);
     } else if (isLU) { // LU case
       add(t0, str1, cnt1);
-      lw(tmp1, Address(t0));
+      lhu(tmp1, Address(t0));
       add(t0, str2, cnt2);
       lw(tmp2, Address(t0));
       addi(cnt1, cnt1, 4);
-      inflate_lo32(tmp3, tmp1);
+      inflate_lo16(tmp3, tmp1);
       mv(tmp1, tmp3);
       addi(cnt2, cnt2, 8);
     } else { // UL case
       add(t0, str2, cnt2);
-      lw(tmp2, Address(t0));
+      lhu(tmp2, Address(t0));
       add(t0, str1, cnt1);
       lw(tmp1, Address(t0));
-      inflate_lo32(tmp3, tmp2);
+      inflate_lo16(tmp3, tmp2);
       mv(tmp2, tmp3);
       addi(cnt1, cnt1, 8);
       addi(cnt2, cnt2, 4);
@@ -3416,14 +3416,14 @@ void MacroAssembler::string_compare(Register str1, Register str2,
         lhu(tmp1, Address(t0));
         add(t0, str2, cnt2);
         lw(tmp2, Address(t0));
-        inflate_lo32(tmp3, tmp1);
+        inflate_lo16(tmp3, tmp1);
         mv(tmp1, tmp3);
       } else {  // UL
         add(t0, str1, cnt1);
         lw(tmp1, Address(t0));
         add(t0, str2, cnt2);
         lhu(tmp2, Address(t0));
-        inflate_lo32(tmp3, tmp2);
+        inflate_lo16(tmp3, tmp2);
         mv(tmp2, tmp3);
         slli(cnt2, cnt2, 1);  // UL case should convert cnt2 to bytes
       }
@@ -3441,12 +3441,12 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       } else if (isLU) { // LU case
         lhu(tmp1, Address(str1));
         lw(tmp2, Address(str2));
-        inflate_lo32(tmp3, tmp1);
+        inflate_lo16(tmp3, tmp1);
         mv(tmp1, tmp3);
       } else { // UL case
         lw(tmp1, Address(str1));
         lhu(tmp2, Address(str2));
-        inflate_lo32(tmp3, tmp2);
+        inflate_lo16(tmp3, tmp2);
         mv(tmp2, tmp3);
       }
     }
@@ -4141,35 +4141,30 @@ void MacroAssembler::ctz(Register Rd, Register Rs, bool isLL, Register Rtmp1, Re
   beqz(Rtmp1, Loop);
 }
 
-// This instruction reads adjacent 4 bytes from the lower half of source register,
+// This instruction reads adjacent 2 bytes from the lower half of source register,
 // inflate into a register, for example:
-// Rs: A7A6A5A4A3A2A1A0
-// Rd: 00A300A200A100A0
-void MacroAssembler::inflate_lo32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
+// Rs: A3A2A1A0
+// Rd: 00A100A0
+void MacroAssembler::inflate_lo16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
 {
   assert_different_registers(Rd, Rs, Rtmp1, Rtmp2);
-  li(Rtmp1, 0xFF000000);  // first byte mask at lower word
+  li(Rtmp1, 0xFF00);  // first byte mask at lower word
   andr(Rd, Rs, Rtmp1);
-  for (int i = 0; i < 2; i++) {
-    slli(Rd, Rd, wordSize);
-    srli(Rtmp1, Rtmp1, wordSize);
-    andr(Rtmp2, Rs, Rtmp1);
-    orr(Rd, Rd, Rtmp2);
-  }
-  slli(Rd, Rd, wordSize);
-  andi(Rtmp2, Rs, 0xFF);  // last byte mask at lower word
+  slli(Rd, Rd, 2 * wordSize);
+  srli(Rtmp1, Rtmp1, 2 * wordSize);
+  andr(Rtmp2, Rs, Rtmp1);
   orr(Rd, Rd, Rtmp2);
 }
 
 // This instruction reads adjacent 4 bytes from the upper half of source register,
 // inflate into a register, for example:
-// Rs: A7A6A5A4A3A2A1A0
-// Rd: 00A700A600A500A4
-void MacroAssembler::inflate_hi32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
+// Rs: A3A2A1A0
+// Rd: 00A300A2
+void MacroAssembler::inflate_hi16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2)
 {
   assert_different_registers(Rd, Rs, Rtmp1, Rtmp2);
-  srli(Rs, Rs, 32);   // only upper 32 bits are needed
-  inflate_lo32(Rd, Rs, Rtmp1, Rtmp2);
+  srli(Rs, Rs, 16);   // only upper  bits are needed
+  inflate_lo16(Rd, Rs, Rtmp1, Rtmp2);
 }
 
 // The size of the blocks erased by the zero_blocks stub.  We must
