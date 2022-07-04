@@ -3688,7 +3688,7 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
   const int firstStep = isLL ? 7 : 3;
 
   const int ASIZE = 256;
-  const int STORE_BYTES = 4; // 8 bytes stored per instruction(sw)
+  const int STORE_BYTES = 4; // 4 bytes stored per instruction(sw)
 
   sub(sp, sp, ASIZE);
 
@@ -3708,7 +3708,7 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
   for (int i = 0; i < 4; i++) {
     sw(tmp5, Address(ch1, i * wordSize));
   }
-  add(ch1, ch1, 32);
+  add(ch1, ch1, 4 * wordSize);
   sub(tmp6, tmp6, 4);
   bgtz(tmp6, BM_INIT_LOOP);
 
@@ -3748,24 +3748,25 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
   slli(tmp6, needle_len, needle_chr_shift);
   add(tmp6, tmp6, needle); // tmp6: pattern end, address after needle
   if (needle_isL == haystack_isL) {
-    // load last 8 bytes (8LL/4UU symbols)
+    // load last 4 bytes (4LL/2UU symbols)
     lw(tmp6, Address(tmp6, -wordSize));
   } else {
     // UL: from UTF-16(source) search Latin1(pattern)
-    lw(tmp6, Address(tmp6, -wordSize / 2)); // load last 4 bytes(4 symbols)
+    lw(tmp6, Address(tmp6, -wordSize)); // load last 4 bytes(4 symbols)
     // convert Latin1 to UTF. eg: 0x0000abcd -> 0x0a0b0c0d
     // We'll have to wait until load completed, but it's still faster than per-character loads+checks
-    srli(tmp3, tmp6, BitsPerByte * (wordSize / 2 - needle_chr_size)); // pattern[m-1], eg:0x0000000a
-    slli(ch2, tmp6, registerSize - 24);
-    srli(ch2, ch2, registerSize - 8); // pattern[m-2], 0x0000000b
-    slli(ch1, tmp6, registerSize - 16);
-    srli(ch1, ch1, registerSize - 8); // pattern[m-3], 0x0000000c
-    andi(tmp6, tmp6, 0xff); // pattern[m-4], 0x0000000d
+    srli(tmp3, tmp6, BitsPerByte * (wordSize - needle_chr_size)); // pattern[m-1], eg:0x0000000a
+    slli(ch2, tmp6, registerSize - 12);
+    srli(ch2, ch2, registerSize - 4); // pattern[m-2], 0x0000000b
+    slli(ch1, tmp6, registerSize - 8);
+    srli(ch1, ch1, registerSize - 4); // pattern[m-3], 0x0000000c
+    slli(tmp6, tmp6, registerSize - 4);
+    srli(tmp6, tmp6, registerSize - 4); // pattern[m-4], 0x0000000d
     slli(ch2, ch2, 16);
     orr(ch2, ch2, ch1); // 0x00000b0c
-    slli(result, tmp3, 48); // use result as temp register
+    slli(result, tmp3, 24); // use result as temp register
     orr(tmp6, tmp6, result); // 0x0a00000d
-    slli(result, ch2, 16);
+    slli(result, ch2, 8);
     orr(tmp6, tmp6, result); // UTF-16:0x0a0b0c0d
   }
 
@@ -3792,7 +3793,7 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
   }
   bne(tmp3, skipch, BMSKIP); // if not equal, skipch is bad char
   add(result, haystack, isLL ? nlen_tmp : ch2);
-  lw(ch2, Address(result)); // load 8 bytes from source string
+  lw(ch2, Address(result)); // load 4 bytes from source string
   mv(ch1, tmp6);
   if (isLL) {
     j(BMLOOPSTR1_AFTER_LOAD);
