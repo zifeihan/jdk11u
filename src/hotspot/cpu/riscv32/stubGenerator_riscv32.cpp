@@ -2352,25 +2352,25 @@ class StubGenerator: public StubCodeGenerator {
     __ add(str1, str1, wordSize);
     __ add(str2, str2, wordSize);
     // less than 16 bytes left?
-    __ sub(cnt2, cnt2, isLL ? 16 : 8);
+    __ sub(cnt2, cnt2, isLL ? 2 * wordSize : wordSize);
     __ push_reg(spilled_regs, sp);
     __ bltz(cnt2, TAIL);
     __ bind(SMALL_LOOP);
       compare_string_16_bytes_same(DIFF, DIFF2);
-      __ sub(cnt2, cnt2, isLL ? 16 : 8);
+      __ sub(cnt2, cnt2, isLL ? 2 * wordSize : wordSize);
       __ bgez(cnt2, SMALL_LOOP);
     __ bind(TAIL);
-      __ addi(cnt2, cnt2, isLL ? 16 : 8);
+      __ addi(cnt2, cnt2, isLL ? 2 * wordSize : wordSize);
       __ beqz(cnt2, LAST_CHECK_AND_LENGTH_DIFF);
-      __ sub(cnt2, cnt2, isLL ? 8 : 4);
+      __ sub(cnt2, cnt2, isLL ? wordSize : wordSize / 2);
       __ blez(cnt2, CHECK_LAST);
       __ xorr(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
       __ lw(tmp1, Address(str1));
-      __ addi(str1, str1, 8);
+      __ addi(str1, str1, wordSize);
       __ lw(tmp2, Address(str2));
-      __ addi(str2, str2, 8);
-      __ sub(cnt2, cnt2, isLL ? 8 : 4);
+      __ addi(str2, str2, wordSize);
+      __ sub(cnt2, cnt2, isLL ? wordSize : wordSize / 2);
     __ bind(CHECK_LAST);
       if (!isLL) {
         __ add(cnt2, cnt2, cnt2); // now in bytes
