@@ -2491,7 +2491,7 @@ void SharedRuntime::generate_uncommon_trap_blob() {
   // 2: deopting frame  (no frame link)
   // 3: caller of deopting frame (could be compiled/interpreted).
 
-  __ add(sp, sp, (SimpleRuntimeFrame::framesize) << LogBytesPerInt); // Epilog!
+  __ add(sp, sp, (SimpleRuntimeFrame::framesize) << 1); // Epilog!
 
   // Pop deoptimized frame (int)
   __ lw(x12, Address(x14,
