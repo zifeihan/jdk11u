@@ -539,6 +539,8 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
         __ lw(t0, Address(esp, offset));
         // st_off is LSW (i.e. reg.first())
         __ sw(t0, Address(sp, st_off), /*temp register*/t2);
+        __ lw(t0, Address(esp, ld_off));
+        __ sw(t0, Address(sp, st_off+wordSize), /*temp register*/t2);
       }
     } else if (r_1->is_Register()) {  // Register argument
       Register r = r_1->as_Register();
@@ -555,6 +557,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
 
         // this can be a misaligned move
         __ lw(r, Address(esp, offset));
+        __ lw(r_2->as_Register(), Address(esp, ld_off));
       } else {
         // sign extend and use a full word?
         __ lw(r, Address(esp, ld_off));
