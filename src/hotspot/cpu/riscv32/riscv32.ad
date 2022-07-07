@@ -7542,7 +7542,6 @@ instruct convP2I(iRegINoSp dst, iRegP src) %{
 
   ins_encode %{
     __ mv($dst$$Register, $src$$Register);
-    __ clear_upper_bits($dst$$Register, 16);
   %}
 
   ins_pipe(ialu_reg);
