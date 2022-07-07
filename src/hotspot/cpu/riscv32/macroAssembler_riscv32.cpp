@@ -2103,7 +2103,6 @@ void MacroAssembler::load_reserved(Register addr,
       break;
     case uint32:
       lr_w(t0, addr, acquire);
-      clear_upper_bits(t0, 16);
       break;
     default:
       ShouldNotReachHere();
