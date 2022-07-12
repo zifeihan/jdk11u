@@ -1356,17 +1356,15 @@ int MacroAssembler::load_signed_byte(Register dst, Address src) {
 
 void MacroAssembler::load_sized_value(Register dst, Address src, size_t size_in_bytes, bool is_signed, Register dst2) {
   switch (size_in_bytes) {
-    case  8:  lw(dst, src); break;
-    case  4:  is_signed ? lw(dst, src) : lw(dst, src); break;
+    case  4:  lw(dst, src); break;
     case  2:  is_signed ? load_signed_short(dst, src) : load_unsigned_short(dst, src); break;
-    case  1:  is_signed ? load_signed_byte( dst, src) : load_unsigned_byte( dst, src); break;
+    case  1:  is_signed ? load_signed_byte(dst, src) : load_unsigned_byte(dst, src); break;
     default:  ShouldNotReachHere();
   }
 }
 
 void MacroAssembler::store_sized_value(Address dst, Register src, size_t size_in_bytes, Register src2) {
   switch (size_in_bytes) {
-    case  8:  sw(src, dst); break;
     case  4:  sw(src, dst); break;
     case  2:  sh(src, dst); break;
     case  1:  sb(src, dst); break;
