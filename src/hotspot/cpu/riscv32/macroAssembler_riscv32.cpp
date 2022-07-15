@@ -4175,7 +4175,7 @@ void MacroAssembler::zero_words(Register ptr, Register cnt)
     beqz(t0, l);
     for (int j = 0; j < i; j++) {
       sw(zr, Address(ptr, 0));
-      addi(ptr, ptr, 8);
+      addi(ptr, ptr, wordSize);
     }
     bind(l);
   }
