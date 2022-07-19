@@ -4132,11 +4132,13 @@ instruct loadL(iRegLNoSp dst, memory mem)
 %{
   match(Set dst (LoadL mem));
 
-  ins_cost(LOAD_COST);
-  format %{ "lw  $dst, $mem\t# int, #@loadL" %}
+  ins_cost(LOAD_COST * 2);
+  format %{ "lw  $dst.lo, $mem\n\t"
+            "lw  $dst.hi, $mem+4\t# int, #@loadL" %}
 
   ins_encode %{
     __ lw(as_Register($dst$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ lw(as_Register($dst$$reg)->successor(), Address(as_Register($mem$$base), $mem$$disp+4));
   %}
 
   ins_pipe(iload_reg_mem);
