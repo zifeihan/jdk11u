@@ -7352,10 +7352,13 @@ instruct convI2L_reg_reg(iRegLNoSp dst, iRegIorL2I src)
 %{
   match(Set dst (ConvI2L src));
 
-  ins_cost(ALU_COST);
-  format %{ "add  $dst, $src\t#@convI2L_reg_reg" %}
+  ins_cost(ALU_COST * 2);
+  format %{ "mv  $dst.lo, $src\t# I2L\n\t"
+            "srai $dst.hi, $dst.lo, 0x1f\t# I2L, #@convI2L_reg_reg" %}
+
   ins_encode %{
-    __ add(as_Register($dst$$reg), as_Register($src$$reg), zr);
+    __ mv(as_Register($dst$$reg), as_Register($src$$reg));
+    __ srai(as_Register($dst$$reg)->successor(), as_Register($dst$$reg), 0x1f);
   %}
   ins_pipe(ialu_reg);
 %}
