@@ -7254,7 +7254,7 @@ instruct castX2P(iRegPNoSp dst, iRegL src) %{
   match(Set dst (CastX2P src));
 
   ins_cost(ALU_COST);
-  format %{ "mv  $dst, $src\t# long -> ptr, #@castX2P" %}
+  format %{ "mv  $dst, $src\t# int -> ptr, #@castX2P" %}
 
   ins_encode %{
     if ($dst$$reg != $src$$reg) {
@@ -7269,7 +7269,7 @@ instruct castP2X(iRegINoSp dst, iRegP src) %{
   match(Set dst (CastP2X src));
 
   ins_cost(ALU_COST);
-  format %{ "mv  $dst, $src\t# ptr -> long, #@castP2X" %}
+  format %{ "mv  $dst, $src\t# ptr -> int, #@castP2X" %}
 
   ins_encode %{
     if ($dst$$reg != $src$$reg) {
