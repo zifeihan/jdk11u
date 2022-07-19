@@ -6047,14 +6047,14 @@ instruct addL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
             "add  $dst.lo, $src1.lo, $src2.lo\n\t"
             "sltu t0, $dst.lo, t0\n\t"
             "add  $dst.hi, $src1.hi, $src2.hi\n\t"
-            "add  $dst.hi, t0, $src1.hi\t#@addL_reg_reg\n\t" %}
+            "add  $dst.hi, t0, $dst.hi\t#@addL_reg_reg" %}
 
   ins_encode %{
     __ mv(t0, as_Register($src1$$reg));
     __ add(as_Register($dst$$reg), as_Register($src1$$reg), as_Register($src2$$reg));
     __ sltu(t0, as_Register($dst$$reg), t0);
     __ add(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), as_Register($src2$$reg)->successor());
-    __ add(as_Register($dst$$reg)->successor(), t0, as_Register($src1$$reg)->successor());
+    __ add(as_Register($dst$$reg)->successor(), t0, as_Register($dst$$reg)->successor());
   %}
 
   ins_pipe(ialu_reg_reg);
