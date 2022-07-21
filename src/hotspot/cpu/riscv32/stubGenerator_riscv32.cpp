@@ -620,9 +620,9 @@ class StubGenerator: public StubCodeGenerator {
       __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
       __ bltz(cnt, done);
       __ bind(loop);
-      for (int i = 0; i < MacroAssembler::zero_words_block_size; i++) {
+      for (int i = 0; i < 2 * MacroAssembler::zero_words_block_size; i++) {
         __ sw(zr, Address(base, 0));
-        __ add(base, base, 8);
+        __ add(base, base, wordSize);
       }
       __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
       __ bgez(cnt, loop);

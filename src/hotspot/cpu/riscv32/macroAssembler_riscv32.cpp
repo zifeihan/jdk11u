@@ -4173,18 +4173,19 @@ void MacroAssembler::zero_words(Register ptr, Register cnt)
     Label l;
     andi(t0, cnt, i);
     beqz(t0, l);
-    for (int j = 0; j < i; j++) {
+    for (int j = 0; j < 2 * i; j++) {
       sw(zr, Address(ptr, 0));
       addi(ptr, ptr, wordSize);
     }
     bind(l);
   }
   {
-    Label l;
+    Label label;
     andi(t0, cnt, 1);
-    beqz(t0, l);
+    beqz(t0, label);
     sw(zr, Address(ptr, 0));
-    bind(l);
+    sw(zr, Address(ptr, wordSize));
+    bind(label);
   }
   BLOCK_COMMENT("} zero_words");
 }
