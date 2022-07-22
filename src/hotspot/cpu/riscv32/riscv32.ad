@@ -1133,12 +1133,6 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
 
   assert(src_lo != OptoReg::Bad && dst_lo != OptoReg::Bad, "must move at least 1 register");
 
-  if (src_hi != OptoReg::Bad) {
-    assert((src_lo & 1) == 0 && src_lo + 1 == src_hi &&
-           (dst_lo & 1) == 0 && dst_lo + 1 == dst_hi,
-           "expected aligned-adjacent pairs");
-  }
-
   if (src_lo == dst_lo && src_hi == dst_hi) {
     return 0;            // Self copy, no move.
   }
