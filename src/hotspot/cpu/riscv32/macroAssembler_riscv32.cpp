@@ -4200,14 +4200,16 @@ void MacroAssembler::zero_words(Register base, u_int32_t cnt)
   BLOCK_COMMENT("zero_words {");
 
   if (cnt <= SmallArraySize / BytesPerLong) {
-    for (int i = 0; i < (int)cnt; i++) {
+    for (int i = 0; i < 2 * (int)cnt; i += 2) {
       sw(zr, Address(base, i * wordSize));
+      sw(zr, Address(base, (i + 1) * wordSize));
     }
   } else {
     const int unroll = 8; // Number of sw(zr, adr), instructions we'll unroll
     int remainder = cnt %  unroll;
-    for (int i = 0; i < remainder; i++) {
+    for (int i = 0; i < 2 * remainder; i += 2) {
       sw(zr, Address(base, i * wordSize));
+      sw(zr, Address(base, (i + 1) * wordSize));
     }
 
     Label loop;
@@ -4215,13 +4217,14 @@ void MacroAssembler::zero_words(Register base, u_int32_t cnt)
     Register loop_base = t1;
     cnt = cnt - remainder;
     li(cnt_reg, cnt);
-    add(loop_base, base, remainder * wordSize);
+    add(loop_base, base, remainder * 2 * wordSize);
     bind(loop);
     sub(cnt_reg, cnt_reg, unroll);
-    for (int i = 0; i < unroll; i++) {
+    for (int i = 0; i < 2 * unroll; i += 2) {
       sw(zr, Address(loop_base, i * wordSize));
+      sw(zr, Address(loop_base, (i + 1) * wordSize));
     }
-    add(loop_base, loop_base, unroll * wordSize);
+    add(loop_base, loop_base, unroll * 2 * wordSize);
     bnez(cnt_reg, loop);
   }
   BLOCK_COMMENT("} zero_words");
