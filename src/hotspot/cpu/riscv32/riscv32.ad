@@ -7078,13 +7078,13 @@ instruct xorL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
 instruct xorL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
   match(Set dst (XorL src1 src2));
 
-  ins_cost(ALU_COST);
-  format %{ "xori  $dst, $src1, $src2\t#@xorL_reg_imm" %}
+  ins_cost(ALU_COST * 2);
+  format %{ "xori  $dst.lo, $src1.lo, $src2\n\t"
+            "xori  $dst.hi, $src1.hi, 0\t#@xorL_reg_imm" %}
 
   ins_encode %{
-    __ xori(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            (int32_t)($src2$$constant));
+    __ xori(as_Register($dst$$reg), as_Register($src1$$reg), (int32_t)($src2$$constant));
+    __ xori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), 0); 
   %}
 
   ins_pipe(ialu_reg_imm);
