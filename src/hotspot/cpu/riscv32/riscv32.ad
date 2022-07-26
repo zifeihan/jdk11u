@@ -6160,13 +6160,18 @@ instruct negI_reg(iRegINoSp dst, iRegIorL2I src, immI0 zero) %{
 
 instruct negL_reg(iRegLNoSp dst, iRegL src, immL0 zero) %{
   match(Set dst (SubL zero src));
-  ins_cost(ALU_COST);
-  format %{ "sub  $dst, x0, $src\t# long, #@negL_reg" %}
+  ins_cost(ALU_COST * 4);
+  format %{ "sltu  t0, zr, $src.lo\n\t" 
+            "sub  $dst.lo, zr, $src.lo\n\t"
+            "sub  $dst.hi, zr, $src.hi\n\t"
+            "sub  $dst.hi, $dst.hi, t0\t# long, #@negL_reg" %}
 
   ins_encode %{
     // actually call the sub
-    __ neg(as_Register($dst$$reg),
-           as_Register($src$$reg));
+    __ sltu(t0, zr, as_Register($src$$reg));
+    __ sub(as_Register($dst$$reg), zr, as_Register($src$$reg));
+    __ sub(as_Register($dst$$reg)->successor(), zr, as_Register($src$$reg)->successor());
+    __ sub(as_Register($dst$$reg)->successor(), as_Register($dst$$reg)->successor(), t0);
   %}
 
   ins_pipe(ialu_reg);
