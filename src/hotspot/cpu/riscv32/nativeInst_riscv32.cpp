@@ -150,7 +150,7 @@ void NativeCall::insert(address code_pos, address entry) { Unimplemented(); }
 //-------------------------------------------------------------------
 
 void NativeMovConstReg::verify() {
-  if (!(nativeInstruction_at(instruction_address())->is_movptr() ||
+  if (!(is_movptr_at(instruction_address()) ||
         is_auipc_at(instruction_address()))) {
     fatal("should be MOVPTR or AUIPC");
   }
