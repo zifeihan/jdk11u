@@ -5981,7 +5981,7 @@ instruct addI_reg_imm_l2i(iRegINoSp dst, iRegL src1, immIAdd src2) %{
   match(Set dst (AddI (ConvL2I src1) src2));
 
   ins_cost(ALU_COST);
-  format %{ "addi  $dst, $src1, $src2\t#@addI_reg_imm_l2i" %}
+  format %{ "addi  $dst, $src1.lo, $src2\t#@addI_reg_imm_l2i" %}
 
   ins_encode %{
     __ addi(as_Register($dst$$reg),
@@ -7378,7 +7378,7 @@ instruct convL2I_reg(iRegINoSp dst, iRegL src) %{
   match(Set dst (ConvL2I src));
 
   ins_cost(ALU_COST);
-  format %{ "add  $dst, $src, zr\t#@convL2I_reg" %}
+  format %{ "add  $dst, $src.lo, zr\t#@convL2I_reg" %}
 
   ins_encode %{
     __ add(as_Register($dst$$reg), as_Register($src$$reg), zr);
