@@ -4200,13 +4200,13 @@ void MacroAssembler::zero_words(Register base, u_int32_t cnt)
   BLOCK_COMMENT("zero_words {");
 
   if (cnt <= SmallArraySize / BytesPerLong) {
-    for (int i = 0; i < 2 * (int)cnt; i++) {
+    for (int i = 0; i < (int)cnt; i++) {
       sw(zr, Address(base, i * wordSize));
     }
   } else {
     const int unroll = 8; // Number of sw(zr, adr), instructions we'll unroll
     int remainder = cnt %  unroll;
-    for (int i = 0; i < 2 * remainder; i++) {
+    for (int i = 0; i < remainder; i++) {
       sw(zr, Address(base, i * wordSize));
     }
 
@@ -4215,13 +4215,13 @@ void MacroAssembler::zero_words(Register base, u_int32_t cnt)
     Register loop_base = t1;
     cnt = cnt - remainder;
     li(cnt_reg, cnt);
-    add(loop_base, base, remainder * 2 * wordSize);
+    add(loop_base, base, remainder * wordSize);
     bind(loop);
     sub(cnt_reg, cnt_reg, unroll);
-    for (int i = 0; i < 2 * unroll; i++) {
+    for (int i = 0; i < unroll; i++) {
       sw(zr, Address(loop_base, i * wordSize));
     }
-    add(loop_base, loop_base, unroll * 2 * wordSize);
+    add(loop_base, loop_base, unroll * wordSize);
     bnez(cnt_reg, loop);
   }
   BLOCK_COMMENT("} zero_words");
