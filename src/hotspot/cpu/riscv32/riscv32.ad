@@ -4572,11 +4572,13 @@ instruct storeL(iRegL src, memory mem)
 %{
   match(Set mem (StoreL mem src));
 
-  ins_cost(STORE_COST);
-  format %{ "sw  $src, $mem\t# long, #@storeL" %}
+  ins_cost(STORE_COST * 2);
+  format %{ "sw  $src.lo, $mem\n\t"
+            "sw  $src.hi, $mem+4\t# long, #@storeL" %}
 
   ins_encode %{
     __ sw(as_Register($src$$reg), Address(as_Register($mem$$base), $mem$$disp));
+    __ sw(as_Register($src$$reg)->successor(), Address(as_Register($mem$$base), $mem$$disp+4));
   %}
 
   ins_pipe(istore_reg_mem);
