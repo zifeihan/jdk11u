@@ -76,8 +76,6 @@ class NativeInstruction {
   static bool is_jump_at(address instr)       { assert_cond(instr != NULL); return (is_branch_at(instr) || is_jal_at(instr) || is_jalr_at(instr)); }
   static bool is_addi_at(address instr)       { assert_cond(instr != NULL); return (Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0010011 &&
                                                 Assembler::extract(((unsigned*)instr)[0], 14, 12) == 0b000); }
-  static bool is_addiw_at(address instr)      { assert_cond(instr != NULL); return (Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0011011 &&
-                                                Assembler::extract(((unsigned*)instr)[0], 14, 12) == 0b000); }
   static bool is_lui_at(address instr)        { assert_cond(instr != NULL); return Assembler::extract(((unsigned*)instr)[0], 6, 0) == 0b0110111; }
   static bool is_slli_shift_at(address instr, uint32_t shift) {
     assert_cond(instr != NULL);
