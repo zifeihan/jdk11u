@@ -70,7 +70,12 @@ bool NativeInstruction::is_li_at(address instr) {
 }
 
 bool NativeInstruction::is_movptr_at(address instr) {
-  return is_li_at(instr);
+  if (is_lui_at(instr) && // lui
+      (is_addi_at(instr + 4) || is_jalr_at(instr + 4) || is_load_at(instr + 4)) && // addi/jalr/load
+      check_movptr_data_dependency(instr)) {
+    return true;
+  }
+  return false;
 }
 
 void NativeCall::verify() {

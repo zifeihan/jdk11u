@@ -100,6 +100,13 @@ class NativeInstruction {
            compare_instr_field(instr + 4, 19, 15, instr + 4, 11, 7);   // check the rs1 field and the rd field of addi
   }
 
+  // the instruction sequence of movptr is as below:
+  //     lui
+  //     addi/jalr/load
+  static bool check_movptr_data_dependency(address instr) {
+    return compare_instr_field(instr + 4, 19, 15, instr, 11, 7);      // check the rs1 field of addi/jalr/load and the rd field of lui
+  }
+
   // the instruction sequence of pc-relative is as below:
   //     auipc
   //     jalr/addi/load/float_load
