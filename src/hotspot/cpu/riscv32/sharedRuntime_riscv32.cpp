@@ -264,11 +264,13 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     case T_BYTE:
     case T_SHORT:
     case T_INT:
+    case T_ARRAY:
+    case T_OBJECT:
+    case T_ADDRESS:
       if (int_args < Argument::n_int_register_parameters_j) {
         regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
+        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
       }
       break;
     case T_VOID:
@@ -278,15 +280,14 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       break;
     case T_LONG:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
-      // fall through
-    case T_OBJECT:
-    case T_ARRAY:
-    case T_ADDRESS:
-      if (int_args < Argument::n_int_register_parameters_j) {
-        regs[i].set2(INT_ArgReg[int_args++]->as_VMReg());
+      if (int_args < Argument::n_int_register_parameters_j - 1) {
+        if (int_args & 1) int_args++;
+        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        int_args += 2;
       } else {
-        regs[i].set2(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
+        if (stk_args & 1) stk_args++;
+        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        int_args = Argument::n_int_register_parameters_j;
       }
       break;
     case T_FLOAT:
@@ -312,7 +313,8 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     }
   }
 
-  return align_up(stk_args, 2);
+  if (stk_args & 1) stk_args++;
+  return stk_args;
 }
 
 // Patch the callers callsite with entry to compiled code if it exists.
@@ -670,27 +672,32 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
     case T_BYTE:
     case T_SHORT:
     case T_INT:
-      if (int_args < Argument::n_int_register_parameters_c) {
-        regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
-      } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
-      }
-      break;
-    case T_LONG:
-      assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
-      // fall through
     case T_OBJECT:
     case T_ARRAY:
     case T_ADDRESS:
     case T_METADATA:
       if (int_args < Argument::n_int_register_parameters_c) {
-        regs[i].set2(INT_ArgReg[int_args++]->as_VMReg());
+        regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        regs[i].set2(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
+        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
       }
       break;
+    case T_LONG:
+      assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
+      if (int_args < Argument::n_int_register_parameters_c - 1) {
+        if (int_args & 1) int_args++;
+        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        int_args += 2;
+      } else if (int_args == Argument::n_int_register_parameters_c - 1){
+        regs[i].set_pair(VMRegImpl::stack2reg(stk_args), INT_ArgReg[int_args]->as_VMReg());
+        int_args = Argument::n_int_register_parameters_c;
+        stk_args += 1;
+      } else {
+        if (stk_args & 1) stk_args++;
+        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        int_args = Argument::n_int_register_parameters_c;
+      }
+     break;
     case T_FLOAT:
       if (fp_args < Argument::n_float_register_parameters_c) {
         regs[i].set1(FP_ArgReg[fp_args++]->as_VMReg());
