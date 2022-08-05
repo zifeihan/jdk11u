@@ -37,7 +37,7 @@ inline bool is_FloatRegister() {
 
 inline Register as_Register() {
   assert( is_Register(), "must be");
-  return ::as_Register(value() >> 1);
+  return ::as_Register(value());
 }
 
 inline FloatRegister as_FloatRegister() {
