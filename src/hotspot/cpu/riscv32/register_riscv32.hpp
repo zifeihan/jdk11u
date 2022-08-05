@@ -52,7 +52,7 @@ class RegisterImpl: public AbstractRegisterImpl {
   enum {
     number_of_registers      = 32,
     number_of_byte_registers = 32,
-    max_slots_per_register   = 2
+    max_slots_per_register   = 1
   };
 
   // derived registers, offsets, and addresses
