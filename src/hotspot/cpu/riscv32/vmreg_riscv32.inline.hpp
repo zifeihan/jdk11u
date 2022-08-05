@@ -31,7 +31,7 @@ inline VMReg RegisterImpl::as_VMReg() {
   if( this == noreg ) {
     return VMRegImpl::Bad();
   }
-  return VMRegImpl::as_VMReg(encoding());
+  return VMRegImpl::as_VMReg(encoding() << 1);
 }
 
 inline VMReg FloatRegisterImpl::as_VMReg() {

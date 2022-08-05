@@ -255,7 +255,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
 
   uint int_args = 0;
   uint fp_args = 0;
-  uint stk_args = 0;
+  uint stk_args = 0; // inc by 2 each time
 
   for (int i = 0; i < total_args_passed; i++) {
     switch (sig_bt[i]) {
@@ -264,13 +264,11 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     case T_BYTE:
     case T_SHORT:
     case T_INT:
-    case T_ARRAY:
-    case T_OBJECT:
-    case T_ADDRESS:
       if (int_args < Argument::n_int_register_parameters_j) {
         regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
+        regs[i].set1(VMRegImpl::stack2reg(stk_args));
+        stk_args += 2;
       }
       break;
     case T_VOID:
@@ -279,16 +277,18 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       regs[i].set_bad();
       break;
     case T_LONG:
-      if (int_args < Argument::n_int_register_parameters_j - 1) {
-        if (int_args & 1) int_args++;
-        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
-        int_args += 2;
+      assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
+      // fall through
+    case T_OBJECT:
+    case T_ARRAY:
+    case T_ADDRESS:
+      if (int_args < Argument::n_int_register_parameters_j) {
+        regs[i].set2(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        if (stk_args & 1) stk_args++;
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
-        int_args = Argument::n_int_register_parameters_j;
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
+      break;
     case T_FLOAT:
       if (fp_args < Argument::n_float_register_parameters_j) {
         regs[i].set1(FP_ArgReg[fp_args++]->as_VMReg());
@@ -312,8 +312,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     }
   }
 
-  if (stk_args & 1) stk_args++;
-  return stk_args;
+  return align_up(stk_args, 2);
 }
 
 // Patch the callers callsite with entry to compiled code if it exists.
@@ -662,7 +661,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
 
   uint int_args = 0;
   uint fp_args = 0;
-  uint stk_args = 0;
+  uint stk_args = 0; // inc by 2 each time
 
   for (int i = 0; i < total_args_passed; i++) {
     switch (sig_bt[i]) {
@@ -671,31 +670,27 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
     case T_BYTE:
     case T_SHORT:
     case T_INT:
-    case T_ARRAY:
-    case T_OBJECT:
-    case T_ADDRESS:
-    case T_METADATA:
       if (int_args < Argument::n_int_register_parameters_c) {
         regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
+        regs[i].set1(VMRegImpl::stack2reg(stk_args));
+        stk_args += 2;
       }
       break;
     case T_LONG:
-      if (int_args < Argument::n_int_register_parameters_c - 1) {
-        if (int_args & 1) int_args++;
-        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
-        int_args += 2;
-      } else if (int_args == Argument::n_int_register_parameters_c - 1){
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args), INT_ArgReg[int_args]->as_VMReg());
-        int_args = Argument::n_int_register_parameters_c;
-        stk_args += 1;
+      assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
+      // fall through
+    case T_OBJECT:
+    case T_ARRAY:
+    case T_ADDRESS:
+    case T_METADATA:
+      if (int_args < Argument::n_int_register_parameters_c) {
+        regs[i].set2(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        if (stk_args & 1) stk_args++;
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
-        int_args = Argument::n_int_register_parameters_c;
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
+      break;
     case T_FLOAT:
       if (fp_args < Argument::n_float_register_parameters_c) {
         regs[i].set1(FP_ArgReg[fp_args++]->as_VMReg());
@@ -870,63 +865,21 @@ static void float_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
 // A long move
 static void long_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
   assert_cond(masm != NULL);
-  if (dst.second()->is_Register()) {
-    if (src.second()->is_Register()) {
-      // <R,R> -> <R,R>
-      assert(dst.first()->is_Register() && src.first()->is_Register(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ mv(dst.second()->as_Register(), src.second()->as_Register());
-    } else if (src.first()->is_Register()) {
-      // <R,stack> -> <R,R>
-      assert(dst.first()->is_Register() && src.second()->is_stack(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
-    } else {
-      // <stack,stack> -> <R,R>
-      assert(dst.first()->is_Register() && src.first()->is_stack() && src.second()->is_stack(), "must be");
-      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
-    }
-  } else if (src.second()->is_Register()) {
-    if (dst.first()->is_Register()) {
-      // <R,R> -> <R,stack>
-      assert(dst.second()->is_stack() && src.first()->is_Register(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
-    } else {
-      // <R,R> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_Register(), "must be");
-      __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
-      __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
-    }
-  } else if (src.first()->is_Register()) {
-    if (dst.first()->is_Register()) {
-      // <R,stack> -> <R,stack>
-      assert(dst.second()->is_stack() && src.second()->is_stack(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
-    } else {
-      // <R,stack> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.second()->is_stack(), "must be");
-      __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
-    }
-  } else {
-    if (dst.first()->is_Register()) {
-      // <stack,stack> -> <R,stack>
-      assert(dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
-      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
-    } else {
-      // <stack,stack> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
+  if (src.first()->is_stack()) {
+    if (dst.first()->is_stack()) {
+      // stack to stack
       __ lw(t0, Address(fp, reg2offset_in(src.first())));
       __ sw(t0, Address(sp, reg2offset_out(dst.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+    } else {
+      // stack to reg
+      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+    }
+  } else if (dst.first()->is_stack()) {
+    // reg to stack
+    __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
+  } else {
+    if (dst.first() != src.first()) {
+      __ mv(dst.first()->as_Register(), src.first()->as_Register());
     }
   }
 }
@@ -940,15 +893,10 @@ static void double_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
     if (dst.first()->is_stack()) {
       __ lw(t0, Address(fp, reg2offset_in(src.first())));
       __ sw(t0, Address(sp, reg2offset_out(dst.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
     } else if (dst.first()-> is_Register()) {
       __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
     } else {
-      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+      ShouldNotReachHere();
     }
   } else if (src.first() != dst.first()) {
     if (src.is_single_phys_reg() && dst.is_single_phys_reg()) {
@@ -971,8 +919,6 @@ void SharedRuntime::save_native_result(MacroAssembler *masm, BasicType ret_type,
     __ fsd(f10, Address(fp, -2 * wordSize));
     break;
   case T_VOID:  break;
-  case T_LONG:
-    __ sw(x11, Address(fp, -2*wordSize));
   default: {
     __ sw(x10, Address(fp, -wordSize));
     }
@@ -991,8 +937,6 @@ void SharedRuntime::restore_native_result(MacroAssembler *masm, BasicType ret_ty
     __ fld(f10, Address(fp, - 2 * wordSize));
     break;
   case T_VOID:  break;
-  case T_LONG:
-    __ lw(x11, Address(fp, -2*wordSize));
   default: {
     __ lw(x10, Address(fp, -wordSize));
     }
