@@ -255,7 +255,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
 
   uint int_args = 0;
   uint fp_args = 0;
-  uint stk_args = 0; // inc by 2 each time
+  uint stk_args = 0;
 
   for (int i = 0; i < total_args_passed; i++) {
     switch (sig_bt[i]) {
@@ -663,7 +663,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
 
   uint int_args = 0;
   uint fp_args = 0;
-  uint stk_args = 0; // inc by 2 each time
+  uint stk_args = 0;
 
   for (int i = 0; i < total_args_passed; i++) {
     switch (sig_bt[i]) {
@@ -691,13 +691,13 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
       } else if (int_args == Argument::n_int_register_parameters_c - 1){
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args), INT_ArgReg[int_args]->as_VMReg());
         int_args = Argument::n_int_register_parameters_c;
-        stk_args += 1;
+        stk_args ++;
       } else {
         if (stk_args & 1) stk_args++;
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_c;
       }
-     break;
+      break;
     case T_FLOAT:
       if (fp_args < Argument::n_float_register_parameters_c) {
         regs[i].set1(FP_ArgReg[fp_args++]->as_VMReg());
