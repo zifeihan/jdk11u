@@ -288,22 +288,23 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
         if (stk_args & 1) stk_args++;
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_j;
+        stk_args += 2;
       }
       break;
     case T_FLOAT:
       if (fp_args < Argument::n_float_register_parameters_j) {
         regs[i].set1(FP_ArgReg[fp_args++]->as_VMReg());
       } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
+        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
       }
       break;
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_j) {
-        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
+        regs[i].set_pair(FP_ArgReg[fp_args + 1]->as_VMReg(), FP_ArgReg[fp_args]->as_VMReg());
+        fp_args += 2;
       } else {
-        regs[i].set2(VMRegImpl::stack2reg(stk_args));
+        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
       break;
@@ -696,6 +697,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
         if (stk_args & 1) stk_args++;
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_c;
+        stk_args += 2;
       }
       break;
     case T_FLOAT:
@@ -704,18 +706,19 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
       } else if (int_args < Argument::n_int_register_parameters_c) {
         regs[i].set1(INT_ArgReg[int_args++]->as_VMReg());
       } else {
-        regs[i].set1(VMRegImpl::stack2reg(stk_args));
-        stk_args += 2;
+        regs[i].set1(VMRegImpl::stack2reg(stk_args++));
       }
       break;
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_c) {
-        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
+        regs[i].set_pair(FP_ArgReg[fp_args + 1]->as_VMReg(), FP_ArgReg[fp_args]->as_VMReg());
+        fp_args += 2;
       } else if (int_args < Argument::n_int_register_parameters_c) {
-        regs[i].set2(INT_ArgReg[int_args++]->as_VMReg());
+        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        int_args += 2;
       } else {
-        regs[i].set2(VMRegImpl::stack2reg(stk_args));
+        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
       break;
