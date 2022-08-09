@@ -301,8 +301,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_j) {
-        regs[i].set_pair(FP_ArgReg[fp_args + 1]->as_VMReg(), FP_ArgReg[fp_args]->as_VMReg());
-        fp_args += 2;
+        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else {
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
@@ -712,8 +711,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_c) {
-        regs[i].set_pair(FP_ArgReg[fp_args + 1]->as_VMReg(), FP_ArgReg[fp_args]->as_VMReg());
-        fp_args += 2;
+        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else if (int_args < Argument::n_int_register_parameters_c) {
         regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
@@ -1017,8 +1015,11 @@ static void double_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
     if (dst.first()->is_stack()) {
       __ lw(t0, Address(fp, reg2offset_in(src.first())));
       __ sw(t0, Address(sp, reg2offset_out(dst.first())));
+      __ lw(t0, Address(fp, reg2offset_in(src.second())));
+      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
     } else if (dst.first()-> is_Register()) {
       __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
     } else {
       ShouldNotReachHere();
     }
