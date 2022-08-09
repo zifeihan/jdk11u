@@ -33,7 +33,6 @@ void VMRegImpl::set_regName() {
   int i = 0;
   for ( ; i < ConcreteRegisterImpl::max_gpr ; ) {
     regName[i++] = reg->name();
-    regName[i++] = reg->name();
     reg = reg->successor();
   }
 
