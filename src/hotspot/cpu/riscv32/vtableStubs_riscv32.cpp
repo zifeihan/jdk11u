@@ -113,7 +113,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   // lookup_virtual_method generates
   // 4 instructions (maximum value encountered in normal case):li(lui + addi) + add + lw
   // 1 instruction (best case):lw * 1
-  slop_delta = 8 - (int)(__ pc() - start_pc);
+  slop_delta = 16 - (int)(__ pc() - start_pc);
   slop_bytes += slop_delta;
   assert(slop_delta >= 0, "negative slop(%d) encountered, adjust code size estimate!", slop_delta);
 
