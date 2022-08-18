@@ -6126,13 +6126,19 @@ instruct subI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immISub src2) %{
 // Long Subtraction
 instruct subL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (SubL src1 src2));
-  ins_cost(ALU_COST);
-  format %{ "sub  $dst, $src1, $src2\t#@subL_reg_reg" %}
+  ins_cost(ALU_COST * 5);
+  format %{ "mv   t0, $src2.lo\n\t"
+            "sub  $dst.lo, $src2.lo, $src1.lo\n\t"
+            "sltu t0, t0, $dst.lo\n\t"
+            "sub  $dst.hi, $src2.hi, $src1.hi\n\t"
+            "sub  $dst.hi, $dst.hi, t0\t#@subL_reg_reg" %}
 
   ins_encode %{
-    __ sub(as_Register($dst$$reg),
-           as_Register($src1$$reg),
-           as_Register($src2$$reg));
+    __ mv(t0, as_Register($src2$$reg));
+    __ sub(as_Register($dst$$reg), as_Register($src2$$reg), as_Register($src1$$reg));
+    __ sltu(t0, t0, as_Register($dst$$reg));
+    __ sub(as_Register($dst$$reg)->successor(), as_Register($src2$$reg)->successor(), as_Register($src1$$reg)->successor());
+    __ sub(as_Register($dst$$reg)->successor(), as_Register($dst$$reg)->successor(), t0);
   %}
 
   ins_pipe(ialu_reg_reg);
