@@ -6233,13 +6233,21 @@ instruct smulI(iRegLNoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
 
 instruct mulL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (MulL src1 src2));
-  ins_cost(IMUL_COST);
-  format %{ "mul  $dst, $src1, $src2\t#@mulL" %}
+  ins_cost(IMUL_COST * 4 + ALU_COST * 2);
+  format %{ "mul   $src2.hi, $src2.hi, $src1.lo\n\t"
+            "mul   $src1.hi, $src1.hi, $src2.lo\n\t"
+            "mulhu t0, $src1.lo, $src2.lo\n\t"
+            "add   $dst.hi, $src1.hi, $src2.hi\n\t"
+            "mul   &dst.lo, $src1.lo, $src2.lo\n\t"
+            "add   &dst.hi, $dst.hi, t0\t#@mulL" %}
 
   ins_encode %{
-    __ mul(as_Register($dst$$reg),
-           as_Register($src1$$reg),
-           as_Register($src2$$reg));
+   __ mul(as_Register($src2$$reg)->successor(),as_Register($src2$$reg)->successor(),as_Register($src1$$reg));
+   __ mul(as_Register($src1$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg));
+   __ mulhu(t0,as_Register($src1$$reg),as_Register($src2$$reg));
+   __ add(as_Register($dst$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg)->successor());
+   __ mul(as_Register($dst$$reg),as_Register($src1$$reg),as_Register($src2$$reg));
+   __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),t0);
   %}
 
   ins_pipe(lmul_reg_reg);
