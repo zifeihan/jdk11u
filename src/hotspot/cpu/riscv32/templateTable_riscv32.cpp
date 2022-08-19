@@ -1443,7 +1443,7 @@ void TemplateTable::idiv()
   __ bind(no_div0);
   __ pop_i(x11);
   // x10 <== x11 idiv x10
-  __ corrected_idivl(x10, x11, x10, /* want_remainder */ false);
+  __ corrected_idiv(x10, x11, x10, /* want_remainder */ false);
 }
 
 void TemplateTable::irem()
@@ -1457,7 +1457,7 @@ void TemplateTable::irem()
   __ bind(no_div0);
   __ pop_i(x11);
   // x10 <== x11 irem x10
-  __ corrected_idivl(x10, x11, x10, /* want_remainder */ true);
+  __ corrected_idiv(x10, x11, x10, /* want_remainder */ true);
 }
 
 void TemplateTable::lmul()
