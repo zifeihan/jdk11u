@@ -1838,13 +1838,13 @@ int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
   //         remainder (= ra irem rb)
 
 
-  int idivl_offset = offset();
+  int idiv_offset = offset();
   if (!want_remainder) {
     div(result, ra, rb);
   } else {
     rem(result , ra, rb); // result = ra % rb;
   }
-  return idivl_offset;
+  return idiv_offset;
 }
 
 // Look up the method for a megamorpic invkkeinterface call.
