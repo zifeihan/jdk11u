@@ -1823,7 +1823,7 @@ void MacroAssembler::store_heap_oop_null(Address dst) {
   access_store_at(T_OBJECT, IN_HEAP, dst, noreg, noreg, noreg);
 }
 
-int MacroAssembler::corrected_idivl(Register result, Register ra, Register rb,
+int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
                                     bool want_remainder)
 {
   // Full implementation of Java idiv and irem.  The function
@@ -1838,36 +1838,13 @@ int MacroAssembler::corrected_idivl(Register result, Register ra, Register rb,
   //         remainder (= ra irem rb)
 
 
-  int idivl_offset = offset();
+  int idiv_offset = offset();
   if (!want_remainder) {
     div(result, ra, rb);
   } else {
     rem(result , ra, rb); // result = ra % rb;
   }
-  return idivl_offset;
-}
-
-int MacroAssembler::corrected_idivq(Register result, Register ra, Register rb,
-                                    bool want_remainder)
-{
-  // Full implementation of Java ldiv and lrem.  The function
-  // returns the (pc) offset of the div instruction - may be needed
-  // for implicit exceptions.
-  //
-  // input : ra: dividend
-  //         rb: divisor
-  //
-  // result: either
-  //         quotient  (= ra idiv rb)
-  //         remainder (= ra irem rb)
-
-  int idivq_offset = offset();
-  if (!want_remainder) {
-    div(result, ra, rb);
-  } else {
-    rem(result , ra, rb); // result = ra % rb;
-  }
-  return idivq_offset;
+  return idiv_offset;
 }
 
 // Look up the method for a megamorpic invkkeinterface call.

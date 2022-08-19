@@ -231,9 +231,7 @@ class MacroAssembler: public Assembler {
   static bool needs_explicit_null_check(intptr_t offset);
 
   // idiv variant which deals with MINLONG as dividend and -1 as divisor
-  int corrected_idivl(Register result, Register ra, Register rb,
-                      bool want_remainder);
-  int corrected_idivq(Register result, Register ra, Register rb,
+  int corrected_idiv(Register result, Register ra, Register rb,
                       bool want_remainder);
 
   // interface method calling
