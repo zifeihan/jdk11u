@@ -1847,6 +1847,36 @@ int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
   return idiv_offset;
 }
 
+void MacroAssembler::ldiv(Register result, Register ra, Register rb)
+{
+  orr(t1, ra, ra->successor());
+  assert(t1 != 0, "div 0");
+  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), ra, ra->successor(), rb, rb->successor());
+  mv(result, ra);
+  mv(result->successor(), ra->successor());
+}
+
+void MacroAssembler::lrem(Register result, Register ra, Register rb)
+{
+  orr(t1, ra, ra->successor());
+  assert(t1 != 0, "div 0");
+  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), ra, ra->successor(), rb, rb->successor());
+  mv(result, ra);
+  mv(result->successor(), ra->successor());
+}
+
+int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
+                                    bool want_remainder)
+{
+  int ldiv_offset = offset();
+  if (!want_remainder) {
+    ldiv(result, ra, rb);
+  } else {
+    lrem(result , ra, rb); // result = ra % rb;
+  }
+  return ldiv_offset;
+}
+
 // Look up the method for a megamorpic invkkeinterface call.
 // The target method is determined by <intf_klass, itable_index>.
 // The receiver klass is in recv_klass.
