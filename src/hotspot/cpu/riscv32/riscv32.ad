@@ -4458,6 +4458,7 @@ instruct loadConD0(fRegD dst, immD0 con) %{
 
   ins_encode %{
     __ fmv_w_x(as_FloatRegister($dst$$reg), zr);
+    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), zr);
   %}
 
   ins_pipe(fp_load_constant_d);
