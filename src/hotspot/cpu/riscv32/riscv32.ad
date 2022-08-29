@@ -4797,7 +4797,7 @@ instruct storeLConditional(indirect mem, iRegLNoSp oldval, iRegLNoSp newval, rFl
 %{
   match(Set cr (StoreLConditional mem (Binary oldval newval)));
 
-  ins_cost(LOAD_COST + STORE_COST + 2 * BRANCH_COST);
+  ins_cost(2 * LOAD_COST + 2 * STORE_COST + 4 * BRANCH_COST);
 
   format %{
     "cmpxchg t1, $mem, $oldval, $newval, $mem\t# if $mem == $oldval then $mem <-- $newval"
@@ -4807,7 +4807,11 @@ instruct storeLConditional(indirect mem, iRegLNoSp oldval, iRegLNoSp newval, rFl
   ins_encode %{
     __ cmpxchg(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $cr$$Register);
-    __ xorr($cr$$Register,$cr$$Register, $oldval$$Register);
+    __ xorr($cr$$Register, $cr$$Register, $oldval$$Register);
+    __ cmpxchg(as_Register($mem$$base)->successor(), $oldval$$Register->successor(), $newval$$Register->successor(), Assembler::int32,
+               /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $cr$$Register->successor());
+    __ xorr($cr$$Register->successor(), $cr$$Register->successor(), $oldval$$Register->successor());
+    __ orr($cr$$Register, $cr$$Register, $cr$$Register->successor());
   %}
 
   ins_pipe(pipe_slow);
