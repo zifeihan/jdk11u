@@ -1815,7 +1815,7 @@ encode %{
                             /*result as bool*/ true, $tmp1$$Register, $tmp2$$Register, $tmp3$$Register);
   %}
 
-  enc_class riscv32_enc_cmpxchgw(iRegINoSp res, memory mem, iRegINoSp oldval, iRegINoSp newval) %{
+  enc_class riscv32_enc_cmpxchg(iRegINoSp res, memory mem, iRegINoSp oldval, iRegINoSp newval) %{
     MacroAssembler _masm(&cbuf);
     __ cmpxchg(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register,
@@ -1829,11 +1829,15 @@ encode %{
                /*result as bool*/ true);
   %}
 
-  enc_class riscv32_enc_cmpxchg(iRegINoSp res, memory mem, iRegLNoSp oldval, iRegLNoSp newval) %{
+  enc_class riscv32_enc_cmpxchgl(iRegINoSp res, memory mem, iRegLNoSp oldval, iRegLNoSp newval) %{
     MacroAssembler _masm(&cbuf);
     __ cmpxchg(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register,
                /*result as bool*/ true);
+    __ cmpxchg(as_Register($mem$$base)->successor(), $oldval$$Register->successor(), $newval$$Register->successor(), Assembler::int32,
+               /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register->successor(),
+               /*result as bool*/ true);
+    __ andr($res$$Register,  $res$$Register, $res$$Register->successor());
   %}
 
   enc_class riscv32_enc_cmpxchgb_acq(iRegINoSp res, memory mem, iRegI_R12 oldval, iRegI_R13 newval, iRegI tmp1, iRegI tmp2, iRegI tmp3) %{
@@ -4888,7 +4892,7 @@ instruct compareAndSwapI(iRegINoSp res, indirect mem, iRegINoSp oldval, iRegINoS
     "mv $res, $res == $oldval\t# $res <-- ($res == $oldval ? 1 : 0), #@compareAndSwapI"
   %}
 
-  ins_encode(riscv32_enc_cmpxchgw(res, mem, oldval, newval));
+  ins_encode(riscv32_enc_cmpxchg(res, mem, oldval, newval));
 
   ins_pipe(pipe_slow);
 %}
@@ -4897,14 +4901,14 @@ instruct compareAndSwapL(iRegINoSp res, indirect mem, iRegLNoSp oldval, iRegLNoS
 %{
   match(Set res (CompareAndSwapL mem (Binary oldval newval)));
 
-  ins_cost(LOAD_COST + STORE_COST + ALU_COST * 6 + BRANCH_COST * 4);
+  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + ALU_COST * 4 + BRANCH_COST * 8 );
 
   format %{
     "cmpxchg $mem, $oldval, $newval\t# (long) if $mem == $oldval then $mem <-- $newval\n\t"
     "mv $res, $res == $oldval\t# $res <-- ($res == $oldval ? 1 : 0), #@compareAndSwapL"
   %}
 
-  ins_encode(riscv32_enc_cmpxchg(res, mem, oldval, newval));
+  ins_encode(riscv32_enc_cmpxchgl(res, mem, oldval, newval));
 
   ins_pipe(pipe_slow);
 %}
