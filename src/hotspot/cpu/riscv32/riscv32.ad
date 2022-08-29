@@ -4909,6 +4909,7 @@ instruct compareAndSwapL(iRegINoSp res, indirect mem, iRegLNoSp oldval, iRegLNoS
   %}
 
   ins_encode(riscv32_enc_cmpxchgl(res, mem, oldval, newval));
+
   ins_pipe(pipe_slow);
 %}
 
