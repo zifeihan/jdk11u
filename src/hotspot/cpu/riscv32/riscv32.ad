@@ -5609,7 +5609,7 @@ instruct get_and_setI(indirect mem, iRegI newv, iRegINoSp prev)
   format %{ "atomic_xchgw  $prev, $newv, [$mem]\t#@get_and_setI" %}
 
   ins_encode %{
-    __ atomic_xchgw($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchg($prev$$Register, $newv$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5619,12 +5619,13 @@ instruct get_and_setL(indirect mem, iRegL newv, iRegLNoSp prev)
 %{
   match(Set prev (GetAndSetL mem newv));
 
-  ins_cost(ALU_COST);
+  ins_cost(ALU_COST * 2);
 
   format %{ "atomic_xchg  $prev, $newv, [$mem]\t#@get_and_setL" %}
 
   ins_encode %{
     __ atomic_xchg($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchg($prev$$Register->successor(), $newv$$Register->successor(), as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
