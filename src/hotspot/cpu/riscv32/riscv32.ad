@@ -5398,7 +5398,7 @@ instruct weakCompareAndSwapL(iRegINoSp res, indirect mem, iRegL oldval, iRegL ne
 %{
   match(Set res (WeakCompareAndSwapL mem (Binary oldval newval)));
 
-  ins_cost(LOAD_COST + STORE_COST + BRANCH_COST * 2 + ALU_COST * 2);
+  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + BRANCH_COST * 4 + ALU_COST * 5);
 
   format %{
     "cmpxchg_weak $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
@@ -5408,7 +5408,11 @@ instruct weakCompareAndSwapL(iRegINoSp res, indirect mem, iRegL oldval, iRegL ne
   ins_encode %{
     __ cmpxchg_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register);
+    __ cmpxchg_weak(as_Register($mem$$base)->successor(), $oldval$$Register->successor(), $newval$$Register->successor(), Assembler::int32,
+               /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register->successor());
     __ xori($res$$Register, $res$$Register, 1);
+    __ xori($res$$Register->successor(), $res$$Register->successor(), 1);
+    __ andr($res$$Register, $res$$Register, $res$$Register->successor());
   %}
 
   ins_pipe(pipe_slow);
