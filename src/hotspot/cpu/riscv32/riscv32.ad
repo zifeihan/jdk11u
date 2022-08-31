@@ -4834,7 +4834,7 @@ instruct storeIConditional(indirect mem, iRegINoSp oldval, iRegINoSp newval, rFl
   ins_cost(LOAD_COST + STORE_COST + BRANCH_COST * 2);
 
   format %{
-    "cmpxchgw t1, $mem, $oldval, $newval, $mem\t# if $mem == $oldval then $mem <-- $newval"
+    "cmpxchg t1, $mem, $oldval, $newval, $mem\t# if $mem == $oldval then $mem <-- $newval"
     "xorr $cr, $cr, $oldval\t# $cr == 0 on successful write, #@storeIConditional"
   %}
 
@@ -5606,7 +5606,7 @@ instruct get_and_setI(indirect mem, iRegI newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgw  $prev, $newv, [$mem]\t#@get_and_setI" %}
+  format %{ "atomic_xchg  $prev, $newv, [$mem]\t#@get_and_setI" %}
 
   ins_encode %{
     __ atomic_xchg($prev$$Register, $newv$$Register, as_Register($mem$$base));
@@ -5637,10 +5637,10 @@ instruct get_and_setN(indirect mem, iRegN newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgwu $prev, $newv, [$mem]\t#@get_and_setN" %}
+  format %{ "atomic_xchg $prev, $newv, [$mem]\t#@get_and_setN" %}
 
   ins_encode %{
-    __ atomic_xchgwu($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchg($prev$$Register, $newv$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5669,7 +5669,7 @@ instruct get_and_setIAcq(indirect mem, iRegI newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgw_acq  $prev, $newv, [$mem]\t#@get_and_setIAcq" %}
+  format %{ "atomic_xchg_acq  $prev, $newv, [$mem]\t#@get_and_setIAcq" %}
 
   ins_encode %{
     __ atomic_xchgal($prev$$Register, $newv$$Register, as_Register($mem$$base));
@@ -5704,10 +5704,10 @@ instruct get_and_setNAcq(indirect mem, iRegN newv, iRegINoSp prev)
 
   ins_cost(ALU_COST);
 
-  format %{ "atomic_xchgwu_acq $prev, $newv, [$mem]\t#@get_and_setNAcq" %}
+  format %{ "atomic_xchg_acq $prev, $newv, [$mem]\t#@get_and_setNAcq" %}
 
   ins_encode %{
-    __ atomic_xchgalwu($prev$$Register, $newv$$Register, as_Register($mem$$base));
+    __ atomic_xchgal($prev$$Register, $newv$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
