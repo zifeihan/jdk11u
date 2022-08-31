@@ -2318,9 +2318,7 @@ void MacroAssembler::atomic_##NAME(Register prev, RegisterOrConstant incr, Regis
 }
 
 ATOMIC_OP(add, amoadd_w, Assembler::relaxed, Assembler::relaxed)
-ATOMIC_OP(addw, amoadd_w, Assembler::relaxed, Assembler::relaxed)
 ATOMIC_OP(addal, amoadd_w, Assembler::aq, Assembler::rl)
-ATOMIC_OP(addalw, amoadd_w, Assembler::aq, Assembler::rl)
 
 #undef ATOMIC_OP
 

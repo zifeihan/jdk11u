@@ -5803,7 +5803,7 @@ instruct get_and_addI(indirect mem, iRegINoSp newval, iRegIorL2I incr)
   format %{ "get_and_addI $newval, [$mem], $incr\t#@get_and_addI" %}
 
   ins_encode %{
-    __ atomic_addw($newval$$Register, $incr$$Register, as_Register($mem$$base));
+    __ atomic_add($newval$$Register, $incr$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5820,7 +5820,7 @@ instruct get_and_addI_no_res(indirect mem, Universe dummy, iRegIorL2I incr)
   format %{ "get_and_addI [$mem], $incr\t#@get_and_addI_no_res" %}
 
   ins_encode %{
-    __ atomic_addw(noreg, $incr$$Register, as_Register($mem$$base));
+    __ atomic_add(noreg, $incr$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5835,7 +5835,7 @@ instruct get_and_addIi(indirect mem, iRegINoSp newval, immIAdd incr)
   format %{ "get_and_addI $newval, [$mem], $incr\t#@get_and_addIi" %}
 
   ins_encode %{
-    __ atomic_addw($newval$$Register, $incr$$constant, as_Register($mem$$base));
+    __ atomic_add($newval$$Register, $incr$$constant, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5852,7 +5852,7 @@ instruct get_and_addIi_no_res(indirect mem, Universe dummy, immIAdd incr)
   format %{ "get_and_addI [$mem], $incr\t#@get_and_addIi_no_res" %}
 
   ins_encode %{
-    __ atomic_addw(noreg, $incr$$constant, as_Register($mem$$base));
+    __ atomic_add(noreg, $incr$$constant, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5936,7 +5936,7 @@ instruct get_and_addIAcq(indirect mem, iRegINoSp newval, iRegIorL2I incr)
   format %{ "get_and_addI_acq $newval, [$mem], $incr\t#@get_and_addIAcq" %}
 
   ins_encode %{
-    __ atomic_addalw($newval$$Register, $incr$$Register, as_Register($mem$$base));
+    __ atomic_addal($newval$$Register, $incr$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5953,7 +5953,7 @@ instruct get_and_addI_no_resAcq(indirect mem, Universe dummy, iRegIorL2I incr)
   format %{ "get_and_addI_acq [$mem], $incr\t#@get_and_addI_no_resAcq" %}
 
   ins_encode %{
-    __ atomic_addalw(noreg, $incr$$Register, as_Register($mem$$base));
+    __ atomic_addal(noreg, $incr$$Register, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5970,7 +5970,7 @@ instruct get_and_addIiAcq(indirect mem, iRegINoSp newval, immIAdd incr)
   format %{ "get_and_addI_acq $newval, [$mem], $incr\t#@get_and_addIiAcq" %}
 
   ins_encode %{
-    __ atomic_addalw($newval$$Register, $incr$$constant, as_Register($mem$$base));
+    __ atomic_addal($newval$$Register, $incr$$constant, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
@@ -5987,7 +5987,7 @@ instruct get_and_addIi_no_resAcq(indirect mem, Universe dummy, immIAdd incr)
   format %{ "get_and_addI_acq [$mem], $incr\t#@get_and_addIi_no_resAcq" %}
 
   ins_encode %{
-    __ atomic_addalw(noreg, $incr$$constant, as_Register($mem$$base));
+    __ atomic_addal(noreg, $incr$$constant, as_Register($mem$$base));
   %}
 
   ins_pipe(pipe_serial);
