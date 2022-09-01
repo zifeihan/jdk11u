@@ -2198,6 +2198,31 @@ encode %{
     __ corrected_ldiv(dst_reg, src1_reg, src2_reg, true);
   %}
 
+ enc_class riscv32_enc_lShiftL_reg_reg(iRegI dst, iRegI src1, iRegI src2)%{
+    MacroAssembler _masm(&cbuf);
+    Register dst_reg = as_Register($dst$$reg);
+    Register src1_reg = as_Register($src1$$reg);
+    Register src2_reg = as_Register($src2$$reg);
+    __ andi(src2_reg, src2_reg, 0x3f);
+
+    Label blt_branch,done;
+    __ addi(t0, src2_reg, -32);
+    __ bltz(t0, blt_branch);
+    __ sll(dst_reg->successor(), src1_reg, t0);
+    __ mv(dst_reg, 0);
+    __ beqz(zr, done);
+    __ bind(blt_branch);
+    __ mv(t0, 31);
+    __ srli(t1, src1_reg, 0x1);
+    __ sub(t0, t0, src2_reg);
+    __ srl(t1, t1, t0);
+    __ sll(dst_reg->successor(), src1_reg->successor(), src2_reg);
+    __ orr(dst_reg->successor(), t1, dst_reg->successor());
+    __ sll(dst_reg, src1_reg, src2_reg);
+
+    __ bind(done);
+  %}
+
   enc_class riscv32_enc_tail_call(iRegP jump_target) %{
     MacroAssembler _masm(&cbuf);
     Register target_reg = as_Register($jump_target$$reg);
@@ -6467,14 +6492,10 @@ instruct rShiftI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immI src2) %{
 instruct lShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
   match(Set dst (LShiftL src1 src2));
 
-  ins_cost(ALU_COST);
+  ins_cost(ALU_COST * 11 + BRANCH_COST * 2);
   format %{ "sll  $dst, $src1, $src2\t#@lShiftL_reg_reg" %}
 
-  ins_encode %{
-    __ sll(as_Register($dst$$reg),
-           as_Register($src1$$reg),
-           as_Register($src2$$reg));
-  %}
+  ins_encode(riscv32_enc_lShiftL_reg_reg(dst, src1, src2));
 
   ins_pipe(ialu_reg_reg_vshift);
 %}
