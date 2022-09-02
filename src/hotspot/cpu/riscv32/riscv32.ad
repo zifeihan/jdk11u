@@ -2203,24 +2203,17 @@ encode %{
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
     Register src2_reg = as_Register($src2$$reg);
-    __ andi(src2_reg, src2_reg, 0x3f);
+    __ lShiftL_reg_reg(dst_reg, src1_reg, src2_reg);
+  %}
 
-    Label blt_branch,done;
-    __ addi(t0, src2_reg, -32);
-    __ bltz(t0, blt_branch);
-    __ sll(dst_reg->successor(), src1_reg, t0);
-    __ mv(dst_reg, 0);
-    __ beqz(zr, done);
-    __ bind(blt_branch);
-    __ mv(t0, 31);
-    __ srli(t1, src1_reg, 0x1);
-    __ sub(t0, t0, src2_reg);
-    __ srl(t1, t1, t0);
-    __ sll(dst_reg->successor(), src1_reg->successor(), src2_reg);
-    __ orr(dst_reg->successor(), t1, dst_reg->successor());
-    __ sll(dst_reg, src1_reg, src2_reg);
-
-    __ bind(done);
+   enc_class riscv32_enc_lShiftL_reg_imm(iRegI dst, iRegI src1, immI src2)%{
+    MacroAssembler _masm(&cbuf);
+    Register dst_reg = as_Register($dst$$reg);
+    Register src1_reg = as_Register($src1$$reg);
+    Register shift_reg = NULL;
+    int32_t con = (int32_t)$src2$$constant;
+    __ addi(shift_reg, zr, con);
+    __ lShiftL_reg_reg(dst_reg, src1_reg, shift_reg);
   %}
 
   enc_class riscv32_enc_tail_call(iRegP jump_target) %{
@@ -6504,16 +6497,13 @@ instruct lShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 instruct lShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2) %{
   match(Set dst (LShiftL src1 src2));
 
-  ins_cost(ALU_COST);
-  format %{ "slli  $dst, $src1, ($src2 & 0x1f)\t#@lShiftL_reg_imm" %}
+  ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
+  format %{ "slli  $dst, $src1, ($src2 & 0x3f)\t#@lShiftL_reg_imm" %}
 
-  ins_encode %{
-    // the shift amount is encoded in the lower
-    // 6 bits of the I-immediate field for RV32I
-    __ slli(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            (unsigned) $src2$$constant & 0x1f);
-  %}
+
+  // the shift amount is encoded in the lower
+  // 6 bits of the I-immediate field for RV32
+  ins_encode(riscv32_enc_lShiftL_reg_imm(dst, src1, src2));
 
   ins_pipe(ialu_reg_shift);
 %}
