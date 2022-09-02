@@ -236,7 +236,8 @@ class MacroAssembler: public Assembler {
   void ldiv(Register result, Register ra, Register rb);
   void lrem(Register result, Register ra, Register rb);
   int corrected_ldiv(Register result, Register ra, Register rb,
-                                    bool want_remainder);
+                     bool want_remainder);
+  void lShiftL_reg_reg(Register dst, Register src1, Register src2);
 
   // interface method calling
   void lookup_interface_method(Register recv_klass,
