@@ -6163,7 +6163,6 @@ instruct subI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immISub src2) %{
   format %{ "addi  $dst, $src1, -$src2\t#@subI_reg_imm" %}
 
   ins_encode %{
-    // src2 is imm, so actually call the addi
     __ sub(as_Register($dst$$reg),
            as_Register($src1$$reg),
            $src2$$constant);
