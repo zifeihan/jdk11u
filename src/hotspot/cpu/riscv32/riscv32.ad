@@ -6252,26 +6252,10 @@ instruct mulI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   ins_cost(IMUL_COST);
   format %{ "mul  $dst, $src1, $src2\t#@mulI" %}
 
-  //this means 2 word multi, and no sign extend to 32 bits
   ins_encode %{
     __ mul(as_Register($dst$$reg),
            as_Register($src1$$reg),
            as_Register($src2$$reg));
-  %}
-
-  ins_pipe(imul_reg_reg);
-%}
-
-instruct smulI(iRegLNoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
-  match(Set dst (MulL (ConvI2L src1) (ConvI2L src2)));
-  ins_cost(IMUL_COST);
-  format %{ "mul  $dst, $src1, $src2\t#@smulI" %}
-
-  // Signed Multiply Long multiplies two 32-bit signed values to produce a 32-bit result.
-  ins_encode %{
-    __ mul(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
   %}
 
   ins_pipe(imul_reg_reg);
