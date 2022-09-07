@@ -6616,11 +6616,12 @@ instruct regI_not_reg(iRegINoSp dst,
 instruct regL_not_reg(iRegLNoSp dst,
                       iRegL src1, immL_M1 m1) %{
   match(Set dst (XorL src1 m1));
-  ins_cost(ALU_COST);
+  ins_cost(ALU_COST * 2);
   format %{ "xori  $dst, $src1, -1\t#@regL_not_reg" %}
 
   ins_encode %{
     __ xori(as_Register($dst$$reg), as_Register($src1$$reg), -1);
+    __ xori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), -1);
   %}
 
   ins_pipe(ialu_reg);
