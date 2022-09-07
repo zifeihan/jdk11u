@@ -6533,14 +6533,14 @@ instruct urShiftP_reg_imm(iRegLNoSp dst, iRegP src1, immI src2) %{
   match(Set dst (URShiftL (CastP2X src1) src2));
 
   ins_cost(ALU_COST);
-  format %{ "srli  $dst, p2x($src1), ($src2 & 0x3f)\t#@urShiftP_reg_imm" %}
+  format %{ "srli  $dst, p2x($src1), ($src2 & 0x1f)\t#@urShiftP_reg_imm" %}
 
   ins_encode %{
     // the shift amount is encoded in the lower
-    // 6 bits of the I-immediate field for RV32I
+    // 5 bits of the I-immediate field for RV32I
     __ srli(as_Register($dst$$reg),
             as_Register($src1$$reg),
-            (unsigned) $src2$$constant & 0x3f);
+            (unsigned) $src2$$constant & 0x1f);
   %}
 
   ins_pipe(ialu_reg_shift);
