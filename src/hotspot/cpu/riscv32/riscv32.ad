@@ -7143,7 +7143,7 @@ instruct orL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
   ins_cost(ALU_COST * 2);
   ins_encode %{
     __ ori(as_Register($dst$$reg), as_Register($src1$$reg), (int32_t)($src2$$constant));
-    __ ori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), 0);       
+    __ ori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), 0);
   %}
 
   ins_pipe(ialu_reg_imm);
@@ -7175,7 +7175,7 @@ instruct xorL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
 
   ins_encode %{
     __ xori(as_Register($dst$$reg), as_Register($src1$$reg), (int32_t)($src2$$constant));
-    __ xori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), 0); 
+    __ xori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), 0);
   %}
 
   ins_pipe(ialu_reg_imm);
