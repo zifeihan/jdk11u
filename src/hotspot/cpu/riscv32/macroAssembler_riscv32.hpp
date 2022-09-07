@@ -239,6 +239,7 @@ class MacroAssembler: public Assembler {
                      bool want_remainder);
   void lShiftL_reg_reg(Register dst, Register src1, Register src2);
   void urShiftL_reg_reg(Register dst, Register src1, Register src2);
+  void rShiftL_reg_reg(Register dst, Register src1, Register src2);
 
   // interface method calling
   void lookup_interface_method(Register recv_klass,

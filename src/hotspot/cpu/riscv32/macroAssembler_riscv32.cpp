@@ -1923,6 +1923,29 @@ void MacroAssembler::urShiftL_reg_reg(Register dst, Register src1, Register src2
     return;
 }
 
+void MacroAssembler::rShiftL_reg_reg(Register dst, Register src1, Register src2)
+{
+    andi(src2, src2, 0x3f);
+
+    Label blt_branch,done;
+    addi(t0, src2, -32);
+    bltz(t0, blt_branch);
+    sra(dst, src1->successor(), t0);
+    srai(dst->successor(), src1->successor(), 0x1f);
+    beqz(zr, done);
+    bind(blt_branch);
+    mv(t0, 31);
+    slli(t1, src1->successor(), 0x1);
+    sub(t0, t0, src2);
+    sll(t1, t1, t0);
+    srl(dst, src1, src2);
+    orr(dst, t1, dst);
+    sra(dst->successor(), src1->successor(), src2);
+
+    bind(done);
+    return;
+}
+
 // Look up the method for a megamorpic invkkeinterface call.
 // The target method is determined by <intf_klass, itable_index>.
 // The receiver klass is in recv_klass.
