@@ -7188,7 +7188,7 @@ instruct bytes_reverse_int(rFlagsReg cr, iRegINoSp dst, iRegIorL2I src) %{
   match(Set dst (ReverseBytesI src));
   effect(TEMP cr);
 
-  ins_cost(ALU_COST * 17);
+  ins_cost(ALU_COST * 16);
   format %{ "grevw  $dst, $src\t#@bytes_reverse_int" %}
 
   ins_encode %{
@@ -7201,6 +7201,14 @@ instruct bytes_reverse_int(rFlagsReg cr, iRegINoSp dst, iRegIorL2I src) %{
 instruct bytes_reverse_long(rFlagsReg cr, iRegLNoSp dst, iRegL src) %{
   match(Set dst (ReverseBytesL src));
   effect(TEMP cr);
+
+  ins_cost(ALU_COST * 32);
+  format %{ "grevw  $dst, $src\t#@bytes_reverse_long" %}
+
+  ins_encode %{
+    __ grevw(as_Register($dst$$reg), as_Register($src$$reg)->successor());
+    __ grevw(as_Register($dst$$reg)->successor(), as_Register($src$$reg));
+  %}
 
   ins_pipe(ialu_reg);
 %}
