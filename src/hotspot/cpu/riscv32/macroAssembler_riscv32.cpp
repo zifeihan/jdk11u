@@ -1402,18 +1402,6 @@ void MacroAssembler::grev16w(Register Rd, Register Rs, Register Rtmp1, Register 
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   srli(Rtmp2, Rs, 16);
-  grevh(Rtmp2, Rtmp2, Rtmp1);
-  grevhu(Rd, Rs, Rtmp1);
-  slli(Rtmp2, Rtmp2, 16);
-  orr(Rd, Rd, Rtmp2);
-}
-
-void MacroAssembler::grev16wu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in half-word (32bit)
-  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1, Rtmp2);
-  srli(Rtmp2, Rs, 16);
   grevhu(Rtmp2, Rtmp2, Rtmp1);
   grevhu(Rd, Rs, Rtmp1);
   slli(Rtmp2, Rtmp2, 16);
@@ -1425,41 +1413,7 @@ void MacroAssembler::grevw(Register Rd, Register Rs, Register Rtmp1, Register Rt
   // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
-  grev16wu(Rd, Rs, Rtmp1, Rtmp2);
-  slli(Rtmp2, Rd, 16);
-  srli(Rd, Rd, 16);
-  orr(Rd, Rd, Rtmp2);
-}
-
-void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in word (32bit)
-  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1, Rtmp2);
-  grev16wu(Rd, Rs, Rtmp1, Rtmp2);
-  slli(Rtmp2, Rd, 16);
-  srli(Rd, Rd, 16);
-  orr(Rd, Rd, Rtmp2);
-}
-
-void MacroAssembler::grev16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in half-word (32bit)
-  // Rd[31:0] = Rs[23:16] Rs[31:24] Rs[7:0] Rs[15:8]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1, Rtmp2);
-  srli(Rtmp2, Rs, 16);
-  grevhu(Rtmp2, Rtmp2, Rtmp1);
-  grevhu(Rd, Rs, Rtmp1);
-  slli(Rtmp2, Rtmp2, 16);
-  orr(Rd, Rd, Rtmp2);
-}
-
-void MacroAssembler::grev32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
-  // Reverse bytes in word (32bit)
-  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
-  assert_different_registers(Rs, Rtmp1, Rtmp2);
-  assert_different_registers(Rd, Rtmp1, Rtmp2);
-  grev16wu(Rd, Rs, Rtmp1, Rtmp2);
+  grev16w(Rd, Rs, Rtmp1, Rtmp2);
   slli(Rtmp2, Rd, 16);
   srli(Rd, Rd, 16);
   orr(Rd, Rd, Rtmp2);

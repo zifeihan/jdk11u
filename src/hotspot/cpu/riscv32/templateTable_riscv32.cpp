@@ -1689,7 +1689,7 @@ void TemplateTable::wide_iinc()
 {
   transition(vtos, vtos);
   __ lw(x11, at_bcp(2)); // get constant and index
-  __ grev16wu(x11, x11); // reverse bytes in half-word (32bit) and zero-extend
+  __ grev16w(x11, x11); // reverse bytes in half-word (32bit) and zero-extend
   __ zero_ext(x12, x11, 16);
   __ neg(x12, x12);
   __ srai(x11, x11, 16);
@@ -2226,7 +2226,7 @@ void TemplateTable::fast_linearswitch() {
   __ andi(x9, x9, -BytesPerInt);
   // set counter
   __ lw(x11, Address(x9, BytesPerInt));
-  __ grev32(x11, x11);
+  __ grevw(x11, x11);
   __ j(loop_entry);
   // table search
   __ bind(loop);
@@ -2302,7 +2302,7 @@ void TemplateTable::fast_binaryswitch() {
   __ lw(j, Address(array, -BytesPerInt)); // j = length(array)
 
   // Convert j into native byteordering
-  __ grev32(j, j);
+  __ grevw(j, j);
 
   // And start
   Label entry;

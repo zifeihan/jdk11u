@@ -181,7 +181,7 @@ void InterpreterMacroAssembler::check_and_handle_earlyret(Register java_thread) 
 void InterpreterMacroAssembler::get_unsigned_2_byte_index_at_bcp(Register reg, int bcp_offset) {
   assert(bcp_offset >= 0, "bcp is still pointing to start of bytecode");
   lhu(reg, Address(xbcp, bcp_offset));
-  grev16(reg, reg);
+  grev16w(reg, reg);
 }
 
 void InterpreterMacroAssembler::get_dispatch() {
