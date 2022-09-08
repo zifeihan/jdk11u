@@ -7484,11 +7484,12 @@ instruct convUI2L_reg_reg(iRegLNoSp dst, iRegIorL2I src, immL_32bits mask)
   match(Set dst (AndL (ConvI2L src) mask));
 
   ins_cost(ALU_COST * 2);
-  format %{ "slli  $dst, $src, 32\t# ui2l\n\t"
-            "srli  $dst, $dst, 32\t# ui2l, #@convUI2L_reg_reg" %}
+  format %{ "mv  $dst, $src ui2l\n\t# ui2l"
+            "mv  $dst.hi, zr \t# ui2l, #@convUI2L_reg_reg" %}
 
   ins_encode %{
-    __ zero_ext(as_Register($dst$$reg), as_Register($src$$reg), 32);
+    __ mv(as_Register($dst$$reg), as_Register($src$$reg));
+    __ mv(as_Register($dst$$reg)->successor(), zr);
   %}
 
   ins_pipe(ialu_reg_shift);
