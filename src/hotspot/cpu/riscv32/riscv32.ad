@@ -7956,12 +7956,15 @@ instruct MoveD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
 
   effect(DEF dst, USE src);
 
-  ins_cost(XFER_COST);
+  ins_cost(XFER_COST * 2);
 
-  format %{ "fmv.x.w $dst, $src\t#@MoveD2L_reg_reg" %}
+  format %{ "fmv.x.w $dst, $src\t"
+            "fmv.x.w $dst->successor(), $src->successor() \t#@MoveD2L_reg_reg"
+  %}
 
   ins_encode %{
     __ fmv_x_w(as_Register($dst$$reg), as_FloatRegister($src$$reg));
+    __ fmv_x_w(as_Register($dst$$reg)->successor(), as_FloatRegister($src$$reg)->successor());
   %}
 
   ins_pipe(fp_d2l);
@@ -7974,12 +7977,15 @@ instruct MoveL2D_reg_reg(fRegD dst, iRegL src) %{
 
   effect(DEF dst, USE src);
 
-  ins_cost(XFER_COST);
+  ins_cost(XFER_COST * 2);
 
-  format %{ "fmv.w.x  $dst, $src\t#@MoveD2L_reg_reg" %}
+  format %{ "fmv.w.x  $dst, $src\t"
+            "fmv.w.x  $dst->successor(), $src->successor() \t#@MoveD2L_reg_reg"
+  %}
 
   ins_encode %{
     __ fmv_w_x(as_FloatRegister($dst$$reg), as_Register($src$$reg));
+    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), as_Register($src$$reg));
   %}
 
   ins_pipe(fp_l2d);
