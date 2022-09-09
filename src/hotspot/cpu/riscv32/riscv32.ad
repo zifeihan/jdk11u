@@ -7808,10 +7808,13 @@ instruct MoveD2L_stack_reg(iRegLNoSp dst, stackSlotD src) %{
 
   ins_cost(LOAD_COST);
 
-  format %{ "lw  $dst, $src\t#@MoveD2L_stack_reg" %}
+  format %{ "lw  $dst, $src\t"
+            "lw  $dst->successor(), $src + 4 \t#@MoveD2L_stack_reg"
+  %}
 
   ins_encode %{
     __ lw(as_Register($dst$$reg), Address(sp, $src$$disp));
+    __ lw(as_Register($dst$$reg)->successor(), Address(sp, $src$$disp + 4));
   %}
 
   ins_pipe(iload_reg_reg);
