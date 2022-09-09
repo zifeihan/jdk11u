@@ -7640,10 +7640,7 @@ instruct convP2I(iRegINoSp dst, iRegP src) %{
   match(Set dst (ConvL2I (CastP2X src)));
 
   ins_cost(ALU_COST);
-  format %{ "mv  $dst,  $src\t# ptr -> int\n\t"
-            "slli $dst, $dst, 32\n\t"
-            "srli $dst, $dst, 32\t#@convP2I"
-  %}
+  format %{ "mv  $dst, $src\t# ptr -> int, #@convP2I" %}
 
   ins_encode %{
     __ mv($dst$$Register, $src$$Register);
