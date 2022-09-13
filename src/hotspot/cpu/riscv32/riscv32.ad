@@ -8036,11 +8036,9 @@ instruct cmpL3_reg_reg(iRegINoSp dst, iRegL op1, iRegL op2)
 %{
   match(Set dst (CmpL3 op1 op2));
 
-  ins_cost(ALU_COST * 3 + BRANCH_COST);
-  format %{ "slt   $dst, $op2, $op1\t#@cmpL3_reg_reg\n\t"
-            "bnez  $dst, done\n\t"
-            "slt  $dst, $op1, $op2\n\t"
-            "neg   $dst, $dst\t#@cmpL3_reg_reg"
+  ins_cost(ALU_COST * 7 + BRANCH_COST * 3);
+  format %{ "cmp_l2i   $dst, $op2, $op1 \t#@cmpL3_reg_reg\n\t"
+            "mv   $dst, t0 \t#@cmpL3_reg_reg"
   %}
   ins_encode %{
     __ cmp_l2i(t0, as_Register($op1$$reg), as_Register($op2$$reg));
