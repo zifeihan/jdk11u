@@ -1728,10 +1728,11 @@ encode %{
 
   enc_class riscv32_enc_li_imm_long(iRegIorL dst, immL src) %{
     MacroAssembler _masm(&cbuf);
-    int32_t con = (int32_t)$src$$constant;
+    int32_t low = $src$$constant & 0x0FFFFFFFFL;
+    int32_t hi = ((julong)($src$$constant)) >> 32;
     Register dst_reg = as_Register($dst$$reg);
-    __ li(dst_reg, con);
-    __ li(dst_reg->successor(), 0);
+    __ li(dst_reg, low);
+    __ li(dst_reg->successor(), hi);
   %}
 
   enc_class riscv32_enc_mov_p(iRegP dst, immP src) %{
@@ -4381,7 +4382,7 @@ instruct loadConL(iRegLNoSp dst, immL src)
 %{
   match(Set dst src);
 
-  ins_cost(ALU_COST);
+  ins_cost(ALU_COST * 2);
   format %{ "li $dst, $src\t# long, #@loadConL" %}
 
   ins_encode(riscv32_enc_li_imm_long(dst, src));
