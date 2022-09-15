@@ -358,8 +358,14 @@ reg_class int_r13_reg(R13);
 // Singleton class for R14 int register
 reg_class int_r14_reg(R14);
 
+// Singleton class for R28 int register
+reg_class int_r28_reg(R28);
+
 // Singleton class for R29 int register
 reg_class int_r29_reg(R29);
+
+// Singleton class for R30 int register
+reg_class int_r30_reg(R30);
 
 reg_class long_reg (R10,R11, R12,R13, R14,R15, R16,R17, R18,R19, R20,R21);
 reg_class long_r10r11_reg(R10, R11);
@@ -2863,10 +2869,30 @@ operand iRegI_R14()
   interface(REG_INTER);
 %}
 
+operand iRegI_R28()
+%{
+  constraint(ALLOC_IN_RC(int_r28_reg));
+  match(RegI);
+  match(iRegINoSp);
+  op_cost(0);
+  format %{ %}
+  interface(REG_INTER);
+%}
+
 // Register R29 only
 operand iRegI_R29()
 %{
   constraint(ALLOC_IN_RC(int_r29_reg));
+  match(RegI);
+  match(iRegINoSp);
+  op_cost(0);
+  format %{ %}
+  interface(REG_INTER);
+%}
+
+operand iRegI_R30()
+%{
+  constraint(ALLOC_IN_RC(int_r30_reg));
   match(RegI);
   match(iRegINoSp);
   op_cost(0);
@@ -9517,7 +9543,7 @@ instruct partialSubtypeCheckVsZero(iRegP_R14 sub, iRegP_R10 super, iRegP_R12 tem
 %}
 
 instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegI_R28 tmp1, iRegI_R29 tmp2, iRegI_R30 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UU);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9535,7 +9561,7 @@ instruct string_compareU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                         iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
+                         iRegI_R10 result, iRegI_R28 tmp1, iRegI_R29 tmp2, iRegI_R30 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9552,7 +9578,7 @@ instruct string_compareL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R
 %}
 
 instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3, rFlagsReg cr)
+                          iRegI_R10 result, iRegI_R28 tmp1, iRegI_R29 tmp2, iRegI_R30 tmp3, rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::UL);
   match(Set result(StrComp(Binary str1 cnt1)(Binary str2 cnt2)));
@@ -9569,7 +9595,7 @@ instruct string_compareUL(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_
 %}
 
 instruct string_compareLU(iRegP_R11 str1, iRegI_R12 cnt1, iRegP_R13 str2, iRegI_R14 cnt2,
-                          iRegI_R10 result, iRegP_R28 tmp1, iRegL_R10R11 tmp2, iRegL_R12R13 tmp3,
+                          iRegI_R10 result, iRegI_R28 tmp1, iRegI_R29 tmp2, iRegI_R30 tmp3,
                           rFlagsReg cr)
 %{
   predicate(((StrCompNode *)n)->encoding() == StrIntrinsicNode::LU);
