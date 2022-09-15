@@ -5820,6 +5820,7 @@ instruct get_and_addL(indirect mem, iRegLNoSp newval, iRegL incr)
 
   ins_encode %{
     __ atomic_add($newval$$Register, $incr$$Register, as_Register($mem$$base));
+    __ atomic_add($newval$$Register->successor(), $incr$$Register->successor(), as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
@@ -5837,6 +5838,7 @@ instruct get_and_addL_no_res(indirect mem, Universe dummy, iRegL incr)
 
   ins_encode %{
     __ atomic_add(noreg, $incr$$Register, as_Register($mem$$base));
+    __ atomic_add(noreg, $incr$$Register->successor(), as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
@@ -5852,6 +5854,7 @@ instruct get_and_addLi(indirect mem, iRegLNoSp newval, immLAdd incr)
 
   ins_encode %{
     __ atomic_add($newval$$Register, $incr$$constant, as_Register($mem$$base));
+    __ atomic_add($newval$$Register->successor(), zr, as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
@@ -5869,6 +5872,7 @@ instruct get_and_addLi_no_res(indirect mem, Universe dummy, immLAdd incr)
 
   ins_encode %{
     __ atomic_add(noreg, $incr$$constant, as_Register($mem$$base));
+    __ atomic_add(noreg, zr, as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
