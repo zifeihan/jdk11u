@@ -7676,11 +7676,13 @@ instruct convI2D_reg_reg(fRegD dst, iRegIorL2I src) %{
 instruct convD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
   match(Set dst (ConvD2L src));
 
-  ins_cost(XFER_COST);
+  ins_cost(XFER_COST + ALU_COST * 2);
   format %{ "fcvt.w.d  $dst, $src\t#@convD2L_reg_reg" %}
 
   ins_encode %{
-    __ fcvt_w_d_safe($dst$$Register, $src$$FloatRegister);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), $src$$Register, $src$$Register->successor());
+    __ mv($dst$$Register, x10);
+    __ mv($dst$$Register->successor(), x11);
   %}
 
   ins_pipe(fp_d2l);
@@ -7689,11 +7691,13 @@ instruct convD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
 instruct convL2D_reg_reg(fRegD dst, iRegL src) %{
   match(Set dst (ConvL2D src));
 
-  ins_cost(XFER_COST);
+  ins_cost(XFER_COST + ALU_COST * 2);
   format %{ "fcvt.d.w  $dst, $src\t#@convL2D_reg_reg" %}
 
   ins_encode %{
-    __ fcvt_d_w(as_FloatRegister($dst$$reg), as_Register($src$$reg));
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), $src$$Register, $src$$Register->successor());
+    __ mv($dst$$Register, x10);
+    __ mv($dst$$Register->successor(), x11);
   %}
 
   ins_pipe(fp_l2d);
