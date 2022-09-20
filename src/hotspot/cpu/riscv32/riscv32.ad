@@ -5732,22 +5732,6 @@ instruct get_and_setI(indirect mem, iRegI newv, iRegINoSp prev)
   ins_pipe(pipe_serial);
 %}
 
-instruct get_and_setL(indirect mem, iRegL newv, iRegLNoSp prev)
-%{
-  match(Set prev (GetAndSetL mem newv));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "atomic_xchg  $prev, $newv, [$mem]\t#@get_and_setL" %}
-
-  ins_encode %{
-    __ atomic_xchg($prev$$Register, $newv$$Register, as_Register($mem$$base));
-    __ atomic_xchg($prev$$Register->successor(), $newv$$Register->successor(), as_Register($mem$$base)->successor());
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
 instruct get_and_setN(indirect mem, iRegN newv, iRegINoSp prev)
 %{
   match(Set prev (GetAndSetN mem newv));
@@ -5795,24 +5779,6 @@ instruct get_and_setIAcq(indirect mem, iRegI newv, iRegINoSp prev)
   ins_pipe(pipe_serial);
 %}
 
-instruct get_and_setLAcq(indirect mem, iRegL newv, iRegLNoSp prev)
-%{
-  predicate(needs_acquiring_load_exclusive(n));
-
-  match(Set prev (GetAndSetL mem newv));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "atomic_xchg_acq  $prev, $newv, [$mem]\t#@get_and_setLAcq" %}
-
-  ins_encode %{
-    __ atomic_xchgal($prev$$Register, $newv$$Register, as_Register($mem$$base));
-    __ atomic_xchgal($prev$$Register->successor(), $newv$$Register->successor(), as_Register($mem$$base)->successor());
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
 instruct get_and_setNAcq(indirect mem, iRegN newv, iRegINoSp prev)
 %{
   predicate(needs_acquiring_load_exclusive(n));
@@ -5842,74 +5808,6 @@ instruct get_and_setPAcq(indirect mem, iRegP newv, iRegPNoSp prev)
 
   ins_encode %{
     __ atomic_xchgal($prev$$Register, $newv$$Register, as_Register($mem$$base));
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
-instruct get_and_addL(indirect mem, iRegLNoSp newval, iRegL incr)
-%{
-  match(Set newval (GetAndAddL mem incr));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "get_and_addL $newval, [$mem], $incr\t#@get_and_addL" %}
-
-  ins_encode %{
-    __ atomic_add($newval$$Register, $incr$$Register, as_Register($mem$$base));
-    __ atomic_add($newval$$Register->successor(), $incr$$Register->successor(), as_Register($mem$$base)->successor());
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
-instruct get_and_addL_no_res(indirect mem, Universe dummy, iRegL incr)
-%{
-  predicate(n->as_LoadStore()->result_not_used());
-
-  match(Set dummy (GetAndAddL mem incr));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "get_and_addL [$mem], $incr\t#@get_and_addL_no_res" %}
-
-  ins_encode %{
-    __ atomic_add(noreg, $incr$$Register, as_Register($mem$$base));
-    __ atomic_add(noreg, $incr$$Register->successor(), as_Register($mem$$base)->successor());
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
-instruct get_and_addLi(indirect mem, iRegLNoSp newval, immLAdd incr)
-%{
-  match(Set newval (GetAndAddL mem incr));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "get_and_addL $newval, [$mem], $incr\t#@get_and_addLi" %}
-
-  ins_encode %{
-    __ atomic_add($newval$$Register, $incr$$constant, as_Register($mem$$base));
-    __ atomic_add($newval$$Register->successor(), zr, as_Register($mem$$base)->successor());
-  %}
-
-  ins_pipe(pipe_serial);
-%}
-
-instruct get_and_addLi_no_res(indirect mem, Universe dummy, immLAdd incr)
-%{
-  predicate(n->as_LoadStore()->result_not_used());
-
-  match(Set dummy (GetAndAddL mem incr));
-
-  ins_cost(ALU_COST * 2);
-
-  format %{ "get_and_addL [$mem], $incr\t#@get_and_addLi_no_res" %}
-
-  ins_encode %{
-    __ atomic_add(noreg, $incr$$constant, as_Register($mem$$base));
-    __ atomic_add(noreg, zr, as_Register($mem$$base)->successor());
   %}
 
   ins_pipe(pipe_serial);
