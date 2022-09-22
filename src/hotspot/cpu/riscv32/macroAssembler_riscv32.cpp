@@ -928,11 +928,31 @@ void MacroAssembler::fsflagsi(Register Rd, unsigned imm) {
 
 #undef INSN
 
+void MacroAssembler::long_beq(Register Rs1, Register Rs2, Label &l, bool is_far) {
+  return;
+}
+void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far){
+  return;
+}
+void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
+  return;
+}
+void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
+  return;
+}
+void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
+  return;
+}
+void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
+  return;
+}
+
 #ifdef COMPILER2
 
 typedef void (Assembler::*conditional_branch_insn)(Register op1, Register op2, Label& label, bool is_far);
 typedef void (MacroAssembler::*float_conditional_branch_insn)(FloatRegister op1, FloatRegister op2, Label& label,
                                                               bool is_far, bool is_unordered);
+typedef void (MacroAssembler::*long_conditional_branch_insn)(Register op1, Register op2, Label& label, bool is_far);
 
 static conditional_branch_insn conditional_branches[] =
 {
@@ -980,6 +1000,29 @@ static float_conditional_branch_insn float_conditional_branches[] =
   (float_conditional_branch_insn)&MacroAssembler::double_bge
 };
 
+static long_conditional_branch_insn long_conditional_branches[] =
+{
+  /* SHORT branches */
+  (long_conditional_branch_insn)&MacroAssembler::long_beq,
+  (long_conditional_branch_insn)&MacroAssembler::long_bgt,
+  NULL, // BoolTest::overflow
+  (long_conditional_branch_insn)&MacroAssembler::long_blt,
+  (long_conditional_branch_insn)&MacroAssembler::long_bne,
+  (long_conditional_branch_insn)&MacroAssembler::long_ble,
+  NULL, // BoolTest::no_overflow
+  (long_conditional_branch_insn)&MacroAssembler::long_bge,
+
+  /* UNSIGNED branches */
+  (long_conditional_branch_insn)&MacroAssembler::long_beq,
+  (long_conditional_branch_insn)&MacroAssembler::long_bgt,
+  NULL, // BoolTest::overflow
+  (long_conditional_branch_insn)&MacroAssembler::long_blt,
+  (long_conditional_branch_insn)&MacroAssembler::long_bne,
+  (long_conditional_branch_insn)&MacroAssembler::long_ble,
+  NULL, // BoolTest::no_overflow
+  (long_conditional_branch_insn)&MacroAssembler::long_bge
+};
+
 void MacroAssembler::cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far) {
   assert(cmpFlag >= 0 && cmpFlag < (int)(sizeof(conditional_branches) / sizeof(conditional_branches[0])),
          "invalid conditional branch index");
@@ -994,6 +1037,12 @@ void MacroAssembler::float_cmp_branch(int cmpFlag, FloatRegister op1, FloatRegis
   int booltest_flag = cmpFlag & ~(MacroAssembler::double_branch_mask);
   (this->*float_conditional_branches[cmpFlag])(op1, op2, label, is_far,
    (booltest_flag == (BoolTest::ge) || booltest_flag == (BoolTest::gt)) ? false : true);
+}
+
+void MacroAssembler::long_cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far) {
+  assert(cmpFlag >= 0 && cmpFlag < (int)(sizeof(long_conditional_branches) / sizeof(long_conditional_branches[0])),
+         "invalid float conditional branch index");
+  (this->*long_conditional_branches[cmpFlag])(op1, op2, label, is_far);
 }
 
 void MacroAssembler::enc_cmpUEqNeLeGt_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far) {
