@@ -929,22 +929,64 @@ void MacroAssembler::fsflagsi(Register Rd, unsigned imm) {
 #undef INSN
 
 void MacroAssembler::long_beq(Register Rs1, Register Rs2, Label &l, bool is_far) {
-  return;
+  Register low = NULL;
+  Register hi = NULL;
+  mv(t0, Rs1);
+  sub(low, Rs1, Rs2);
+  sltu(t0, t0, low);
+  sub(hi, Rs1->successor(), Rs2->successor());
+  sub(hi, hi, t0);
+
+  Label done;
+  bnez(hi, done);
+  beqz(low, l);
+
+  bind(done);
 }
 void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far){
-  return;
+  Register low = NULL;
+  Register hi = NULL;
+  mv(t0, Rs1);
+  sub(low, Rs1, Rs2);
+  sltu(t0, t0, low);
+  sub(hi, Rs1->successor(), Rs2->successor());
+  sub(hi, hi, t0);
+
+  bnez(hi, l);
+  bnez(low, l);
 }
 void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
-  return;
+  Register low = NULL;
+  Register hi = NULL;
+  mv(t0, Rs1);
+  sub(low, Rs1, Rs2);
+  sltu(t0, t0, low);
+  sub(hi, Rs1->successor(), Rs2->successor());
+  sub(hi, hi, t0);
+
+  Label done;
+  bltz(hi, l);
+  bnez(hi, done);
+  beqz(low, l);
+
+  bind(done);
 }
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
-  return;
+  long_ble(Rs2, Rs2, l);
 }
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  return;
+  Register low = NULL;
+  Register hi = NULL;
+  mv(t0, Rs1);
+  sub(low, Rs1, Rs2);
+  sltu(t0, t0, low);
+  sub(hi, Rs1->successor(), Rs2->successor());
+  sub(hi, hi, t0);
+
+  bltz(hi, l);
 }
 void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  return;
+  long_blt(Rs2, Rs1, l);
 }
 
 #ifdef COMPILER2
