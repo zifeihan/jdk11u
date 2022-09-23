@@ -939,7 +939,7 @@ void MacroAssembler::long_beq(Register Rs1, Register Rs2, Label &l, bool is_far)
 
   Label done;
   bnez(hi, done);
-  beqz(low, l);
+  beqz(low, l, is_far);
 
   bind(done);
 }
@@ -952,8 +952,8 @@ void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far)
   sub(hi, Rs1->successor(), Rs2->successor());
   sub(hi, hi, t0);
 
-  bnez(hi, l);
-  bnez(low, l);
+  bnez(hi, l, is_far);
+  bnez(low, l, is_far);
 }
 void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
   Register low = NULL;
@@ -965,15 +965,29 @@ void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far)
   sub(hi, hi, t0);
 
   Label done;
-  bltz(hi, l);
+  bltz(hi, l, is_far);
   bnez(hi, done);
-  beqz(low, l);
+  beqz(low, l, is_far);
 
   bind(done);
 }
+
+void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far){
+  Label done;
+  bgtu(Rs1->successor(), Rs2->successor(), done);
+  bgtu(Rs2->successor(), Rs1->successor(), l, is_far);
+  bleu(Rs1, Rs2, l, is_far);
+  bind(done);
+}
+
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
   long_ble(Rs2, Rs2, l);
 }
+
+void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far){
+  long_bleu(Rs2, Rs2, l);
+}
+
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
   Register low = NULL;
   Register hi = NULL;
@@ -985,8 +999,21 @@ void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far)
 
   bltz(hi, l);
 }
+
+void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far){
+  Label done;
+  bgtu(Rs1->successor(), Rs2->successor(), done);
+  bgtu(Rs2->successor(), Rs1->successor(), l, is_far);
+  bgtu(Rs2, Rs1, l, is_far);
+  bind(done);
+}
+
 void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
   long_blt(Rs2, Rs1, l);
+}
+
+void MacroAssembler::long_bgtu(Register Rs1, Register Rs2, Label &l, bool is_far){
+  long_bltu(Rs2, Rs1, l);
 }
 
 #ifdef COMPILER2
@@ -1056,13 +1083,13 @@ static long_conditional_branch_insn long_conditional_branches[] =
 
   /* UNSIGNED branches */
   (long_conditional_branch_insn)&MacroAssembler::long_beq,
-  (long_conditional_branch_insn)&MacroAssembler::long_bgt,
+  (long_conditional_branch_insn)&MacroAssembler::long_bgtu,
   NULL, // BoolTest::overflow
-  (long_conditional_branch_insn)&MacroAssembler::long_blt,
+  (long_conditional_branch_insn)&MacroAssembler::long_bltu,
   (long_conditional_branch_insn)&MacroAssembler::long_bne,
-  (long_conditional_branch_insn)&MacroAssembler::long_ble,
+  (long_conditional_branch_insn)&MacroAssembler::long_bleu,
   NULL, // BoolTest::no_overflow
-  (long_conditional_branch_insn)&MacroAssembler::long_bge
+  (long_conditional_branch_insn)&MacroAssembler::long_bgeu
 };
 
 void MacroAssembler::cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far) {

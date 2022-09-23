@@ -481,9 +481,13 @@ class MacroAssembler: public Assembler {
   void long_beq(Register Rs1, Register Rs2, Label &l, bool is_far = false);
   void long_bne(Register Rs1, Register Rs2, Label &l, bool is_far = false);
   void long_ble(Register Rs1, Register Rs2, Label &l, bool is_far = false);
+  void long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far = false);
   void long_bge(Register Rs1, Register Rs2, Label &l, bool is_far = false);
+  void long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far = false);
   void long_blt(Register Rs1, Register Rs2, Label &l, bool is_far = false);
+  void long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far = false);
   void long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far = false);
+  void long_bgtu(Register Rs1, Register Rs2, Label &l, bool is_far = false);
 
   void push_reg(RegSet regs, Register stack) { if (regs.bits()) { push_reg(regs.bits(), stack); } }
   void pop_reg(RegSet regs, Register stack) { if (regs.bits()) { pop_reg(regs.bits(), stack); } }
@@ -711,7 +715,7 @@ class MacroAssembler: public Assembler {
   // cmp
   void cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far = false);
   void float_cmp_branch(int cmpFlag, FloatRegister op1, FloatRegister op2, Label& label, bool is_far = false);
-  void long_cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far);
+  void long_cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far = false);
 
   void enc_cmpUEqNeLeGt_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far = false);
   void enc_cmpEqNe_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far = false);
