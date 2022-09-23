@@ -981,11 +981,11 @@ void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_ble(Rs2, Rs2, l);
+  long_ble(Rs2, Rs2, l, is_far);
 }
 
 void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_bleu(Rs2, Rs2, l);
+  long_bleu(Rs2, Rs2, l, is_far);
 }
 
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -1009,11 +1009,11 @@ void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_blt(Rs2, Rs1, l);
+  long_blt(Rs2, Rs1, l, is_far);
 }
 
 void MacroAssembler::long_bgtu(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_bltu(Rs2, Rs1, l);
+  long_bltu(Rs2, Rs1, l, is_far);
 }
 
 #ifdef COMPILER2
