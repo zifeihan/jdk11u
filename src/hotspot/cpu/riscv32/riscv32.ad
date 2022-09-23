@@ -8169,7 +8169,7 @@ instruct cmpL_branch(cmpOp cmp, iRegL op1, iRegL op2, label lbl)
   format %{ "b$cmp  $op1, $op2, $lbl\t#@cmpL_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label));
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label));
   %}
 
   ins_pipe(pipe_cmp_branch);
@@ -8188,7 +8188,7 @@ instruct cmpL_loop(cmpOp cmp, iRegL op1, iRegL op2, label lbl)
   format %{ "b$cmp  $op1, $op2, $lbl\t#@cmpL_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label));
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label));
   %}
 
   ins_pipe(pipe_cmp_branch);
@@ -8196,6 +8196,7 @@ instruct cmpL_loop(cmpOp cmp, iRegL op1, iRegL op2, label lbl)
 %}
 
 // Compare unsigned long and branch near instructions
+// new errors will happen in this calling of long_cmp_branch @shining
 instruct cmpUL_branch(cmpOpU cmp, iRegL op1, iRegL op2, label lbl)
 %{
   // Same match rule as `far_cmpUL_branch'.
@@ -8207,7 +8208,7 @@ instruct cmpUL_branch(cmpOpU cmp, iRegL op1, iRegL op2, label lbl)
   format %{ "b$cmp  $op1, $op2, $lbl\t#@cmpUL_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
+    __ long_cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
                        as_Register($op2$$reg), *($lbl$$label));
   %}
 
@@ -8226,7 +8227,7 @@ instruct cmpUL_loop(cmpOpU cmp, iRegL op1, iRegL op2, label lbl)
   format %{ "b$cmp  $op1, $op2, $lbl\t#@cmpUL_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
+    __ long_cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
                        as_Register($op2$$reg), *($lbl$$label));
   %}
 
@@ -8480,7 +8481,7 @@ instruct cmpL_reg_imm0_branch(cmpOp cmp, iRegL op1, immL0 zero, label lbl)
   format %{ "b$cmp  $op1, zr, $lbl\t#@cmpL_reg_imm0_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label));
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label));
   %}
 
   ins_pipe(pipe_cmpz_branch);
@@ -8499,7 +8500,7 @@ instruct cmpL_reg_imm0_loop(cmpOp cmp, iRegL op1, immL0 zero, label lbl)
   format %{ "b$cmp  $op1, zr, $lbl\t#@cmpL_reg_imm0_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label));
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label));
   %}
 
   ins_pipe(pipe_cmpz_branch);
@@ -8732,7 +8733,7 @@ instruct far_cmpL_branch(cmpOp cmp, iRegL op1, iRegL op2, label lbl) %{
   format %{ "far_b$cmp  $op1, $op2, $lbl\t#@far_cmpL_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
   %}
 
   ins_pipe(pipe_cmp_branch);
@@ -8746,7 +8747,7 @@ instruct far_cmpLloop(cmpOp cmp, iRegL op1, iRegL op2, label lbl) %{
   format %{ "far_b$cmp  $op1, $op2, $lbl\t#@far_cmpL_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
   %}
 
   ins_pipe(pipe_cmp_branch);
@@ -8760,7 +8761,7 @@ instruct far_cmpUL_branch(cmpOpU cmp, iRegL op1, iRegL op2, label lbl) %{
   format %{ "far_b$cmp  $op1, $op2, $lbl\t#@far_cmpUL_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
+    __ long_cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
                        as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
   %}
 
@@ -8775,7 +8776,7 @@ instruct far_cmpUL_loop(cmpOpU cmp, iRegL op1, iRegL op2, label lbl) %{
   format %{ "far_b$cmp  $op1, $op2, $lbl\t#@far_cmpUL_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
+    __ long_cmp_branch($cmp$$cmpcode | MacroAssembler::unsigned_branch_mask, as_Register($op1$$reg),
                        as_Register($op2$$reg), *($lbl$$label), /* is_far */ true);
   %}
 
@@ -9032,7 +9033,7 @@ instruct far_cmpL_reg_imm0_branch(cmpOp cmp, iRegL op1, immL0 zero, label lbl)
   format %{ "far_b$cmp  $op1, zr, $lbl\t#@far_cmpL_reg_imm0_branch" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label), /* is_far */ true);
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label), /* is_far */ true);
   %}
 
   ins_pipe(pipe_cmpz_branch);
@@ -9049,7 +9050,7 @@ instruct far_cmpL_reg_imm0_loop(cmpOp cmp, iRegL op1, immL0 zero, label lbl)
   format %{ "far_b$cmp  $op1, zr, $lbl\t#@far_cmpL_reg_imm0_loop" %}
 
   ins_encode %{
-    __ cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label), /* is_far */ true);
+    __ long_cmp_branch($cmp$$cmpcode, as_Register($op1$$reg), zr, *($lbl$$label), /* is_far */ true);
   %}
 
   ins_pipe(pipe_cmpz_branch);
