@@ -8196,7 +8196,6 @@ instruct cmpL_loop(cmpOp cmp, iRegL op1, iRegL op2, label lbl)
 %}
 
 // Compare unsigned long and branch near instructions
-// new errors will happen in this calling of long_cmp_branch @shining
 instruct cmpUL_branch(cmpOpU cmp, iRegL op1, iRegL op2, label lbl)
 %{
   // Same match rule as `far_cmpUL_branch'.
