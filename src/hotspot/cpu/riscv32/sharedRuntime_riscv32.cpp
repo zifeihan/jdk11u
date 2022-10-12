@@ -685,7 +685,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (int_args < Argument::n_int_register_parameters_c - 1) {
         if (int_args & 1) int_args++;
-        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else if (int_args == Argument::n_int_register_parameters_c - 1){
         regs[i].set_pair(VMRegImpl::stack2reg(stk_args), INT_ArgReg[int_args]->as_VMReg());
@@ -693,7 +693,7 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
         stk_args ++;
       } else {
         if (stk_args & 1) stk_args++;
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_c;
         stk_args += 2;
       }
@@ -712,10 +712,10 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
       if (fp_args < Argument::n_float_register_parameters_c) {
         regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else if (int_args < Argument::n_int_register_parameters_c) {
-        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else {
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
       break;
