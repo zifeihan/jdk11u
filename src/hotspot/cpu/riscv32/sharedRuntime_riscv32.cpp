@@ -280,11 +280,12 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       break;
     case T_LONG:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
-      if (int_args & 1) int_args++;
       if (int_args < Argument::n_int_register_parameters_j - 1) {
+        if (int_args & 1) int_args++;
         regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else {
+        if (stk_args & 1) stk_args++;
         regs[i].set2(VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_j;
         stk_args += 2;
@@ -302,6 +303,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       if (fp_args < Argument::n_float_register_parameters_j) {
         regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else {
+        if (stk_args & 1) stk_args++;
         regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
@@ -712,9 +714,11 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
       if (fp_args < Argument::n_float_register_parameters_c) {
         regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else if (int_args < Argument::n_int_register_parameters_c) {
+        if (int_args & 1) int_args++;
         regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else {
+        if (stk_args & 1) stk_args++;
         regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
