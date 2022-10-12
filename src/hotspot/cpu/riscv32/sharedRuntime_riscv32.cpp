@@ -417,24 +417,18 @@ static void gen_c2i_adapter(MacroAssembler *masm,
                     + extraspace
                     + words_pushed * wordSize);
       if (!r_2->is_valid()) {
-        __ lw(t0, Address(sp, ld_off));
+        __ lw(t0, Address(sp, ld_off), /*temp register*/esp);
         __ sw(t0, Address(sp, st_off), /*temp register*/esp);
       } else {
         __ lw(t0, Address(sp, ld_off), /*temp register*/esp);
-
+        __ sw(t0, Address(sp, st_off), /*temp register*/esp);
         // Two VMREgs|OptoRegs can be T_OBJECT, T_ADDRESS, T_DOUBLE, T_LONG
         // T_DOUBLE and T_LONG use two slots in the interpreter
         if ( sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
           // ld_off == LSW, ld_off+wordSize == MSW
           // st_off == MSW, next_off == LSW
+          __ lw(t0, Address(sp, ld_off + wordSize));
           __ sw(t0, Address(sp, next_off), /*temp register*/esp);
-#ifdef ASSERT
-          // Overwrite the unused slot with known junk
-          __ li(t0, 0xdeadaaaa);
-          __ sw(t0, Address(sp, st_off), /*temp register*/esp);
-#endif /* ASSERT */
-        } else {
-          __ sw(t0, Address(sp, st_off), /*temp register*/esp);
         }
       }
     } else if (r_1->is_Register()) {
@@ -446,15 +440,8 @@ static void gen_c2i_adapter(MacroAssembler *masm,
         // Two VMREgs|OptoRegs can be T_OBJECT, T_ADDRESS, T_DOUBLE, T_LONG
         // T_DOUBLE and T_LONG use two slots in the interpreter
         if ( sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
-          // long/double in gpr
-#ifdef ASSERT
-          // Overwrite the unused slot with known junk
-          __ li(t0, 0xdeadaaab);
-          __ sw(t0, Address(sp, st_off), /*temp register*/esp);
-#endif /* ASSERT */
-          __ sw(r, Address(sp, next_off));
-        } else {
           __ sw(r, Address(sp, st_off));
+          __ sw(r_2->as_Register(), Address(sp, next_off));
         }
       }
     } else {
@@ -463,11 +450,6 @@ static void gen_c2i_adapter(MacroAssembler *masm,
         // only a float use just part of the slot
         __ fsw(r_1->as_FloatRegister(), Address(sp, st_off));
       } else {
-#ifdef ASSERT
-        // Overwrite the unused slot with known junk
-        __ li(t0, 0xdeadaaac);
-        __ sw(t0, Address(sp, st_off), /*temp register*/esp);
-#endif /* ASSERT */
         __ fsd(r_1->as_FloatRegister(), Address(sp, next_off));
       }
     }
@@ -536,13 +518,12 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
         // are accessed as negative so LSW is at LOW address
 
         // ld_off is MSW so get LSW
-        const int offset = (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) ?
-                           next_off : ld_off;
-        __ lw(t0, Address(esp, offset));
-        // st_off is LSW (i.e. reg.first())
-        __ sw(t0, Address(sp, st_off), /*temp register*/t2);
         __ lw(t0, Address(esp, ld_off));
-        __ sw(t0, Address(sp, st_off+wordSize), /*temp register*/t2);
+        __ sw(t0, Address(sp, st_off), /*temp register*/t2);
+        if (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
+          __ lw(t0, Address(esp, next_off));
+          __ sw(t0, Address(sp, st_off + wordSize), /*temp register*/t2);
+        }
       }
     } else if (r_1->is_Register()) {  // Register argument
       Register r = r_1->as_Register();
@@ -554,12 +535,12 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
         // So we must adjust where to pick up the data to match the
         // interpreter.
 
-        const int offset = (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) ?
-                           next_off : ld_off;
-
-        // this can be a misaligned move
-        __ lw(r, Address(esp, offset));
-        __ lw(r_2->as_Register(), Address(esp, ld_off));
+        if (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
+          __ lw(r, Address(esp, ld_off));
+          __ lw(r_2->as_Register(), Address(esp, next_off));
+        } else {
+          __ lw(r, Address(esp, ld_off));
+        }
       } else {
         // sign extend and use a full word?
         __ lw(r, Address(esp, ld_off));
