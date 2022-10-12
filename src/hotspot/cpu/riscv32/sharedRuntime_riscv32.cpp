@@ -225,7 +225,7 @@ static int reg2offset_out(VMReg r) {
 // as framesizes are fixed.
 // VMRegImpl::stack0 refers to the first slot 0(sp).
 // and VMRegImpl::stack0+1 refers to the memory word 4-byes higher.  Register
-// up to RegisterImpl::number_of_registers) are the 64-bit
+// up to RegisterImpl::number_of_registers) are the 32-bit
 // integer registers.
 
 // Note: the INPUTS in sig_bt are in units of Java argument words,
@@ -280,13 +280,12 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       break;
     case T_LONG:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
+      if (int_args & 1) int_args++;
       if (int_args < Argument::n_int_register_parameters_j - 1) {
-        if (int_args & 1) int_args++;
-        regs[i].set_pair(INT_ArgReg[int_args + 1]->as_VMReg(), INT_ArgReg[int_args]->as_VMReg());
+        regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else {
-        if (stk_args & 1) stk_args++;
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         int_args = Argument::n_int_register_parameters_j;
         stk_args += 2;
       }
@@ -303,7 +302,7 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
       if (fp_args < Argument::n_float_register_parameters_j) {
         regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else {
-        regs[i].set_pair(VMRegImpl::stack2reg(stk_args + 1), VMRegImpl::stack2reg(stk_args));
+        regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
       break;
