@@ -1029,8 +1029,8 @@ void SharedRuntime::save_native_result(MacroAssembler *masm, BasicType ret_type,
     break;
   case T_VOID:  break;
   case T_LONG:
-    __ lw(x11, Address(fp, -2 * wordSize));
-    __ lw(x10, Address(fp, -wordSize));
+    __ sw(x11, Address(fp, -2 * wordSize));
+    __ sw(x10, Address(fp, -wordSize));
     break;
   default: {
     __ sw(x10, Address(fp, -wordSize));
