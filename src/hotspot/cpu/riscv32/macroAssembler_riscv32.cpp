@@ -3255,7 +3255,7 @@ void MacroAssembler::arrays_equals(Register a1, Register a2, Register tmp3,
   lw(tmp4, Address(a2, 0));
   ble(cnt1, elem_per_word, SHORT); // short or same
 
-  // Main 16 byte comparison loop with 2 exits
+  // Main 8 byte comparison loop with 2 exits
   bind(NEXT_DWORD); {
     lw(tmp1, Address(a1, wordSize));
     lw(tmp2, Address(a2, wordSize));
