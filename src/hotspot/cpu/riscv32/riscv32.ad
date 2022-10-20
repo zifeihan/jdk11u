@@ -1560,7 +1560,7 @@ bool Matcher::float_in_double() { return false; }
 // The relevant question is how the int is callee-saved:
 // the whole long is written but de-opt'ing will have to extract
 // the relevant 32 bits.
-const bool Matcher::int_in_long = true;
+const bool Matcher::int_in_long = false;
 
 // Return whether or not this register is ever used as an argument.
 // This function is used on startup to build the trampoline stubs in
