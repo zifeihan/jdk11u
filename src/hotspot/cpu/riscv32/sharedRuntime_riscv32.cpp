@@ -1708,7 +1708,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
 
       case T_LONG :
         long_move(masm, in_regs[i], out_regs[c_arg]);
-        int_args++;
+        int_args += 2;
         break;
 
       case T_ADDRESS:
