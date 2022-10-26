@@ -2819,9 +2819,9 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
     __ andi(t1, t1, 0b00000);
     __ bnez(t1, bail);    // 7-11:0b00000
     __ srli(t1, t0, 12);
-    __ andi(t1, t1, 0b110);
-    __ mv(t2, 0b110);
-    __ bne(t1, t2, bail); // 12-14:0b110
+    __ andi(t1, t1, 0b010);
+    __ mv(t2, 0b010);
+    __ bne(t1, t2, bail); // 12-14:0b010. 0b010 is lw, 0b110 is lwu.
 #endif
     // Adjust return pc forward to step over the safepoint poll instruction
     __ add(x18, x18, NativeInstruction::instruction_size);
