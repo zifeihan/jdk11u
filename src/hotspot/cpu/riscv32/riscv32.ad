@@ -9248,7 +9248,7 @@ instruct cmovI_cmpL(iRegINoSp dst, iRegI src, iRegL op1, iRegL op2, cmpOp cop ) 
     Register src = as_Register($src$$reg);
     int cmpFlag = $cop$$cmpcode;
     Label L;
-    __ cmp_branch(cmpFlag ^ (1 << MacroAssembler::neg_cond_bits), op1, op2, L);
+    __ long_cmp_branch(cmpFlag ^ (1 << MacroAssembler::neg_cond_bits), op1, op2, L);
     __ mv(dst, src);
     __ bind(L);
    %}
