@@ -1129,6 +1129,25 @@ void MacroAssembler::enc_cmpUEqNeLeGt_imm0_branch(int cmpFlag, Register op1, Lab
   }
 }
 
+void MacroAssembler::enc_cmpUEqNeLeGt_imm0_branch_long(int cmpFlag, Register op1, Label& L, bool is_far) {
+  Label L1;
+  switch (cmpFlag) {
+    case BoolTest::eq:
+    case BoolTest::le:
+      bnez(op1, L1, is_far);
+      beqz(op1, L, is_far);
+      break;
+    case BoolTest::ne:
+    case BoolTest::gt:
+      bnez(op1, L, is_far);
+      bnez(op1->successor(), L, is_far);
+      break;
+    default:
+      ShouldNotReachHere();
+  }
+  bind(L1);
+}
+
 void MacroAssembler::enc_cmpEqNe_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far) {
   switch (cmpFlag) {
     case BoolTest::eq:

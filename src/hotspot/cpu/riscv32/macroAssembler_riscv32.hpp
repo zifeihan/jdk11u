@@ -718,6 +718,7 @@ class MacroAssembler: public Assembler {
   void long_cmp_branch(int cmpFlag, Register op1, Register op2, Label& label, bool is_far = false);
 
   void enc_cmpUEqNeLeGt_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far = false);
+  void enc_cmpUEqNeLeGt_imm0_branch_long(int cmpFlag, Register op1, Label& L, bool is_far = false);
   void enc_cmpEqNe_imm0_branch(int cmpFlag, Register op1, Label& L, bool is_far = false);
 
 #endif
