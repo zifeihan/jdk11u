@@ -5503,18 +5503,14 @@ instruct weakCompareAndSwapL(iRegINoSp res, indirect mem, iRegL oldval, iRegL ne
   ins_cost(LOAD_COST * 2 + STORE_COST * 2 + BRANCH_COST * 4 + ALU_COST * 5);
 
   format %{
-    "cmpxchg_weak $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
+    "cmpxchg_long_weak $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
     "xori $res, $res, 1\t# $res == 1 when success, #@weakCompareAndSwapL"
   %}
 
   ins_encode %{
-    __ cmpxchg_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
-               /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register);
-    __ cmpxchg_weak(as_Register($mem$$base)->successor(), $oldval$$Register->successor(), $newval$$Register->successor(), Assembler::int32,
-               /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register->successor());
+    __ cmpxchg_long_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
+                         /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register);
     __ xori($res$$Register, $res$$Register, 1);
-    __ xori($res$$Register->successor(), $res$$Register->successor(), 1);
-    __ andr($res$$Register, $res$$Register, $res$$Register->successor());
   %}
 
   ins_pipe(pipe_slow);
@@ -5641,18 +5637,14 @@ instruct weakCompareAndSwapLAcq(iRegINoSp res, indirect mem, iRegL oldval, iRegL
   ins_cost(LOAD_COST * 2 + STORE_COST * 2 + BRANCH_COST * 4 + ALU_COST * 5);
 
   format %{
-    "cmpxchg_weak_acq $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
+    "cmpxchg_long_weak_acq $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
     "xori $res, $res, 1\t# $res == 1 when success, #@weakCompareAndSwapLAcq"
   %}
 
   ins_encode %{
-    __ cmpxchg_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
-               /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $res$$Register);
-    __ cmpxchg_weak(as_Register($mem$$base)->successor(), $oldval$$Register->successor(), $newval$$Register->successor(), Assembler::int32,
-               /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $res$$Register->successor());
+    __ cmpxchg_long_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
+                         /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $res$$Register);
     __ xori($res$$Register, $res$$Register, 1);
-    __ xori($res$$Register->successor(), $res$$Register->successor(), 1);
-    __ andr($res$$Register, $res$$Register, $res$$Register->successor());
   %}
 
   ins_pipe(pipe_slow);

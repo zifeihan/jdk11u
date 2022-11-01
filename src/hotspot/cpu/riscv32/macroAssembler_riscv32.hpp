@@ -540,6 +540,11 @@ class MacroAssembler: public Assembler {
                     enum operand_size size,
                     Assembler::Aqrl acquire, Assembler::Aqrl release,
                     Register result);
+  void cmpxchg_long_weak(Register addr, Register expected,
+                         Register new_val,
+                         enum operand_size size,
+                         Assembler::Aqrl acquire, Assembler::Aqrl release,
+                         Register result);
 
   void cmpxchg_narrow_value(Register addr, Register expected,
                             Register new_val,
