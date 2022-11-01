@@ -2506,6 +2506,34 @@ void MacroAssembler::cmpxchg_weak(Register addr, Register expected,
   bind(done);
 }
 
+void MacroAssembler::cmpxchg_long_weak(Register addr, Register expected,
+                                       Register new_val,
+                                       enum operand_size size,
+                                       Assembler::Aqrl acquire, Assembler::Aqrl release,
+                                       Register result) {
+  assert(size != int8 && size != int16, "unsupported operand size");
+
+  Label fail, done, sc_done;
+  load_reserved(addr, size, acquire);
+  bne(t0, expected, fail);
+  load_reserved(addr->successor(), size, acquire);
+  bne(t0, expected->successor(), fail);
+  store_conditional(addr, new_val, size, release);
+  bnez(t0, fail);
+  store_conditional(addr->successor(), new_val->successor(), size, release);
+  beqz(t0, sc_done);
+
+  // fail
+  bind(fail);
+  li(result, 1);
+  j(done);
+
+  // sc_done
+  bind(sc_done);
+  mv(result, 0);
+  bind(done);
+}
+
 #define ATOMIC_OP(NAME, AOP, ACQUIRE, RELEASE)                                              \
 void MacroAssembler::atomic_##NAME(Register prev, RegisterOrConstant incr, Register addr) { \
   prev = prev->is_valid() ? prev : zr;                                                      \
