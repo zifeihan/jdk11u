@@ -1448,8 +1448,8 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
           case T_BYTE:
           case T_SHORT:
           case T_CHAR:
-          case T_INT:  single_slots++; break;
-          case T_ARRAY:  // specific to LP64 (7145024)
+          case T_INT:
+          case T_ARRAY:  single_slots++; break;// specific to LP64 (7145024)
           case T_LONG: double_slots++; break;
           default:  ShouldNotReachHere();
         }
@@ -1705,7 +1705,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
                 in_sig_bt[i + 1] == T_VOID &&
                 out_sig_bt[c_arg + 1] == T_VOID, "bad arg list");
         double_move(masm, in_regs[i], out_regs[c_arg]);
-        float_args++;
+        float_args += 2;
         break;
 
       case T_LONG :
