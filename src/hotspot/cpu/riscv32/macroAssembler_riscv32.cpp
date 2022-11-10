@@ -1140,7 +1140,7 @@ void MacroAssembler::enc_cmpUEqNeLeGt_imm0_branch_long(int cmpFlag, Register op1
     case BoolTest::eq:
     case BoolTest::le:
       bnez(op1, L1, is_far);
-      beqz(op1, L, is_far);
+      beqz(op1->successor(), L, is_far);
       break;
     case BoolTest::ne:
     case BoolTest::gt:
