@@ -967,7 +967,7 @@ void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far)
   Label done;
   bltz(hi, l, is_far);
   bnez(hi, done);
-  beqz(low, l, is_far);
+  bleu(Rs1, Rs2, l, is_far);
 
   bind(done);
 }
@@ -981,11 +981,11 @@ void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_ble(Rs2, Rs2, l, is_far);
+  long_ble(Rs2, Rs1, l, is_far);
 }
 
 void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_bleu(Rs2, Rs2, l, is_far);
+  long_bleu(Rs2, Rs1, l, is_far);
 }
 
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -997,7 +997,12 @@ void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far)
   sub(hi, Rs1->successor(), Rs2->successor());
   sub(hi, hi, t0);
 
-  bltz(hi, l);
+  Label done;
+  bltz(hi, l, is_far);
+  bnez(hi, done);
+  bltu(Rs1, Rs2, l, is_far);
+
+  bind(done);
 }
 
 void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far){
