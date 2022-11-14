@@ -7439,9 +7439,11 @@ instruct convF2L_reg_reg(iRegLNoSp dst, fRegF src) %{
   format %{ "fcvt.w.s  $dst, $src\t#@convF2L_reg_reg" %}
 
   ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::f2l), $src$$Register);
-    __ mv($dst$$Register, x10);
-    __ mv($dst$$Register->successor(), x11);
+    __ addi(esp, esp, -wordSize);
+    __ fsw($src$$FloatRegister, Address(esp));
+    __ lw($dst$$Register, Address(esp));
+    __ srai($dst$$Register->successor(), $dst$$Register, 0x1f);
+    __ addi(esp, esp, wordSize);
   %}
 
   ins_pipe(fp_f2l);
@@ -7454,8 +7456,11 @@ instruct convL2F_reg_reg(fRegF dst, iRegL src) %{
   format %{ "fcvt.s.w  $dst, $src\t#@convL2F_reg_reg" %}
 
   ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2f), $src$$Register, $src$$Register->successor());
-    __ mv($dst$$Register, x10);
+    __ addi(esp, esp, -2 * wordSize);
+    __ sw($src$$Register, Address(esp));
+    __ sw($src$$Register->successor(), Address(esp, wordSize));
+    __ flw($dst$$FloatRegister, Address(esp));
+    __ addi(esp, esp, 2 * wordSize);
   %}
 
   ins_pipe(fp_l2f);
@@ -7498,9 +7503,11 @@ instruct convD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
   format %{ "fcvt.w.d  $dst, $src\t#@convD2L_reg_reg" %}
 
   ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), $src$$Register, $src$$Register->successor());
-    __ mv($dst$$Register, x10);
-    __ mv($dst$$Register->successor(), x11);
+    __ addi(esp, esp, -2 * wordSize);
+    __ fsd($src$$FloatRegister, Address(esp));
+    __ lw($dst$$Register, Address(esp));
+    __ lw($dst$$Register->successor(), Address(esp, wordSize));
+    __ addi(esp, esp, 2 * wordSize);
   %}
 
   ins_pipe(fp_d2l);
@@ -7513,9 +7520,11 @@ instruct convL2D_reg_reg(fRegD dst, iRegL src) %{
   format %{ "fcvt.d.w  $dst, $src\t#@convL2D_reg_reg" %}
 
   ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), $src$$Register, $src$$Register->successor());
-    __ mv($dst$$Register, x10);
-    __ mv($dst$$Register->successor(), x11);
+    __ addi(esp, esp, -2 * wordSize);
+    __ sw($src$$Register, Address(esp));
+    __ sw($src$$Register->successor(), Address(esp, wordSize));
+    __ fld($dst$$FloatRegister, Address(esp));
+    __ addi(esp, esp, 2 * wordSize);
   %}
 
   ins_pipe(fp_l2d);
