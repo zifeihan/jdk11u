@@ -7252,7 +7252,7 @@ instruct membar_volatile() %{
 // ============================================================================
 // Cast Instructions (Java-level type cast)
 
-instruct castX2P(iRegPNoSp dst, iRegL src) %{
+instruct castX2P(iRegPNoSp dst, iRegI src) %{
   match(Set dst (CastX2P src));
 
   ins_cost(ALU_COST);
