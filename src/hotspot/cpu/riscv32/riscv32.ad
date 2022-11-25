@@ -6280,6 +6280,7 @@ instruct signExtractL(iRegLNoSp dst, iRegL src1, immI_63 div1, immI_63 div2) %{
 
   ins_encode %{
     __ srli(as_Register($dst$$reg), as_Register($src1$$reg)->successor(), 31);
+    __ mv(as_Register($dst$$reg)->successor(), zr);
   %}
   ins_pipe(ialu_reg_shift);
 %}
