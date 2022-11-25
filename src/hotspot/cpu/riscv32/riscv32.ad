@@ -4948,6 +4948,7 @@ instruct storeLConditional(indirect mem, iRegLNoSp oldval, iRegLNoSp newval, rFl
                /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $cr$$Register);
     __ xorr($cr$$Register, $cr$$Register, $oldval$$Register);
     __ xorr($cr$$Register->successor(), $cr$$Register->successor(), $oldval$$Register->successor());
+    __ xorr($cr$$Register, $cr$$Register, $cr$$Register->successor());
   %}
 
   ins_pipe(pipe_slow);
