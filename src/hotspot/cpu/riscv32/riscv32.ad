@@ -7918,7 +7918,7 @@ instruct MoveL2D_reg_reg(fRegD dst, iRegL src) %{
 
   ins_encode %{
     __ fmv_w_x(as_FloatRegister($dst$$reg), as_Register($src$$reg));
-    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), as_Register($src$$reg));
+    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), as_Register($src$$reg)->successor());
   %}
 
   ins_pipe(fp_l2d);
