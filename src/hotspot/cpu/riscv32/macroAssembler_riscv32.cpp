@@ -4419,20 +4419,20 @@ void MacroAssembler::zero_words(Register ptr, Register cnt)
 // base:         Address of a buffer to be zeroed, 8 bytes aligned.
 // cnt:          Immediate count in HeapWords.
 #define SmallArraySize (18 * BytesPerLong)
-void MacroAssembler::zero_words(Register base, u_int32_t cnt)
+void MacroAssembler::zero_words(Register base, u_int64_t cnt)
 {
   assert_different_registers(base, t0, t1);
 
   BLOCK_COMMENT("zero_words {");
 
   if (cnt <= SmallArraySize / BytesPerLong) {
-    for (int i = 0; i < (int)cnt; i++) {
+    for (int i = 0; i < 2 * (int)cnt; i++) {
       sw(zr, Address(base, i * wordSize));
     }
   } else {
     const int unroll = 8; // Number of sw(zr, adr), instructions we'll unroll
     int remainder = cnt %  unroll;
-    for (int i = 0; i < remainder; i++) {
+    for (int i = 0; i < 2 * remainder; i++) {
       sw(zr, Address(base, i * wordSize));
     }
 
@@ -4441,13 +4441,13 @@ void MacroAssembler::zero_words(Register base, u_int32_t cnt)
     Register loop_base = t1;
     cnt = cnt - remainder;
     li(cnt_reg, cnt);
-    add(loop_base, base, remainder * wordSize);
+    add(loop_base, base, remainder * 2 * wordSize);
     bind(loop);
     sub(cnt_reg, cnt_reg, unroll);
-    for (int i = 0; i < unroll; i++) {
+    for (int i = 0; i < 2 * unroll; i++) {
       sw(zr, Address(loop_base, i * wordSize));
     }
-    add(loop_base, loop_base, unroll * wordSize);
+    add(loop_base, loop_base, unroll * 2 * wordSize);
     bnez(cnt_reg, loop);
   }
   BLOCK_COMMENT("} zero_words");
