@@ -1945,20 +1945,20 @@ int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
 
 void MacroAssembler::ldiv(Register result, Register ra, Register rb)
 {
-  orr(t1, ra, ra->successor());
+  orr(t1, rb, rb->successor());
   assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), ra, ra->successor(), rb, rb->successor());
-  mv(result, ra);
-  mv(result->successor(), ra->successor());
+  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), rb, rb->successor(), ra, ra->successor());
+  mv(result, x10);
+  mv(result->successor(), x11);
 }
 
 void MacroAssembler::lrem(Register result, Register ra, Register rb)
 {
-  orr(t1, ra, ra->successor());
+  orr(t1, rb, rb->successor());
   assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), ra, ra->successor(), rb, rb->successor());
-  mv(result, ra);
-  mv(result->successor(), ra->successor());
+  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), rb, rb->successor(), ra, ra->successor());
+  mv(result, x10);
+  mv(result->successor(), x11);
 }
 
 int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
