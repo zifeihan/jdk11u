@@ -9672,7 +9672,7 @@ instruct clearArray_imm_reg(immL cnt, iRegP_R28 base, Universe dummy, rFlagsReg 
   format %{ "ClearArray $cnt, $base\t#@clearArray_imm_reg" %}
 
   ins_encode %{
-    __ zero_words($base$$Register, (u_int32_t)$cnt$$constant);
+    __ zero_words($base$$Register, $cnt$$constant);
   %}
 
   ins_pipe(pipe_class_memory);

@@ -710,7 +710,7 @@ class MacroAssembler: public Assembler {
   void inflate_hi16(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz(Register Rd, Register Rs, bool isLL = false, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz_bit(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
-  void zero_words(Register base, u_int32_t cnt);
+  void zero_words(Register base, u_int64_t cnt);
   void zero_words(Register ptr, Register cnt);
   void fill_words(Register base, Register cnt, Register value);
   void zero_memory(Register addr, Register len, Register tmp1);
