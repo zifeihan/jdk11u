@@ -366,8 +366,6 @@ static void gen_c2i_adapter(MacroAssembler *masm,
 
   __ bind(skip_fixup);
 
-  int words_pushed = 0;
-
   // Since all args are passed on the stack, total_args_passed *
   // Interpreter::stackElementSize is the space we need.
 
@@ -415,22 +413,15 @@ static void gen_c2i_adapter(MacroAssembler *masm,
     if (r_1->is_stack()) {
       // memory to memory use t0
       int ld_off = (r_1->reg2stack() * VMRegImpl::stack_slot_size
-                    + extraspace
-                    + words_pushed * wordSize);
+                    + extraspace);
       if (!r_2->is_valid()) {
         __ lw(t0, Address(sp, ld_off), /*temp register*/esp);
         __ sw(t0, Address(sp, st_off), /*temp register*/esp);
       } else {
         __ lw(t0, Address(sp, ld_off), /*temp register*/esp);
+        __ sw(t0, Address(sp, next_off), /*temp register*/esp);
+        __ lw(t0, Address(sp, ld_off + wordSize));
         __ sw(t0, Address(sp, st_off), /*temp register*/esp);
-        // Two VMREgs|OptoRegs can be T_OBJECT, T_ADDRESS, T_DOUBLE, T_LONG
-        // T_DOUBLE and T_LONG use two slots in the interpreter
-        if ( sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
-          // ld_off == LSW, ld_off+wordSize == MSW
-          // st_off == MSW, next_off == LSW
-          __ lw(t0, Address(sp, ld_off + wordSize));
-          __ sw(t0, Address(sp, next_off), /*temp register*/esp);
-        }
       }
     } else if (r_1->is_Register()) {
       Register r = r_1->as_Register();
@@ -438,12 +429,8 @@ static void gen_c2i_adapter(MacroAssembler *masm,
         // must be only an int (or less ) so move only 32bits to slot
         __ sw(r, Address(sp, st_off));
       } else {
-        // Two VMREgs|OptoRegs can be T_OBJECT, T_ADDRESS, T_DOUBLE, T_LONG
-        // T_DOUBLE and T_LONG use two slots in the interpreter
-        if ( sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
-          __ sw(r, Address(sp, st_off));
-          __ sw(r_2->as_Register(), Address(sp, next_off));
-        }
+        __ sw(r, Address(sp, next_off));
+        __ sw(r_2->as_Register(), Address(sp, st_off));
       }
     } else {
       assert(r_1->is_FloatRegister(), "");
@@ -472,7 +459,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
   int comp_words_on_stack = align_up(comp_args_on_stack * VMRegImpl::stack_slot_size, wordSize) >> LogBytesPerWord;
   if (comp_args_on_stack != 0) {
     __ sub(t0, sp, comp_words_on_stack * wordSize);
-    __ andi(sp, t0, -8);
+    __ andi(sp, t0, -16);
   }
 
   // Will jump to the compiled code just as if compiled code was doing it.
@@ -508,40 +495,16 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
         __ lw(t0, Address(esp, ld_off));
         __ sw(t0, Address(sp, st_off), /*temp register*/t2);
       } else {
-        //
-        // We are using two optoregs. This can be either T_OBJECT,
-        // T_ADDRESS, T_LONG, or T_DOUBLE the interpreter allocates
-        // two slots but only uses one for thr T_LONG or T_DOUBLE case
-        // So we must adjust where to pick up the data to match the
-        // interpreter.
-        //
-        // Interpreter local[n] == MSW, local[n+1] == LSW however locals
-        // are accessed as negative so LSW is at LOW address
-
-        // ld_off is MSW so get LSW
-        __ lw(t0, Address(esp, ld_off));
+        __ lw(t0, Address(esp, next_off));
         __ sw(t0, Address(sp, st_off), /*temp register*/t2);
-        if (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
-          __ lw(t0, Address(esp, next_off));
-          __ sw(t0, Address(sp, st_off + wordSize), /*temp register*/t2);
-        }
+        __ lw(t0, Address(esp, ld_off));
+        __ sw(t0, Address(sp, st_off + wordSize), /*temp register*/t2);
       }
     } else if (r_1->is_Register()) {  // Register argument
       Register r = r_1->as_Register();
       if (r_2->is_valid()) {
-        //
-        // We are using two VMRegs. This can be either T_OBJECT,
-        // T_ADDRESS, T_LONG, or T_DOUBLE the interpreter allocates
-        // two slots but only uses one for thr T_LONG or T_DOUBLE case
-        // So we must adjust where to pick up the data to match the
-        // interpreter.
-
-        if (sig_bt[i] == T_LONG || sig_bt[i] == T_DOUBLE) {
-          __ lw(r, Address(esp, ld_off));
-          __ lw(r_2->as_Register(), Address(esp, next_off));
-        } else {
-          __ lw(r, Address(esp, ld_off));
-        }
+        __ lw(r, Address(esp, next_off));
+        __ lw(r_2->as_Register(), Address(esp, ld_off));
       } else {
         // sign extend and use a full word?
         __ lw(r, Address(esp, ld_off));
