@@ -153,7 +153,7 @@ static void do_oop_store(InterpreterMacroAssembler* _masm,
                          DecoratorSet decorators) {
   assert(val == noreg || val == x10, "parameter is just for looks");
   assert_cond(_masm != NULL);
-  __ store_heap_oop(dst, val, x29, x11, decorators);
+  __ store_heap_oop(dst, val, x28, x30, decorators);
 }
 
 static void do_oop_load(InterpreterMacroAssembler* _masm,
@@ -161,7 +161,7 @@ static void do_oop_load(InterpreterMacroAssembler* _masm,
                         Register dst,
                         DecoratorSet decorators) {
   assert_cond(_masm != NULL);
-  __ load_heap_oop(dst, src, x7, x11, decorators);
+  __ load_heap_oop(dst, src, x28, x30, decorators);
 }
 
 Address TemplateTable::at_bcp(int offset) {
