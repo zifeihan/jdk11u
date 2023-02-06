@@ -69,14 +69,14 @@ REGISTER_DECLARATION(FloatRegister, c_farg6, f16);
 REGISTER_DECLARATION(FloatRegister, c_farg7, f17);
 
 // java function register(caller-save registers)
-REGISTER_DECLARATION(Register, j_rarg0, c_rarg0);
-REGISTER_DECLARATION(Register, j_rarg1, c_rarg1);
-REGISTER_DECLARATION(Register, j_rarg2, c_rarg2);
-REGISTER_DECLARATION(Register, j_rarg3, c_rarg3);
-REGISTER_DECLARATION(Register, j_rarg4, c_rarg4);
-REGISTER_DECLARATION(Register, j_rarg5, c_rarg5);
-REGISTER_DECLARATION(Register, j_rarg6, c_rarg6);
-REGISTER_DECLARATION(Register, j_rarg7, c_rarg7);
+REGISTER_DECLARATION(Register, j_rarg0, c_rarg1);
+REGISTER_DECLARATION(Register, j_rarg1, c_rarg2);
+REGISTER_DECLARATION(Register, j_rarg2, c_rarg3);
+REGISTER_DECLARATION(Register, j_rarg3, c_rarg4);
+REGISTER_DECLARATION(Register, j_rarg4, c_rarg5);
+REGISTER_DECLARATION(Register, j_rarg5, c_rarg6);
+REGISTER_DECLARATION(Register, j_rarg6, c_rarg7);
+REGISTER_DECLARATION(Register, j_rarg7, c_rarg0);
 
 REGISTER_DECLARATION(FloatRegister, j_farg0, f10);
 REGISTER_DECLARATION(FloatRegister, j_farg1, f11);
