@@ -298,14 +298,12 @@ class StubGenerator: public StubCodeGenerator {
     return_address = __ pc();
 
     // store result depending on type (everything that is not
-    // T_OBJECT, T_FLOAT or T_DOUBLE is treated as T_INT)
+    // T_LONG, T_FLOAT or T_DOUBLE is treated as T_INT)
     // n.b. this assumes Java returns an integral result in x10
     // and a floating result in j_farg0
     __ lw(j_rarg2, result);
-    Label is_int, is_long, is_float, is_double, exit;
+    Label is_long, is_float, is_double, exit;
     __ lw(j_rarg1, result_type);
-    __ li(t0, T_OBJECT);
-    __ beq(j_rarg1, t0, is_int);
     __ li(t0, T_LONG);
     __ beq(j_rarg1, t0, is_long);
     __ li(t0, T_FLOAT);
@@ -364,10 +362,6 @@ class StubGenerator: public StubCodeGenerator {
     __ ret();
 
     // handle return types different from T_INT
-
-    __ BIND(is_int);
-    __ sw(x10, Address(j_rarg2, 0));
-    __ j(exit);
 
     __ BIND(is_long);
     __ sw(x10, Address(j_rarg2, 0));
