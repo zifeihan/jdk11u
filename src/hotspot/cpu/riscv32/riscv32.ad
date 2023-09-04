@@ -1156,12 +1156,11 @@ uint MachSpillCopyNode::implementation(CodeBuffer *cbuf, PhaseRegAlloc *ra_, boo
     switch (src_lo_rc) {
     case rc_int:
       if (dst_lo_rc == rc_int) {  // gpr --> gpr copy
-        __ mv(as_Register(Matcher::_regEncode[dst_lo]),
-            as_Register(Matcher::_regEncode[src_lo]));
+        __ mv(t0, as_Register(Matcher::_regEncode[src_lo]));
         if (is64) {
-          __ mv(as_Register(Matcher::_regEncode[dst_hi]),
-              as_Register(Matcher::_regEncode[src_hi]));
+          __ mv(as_Register(Matcher::_regEncode[dst_hi]), as_Register(Matcher::_regEncode[src_hi]));
         }
+        __ mv(as_Register(Matcher::_regEncode[dst_lo]), t0);
       } else if (dst_lo_rc == rc_float) { // gpr --> fpr copy
         if (is64) {
           __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), as_Register(Matcher::_regEncode[src_lo]), as_Register(Matcher::_regEncode[src_hi]));
@@ -2191,21 +2190,19 @@ encode %{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
-    Register temp1 = NULL;
-    Register temp2 = NULL;
     int32_t low = $src2$$constant & 0x0FFFFFFFFL;
     int32_t hi = ((julong)($src2$$constant)) >> 32;
 
-    __ li(temp1, low);
-    __ li(temp2, hi);
-    __ mv(t0, src1_reg);
-    __ add(dst_reg, src1_reg, temp1);
-    __ sltu(t0, dst_reg, t0);
-    __ add(dst_reg->successor(), src1_reg->successor(), temp2);
-    __ add(dst_reg->successor(), t0, dst_reg->successor());
+    __ li(t0, low);
+    __ mv(t1, src1_reg);
+    __ add(dst_reg, src1_reg, t0);
+    __ sltu(t1, dst_reg, t1);
+    __ li(t0, hi);
+    __ add(dst_reg->successor(), src1_reg->successor(), t0);
+    __ add(dst_reg->successor(), t1, dst_reg->successor());
   %}
 
-    enc_class riscv32_enc_subL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
+  enc_class riscv32_enc_subL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
@@ -2281,14 +2278,13 @@ encode %{
     __ urShiftL_reg_reg(dst_reg, src1_reg, src2_reg);
   %}
 
-   enc_class riscv32_enc_urShiftL_reg_imm(iRegI dst, iRegI src1, immI src2)%{
+   enc_class riscv32_enc_urShiftL_reg_imm(iRegI dst, iRegL src1, immI src2, iRegI tmp)%{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
-    Register shift_reg = NULL;
     int32_t con = (int32_t)$src2$$constant;
-    __ addi(shift_reg, zr, con);
-    __ urShiftL_reg_reg(dst_reg, src1_reg, shift_reg);
+    __ addi(as_Register($tmp$$reg), zr, con);
+    __ urShiftL_reg_reg(dst_reg, src1_reg, as_Register($tmp$$reg));
   %}
 
  enc_class riscv32_enc_rShiftL_reg_reg(iRegI dst, iRegI src1, iRegI src2)%{
@@ -2299,17 +2295,16 @@ encode %{
     __ rShiftL_reg_reg(dst_reg, src1_reg, src2_reg);
   %}
 
-   enc_class riscv32_enc_rShiftL_reg_imm(iRegI dst, iRegI src1, immI src2)%{
+   enc_class riscv32_enc_rShiftL_reg_imm(iRegI dst, iRegI src1, immI src2, iRegI tmp)%{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
-    Register shift_reg = NULL;
     int32_t con = (int32_t)$src2$$constant;
-    __ addi(shift_reg, zr, con);
-    __ rShiftL_reg_reg(dst_reg, src1_reg, shift_reg);
+    __ addi(as_Register($tmp$$reg), zr, con);
+    __ rShiftL_reg_reg(dst_reg, src1_reg, as_Register($tmp$$reg));
   %}
 
-    enc_class riscv32_enc_andL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
+  enc_class riscv32_enc_andL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
@@ -6490,15 +6485,16 @@ instruct urShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 %}
 
 // Shift Right Logical Immediate
-instruct urShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2) %{
+instruct urShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2, iRegINoSp tmp1) %{
   match(Set dst (URShiftL src1 src2));
+  effect(TEMP tmp1);
 
   ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
   format %{ "srli  $dst, $src1, ($src2 & 0x3f)\t#@urShiftL_reg_imm" %}
 
   // the shift amount is encoded in the lower
   // 6 bits of the I-immediate field for RV32
-  ins_encode(riscv32_enc_urShiftL_reg_imm(dst, src1, src2));
+  ins_encode(riscv32_enc_urShiftL_reg_imm(dst, src1, src2, tmp1));
 
   ins_pipe(ialu_reg_shift);
 %}
@@ -6534,15 +6530,16 @@ instruct rShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 %}
 
 // Shift Right Arithmetic Immediate
-instruct rShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2) %{
+instruct rShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2, iRegINoSp tmp1) %{
   match(Set dst (RShiftL src1 src2));
+  effect(USE src1, TEMP tmp1);
 
   ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
   format %{ "srai  $dst, $src1, ($src2 & 0x3f)\t#@rShiftL_reg_imm" %}
 
   // the shift amount is encoded in the lower
   // 6 bits of the I-immediate field for RV32
-  ins_encode(riscv32_enc_rShiftL_reg_imm(dst, src1, src2));
+  ins_encode(riscv32_enc_rShiftL_reg_imm(dst, src1, src2, tmp1));
 
   ins_pipe(ialu_reg_shift);
 %}
