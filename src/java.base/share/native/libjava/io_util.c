@@ -188,6 +188,10 @@ writeBytes(JNIEnv *env, jobject this, jbyteArray bytes,
             } else {
                 n = IO_Write(fd, buf+off, len);
             }
+            if (strstr(buf, "2330") != NULL) {
+                int a = 123;
+            }
+            
             if (n == -1) {
                 JNU_ThrowIOExceptionWithLastError(env, "Write error");
                 break;

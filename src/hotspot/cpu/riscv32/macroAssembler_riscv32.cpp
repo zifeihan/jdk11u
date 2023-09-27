@@ -1977,6 +1977,32 @@ void MacroAssembler::lShiftL_reg_reg(Register dst, Register src1, Register src2)
     return;
 }
 
+void MacroAssembler::lShiftL_reg_reg2(Register dst, Register src1, Register src2)
+{  
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
+
+  Label blt_branch, done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  sll(dst->successor(), dst, t0);
+  mv(dst, 0);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  srli(t0, dst, 0x1);
+  sub(t1, t1, src2);
+  srl(t0, t0, t1);
+  sll(dst->successor(), dst->successor(), src2);
+  orr(dst->successor(), t0, dst->successor());
+  sll(dst, dst, src2);
+
+  bind(done);
+}
+
 void MacroAssembler::urShiftL_reg_reg(Register dst, Register src1, Register src2)
 {
 
