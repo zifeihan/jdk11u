@@ -1955,29 +1955,6 @@ int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
 }
 
 void MacroAssembler::lShiftL_reg_reg(Register dst, Register src1, Register src2)
-{
-    andi(src2, src2, 0x3f);
-
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    sll(dst->successor(), src1, t0);
-    mv(dst, 0);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    srli(t1, src1, 0x1);
-    sub(t0, t0, src2);
-    srl(t1, t1, t0);
-    sll(dst->successor(), src1->successor(), src2);
-    orr(dst->successor(), t1, dst->successor());
-    sll(dst, src1, src2);
-
-    bind(done);
-    return;
-}
-
-void MacroAssembler::lShiftL_reg_reg2(Register dst, Register src1, Register src2)
 {  
   mv(t0, src1);
   mv(dst->successor(), src1->successor());

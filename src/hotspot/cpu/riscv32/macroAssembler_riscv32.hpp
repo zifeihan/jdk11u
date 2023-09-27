@@ -238,7 +238,6 @@ class MacroAssembler: public Assembler {
   int corrected_ldiv(Register result, Register ra, Register rb,
                      bool want_remainder);
   void lShiftL_reg_reg(Register dst, Register src1, Register src2);
-  void lShiftL_reg_reg2(Register dst, Register src1, Register src2);
   void urShiftL_reg_reg(Register dst, Register src1, Register src2);
   void rShiftL_reg_reg(Register dst, Register src1, Register src2);
 

@@ -2266,7 +2266,7 @@ encode %{
     Register src1_reg = as_Register($src1$$reg);
     int32_t con = (int32_t)$src2$$constant;
     __ addi(as_Register($tmp$$reg), zr, con);
-    __ lShiftL_reg_reg2(dst_reg, src1_reg, as_Register($tmp$$reg));
+    __ lShiftL_reg_reg(dst_reg, src1_reg, as_Register($tmp$$reg));
   %}
 
  enc_class riscv32_enc_urShiftL_reg_reg(iRegI dst, iRegI src1, iRegI src2)%{
@@ -6447,6 +6447,7 @@ instruct rShiftI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immI src2) %{
 // Shift Left Register
 instruct lShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
   match(Set dst (LShiftL src1 src2));
+  effect(TEMP_DEF dst);
 
   ins_cost(ALU_COST * 11 + BRANCH_COST * 2);
   format %{ "sll  $dst, $src1, $src2\t#@lShiftL_reg_reg" %}
