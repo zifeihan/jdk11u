@@ -929,31 +929,12 @@ void MacroAssembler::fsflagsi(Register Rd, unsigned imm) {
 #undef INSN
 
 void MacroAssembler::long_beq(Register Rs1, Register Rs2, Label &l, bool is_far) {
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bnez(hi, done);
-  beqz(low, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  beqz(t0, l, is_far);
 }
 void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  bnez(hi, l, is_far);
-  bnez(low, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bnez(t0, l, is_far);
 }
 void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
   Register low = NULL;
@@ -1974,72 +1955,82 @@ int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
 }
 
 void MacroAssembler::lShiftL_reg_reg(Register dst, Register src1, Register src2)
-{
-    andi(src2, src2, 0x3f);
+{  
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    sll(dst->successor(), src1, t0);
-    mv(dst, 0);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    srli(t1, src1, 0x1);
-    sub(t0, t0, src2);
-    srl(t1, t1, t0);
-    sll(dst->successor(), src1->successor(), src2);
-    orr(dst->successor(), t1, dst->successor());
-    sll(dst, src1, src2);
+  Label blt_branch, done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  sll(dst->successor(), dst, t0);
+  mv(dst, 0);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  srli(t0, dst, 0x1);
+  sub(t1, t1, src2);
+  srl(t0, t0, t1);
+  sll(dst->successor(), dst->successor(), src2);
+  orr(dst->successor(), t0, dst->successor());
+  sll(dst, dst, src2);
 
-    bind(done);
-    return;
+  bind(done);
 }
 
 void MacroAssembler::urShiftL_reg_reg(Register dst, Register src1, Register src2)
 {
-    andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    srl(dst, src1->successor(), t0);
-    mv(dst->successor(), 0);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    slli(t1, src1->successor(), 0x1);
-    sub(t0, t0, src2);
-    sll(t1, t1, t0);
-    srl(dst, src1, src2);
-    orr(dst, t1, dst);
-    srl(dst->successor(), src1->successor(), src2);
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    bind(done);
-    return;
+  Label blt_branch, done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  srl(dst, dst->successor(), t0);
+  mv(dst->successor(), 0);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  slli(t0, dst->successor(), 0x1);
+  sub(t1, t1, src2);
+  sll(t0, t0, t1);
+  srl(dst, dst, src2);
+  orr(dst, t0, dst);
+  srl(dst->successor(), dst->successor(), src2);
+
+  bind(done);
 }
 
 void MacroAssembler::rShiftL_reg_reg(Register dst, Register src1, Register src2)
 {
-    andi(src2, src2, 0x3f);
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    sra(dst, src1->successor(), t0);
-    srai(dst->successor(), src1->successor(), 0x1f);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    slli(t1, src1->successor(), 0x1);
-    sub(t0, t0, src2);
-    sll(t1, t1, t0);
-    srl(dst, src1, src2);
-    orr(dst, t1, dst);
-    sra(dst->successor(), src1->successor(), src2);
+  Label blt_branch,done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  sra(dst, dst->successor(), t0);
+  srai(dst->successor(), dst->successor(), 0x1f);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  slli(t0, dst->successor(), 0x1);
+  sub(t1, t1, src2);
+  sll(t0, t0, t1);
+  srl(dst, dst, src2);
+  orr(dst, t0, dst);
+  sra(dst->successor(), dst->successor(), src2);
 
-    bind(done);
-    return;
+  bind(done);
 }
 
 // Look up the method for a megamorpic invkkeinterface call.
@@ -4670,6 +4661,10 @@ void MacroAssembler::cmp_l2i(Register dst, Register src1, Register src2, Registe
   Register left_hi  = src1->successor();
   Register right_lo = src2;
   Register right_hi = src2->successor();
+  if (src2 == zr) {
+     right_lo = src2;
+     right_hi = src2;
+  }
 
   if (dst == src1->successor()) {
     assert_different_registers(dst, src2->successor(), tmp);

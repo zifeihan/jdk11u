@@ -97,6 +97,7 @@ class RegisterSaver {
     return (2 * 32 /* floats*/ + r->encoding() - 2 /* x1, x2*/) * wordSize;
   }
   static int x10_offset_in_bytes(void)        { return reg_offset_in_bytes(x10); } // x10
+  static int x11_offset_in_bytes(void)        { return reg_offset_in_bytes(x11); } // x11
   static int xmethod_offset_in_bytes(void)    { return reg_offset_in_bytes(xmethod); } // x31
   static int tmp0_offset_in_bytes(void)       { return reg_offset_in_bytes(t0); } // x5
   static int f0_offset_in_bytes(void)         { return 0; }
@@ -182,6 +183,7 @@ void RegisterSaver::restore_result_registers(MacroAssembler* masm) {
   __ fld(f10, Address(sp, f10_offset_in_bytes()));
   // Restore integer result register
   __ lw(x10, Address(sp, x10_offset_in_bytes()));
+  __ lw(x11, Address(sp, x11_offset_in_bytes()));
 
   // Pop all of the register save are off the stack
   __ add(sp, sp, align_up(return_offset_in_bytes(), 8));
@@ -210,7 +212,7 @@ void SharedRuntime::generate_trampoline(MacroAssembler *masm, address destinatio
 static int reg2offset_in(VMReg r) {
   // Account for saved fp and lr
   // This should really be in_preserve_stack_slots
-  return (r->reg2stack() + 4) * VMRegImpl::stack_slot_size;
+  return (r->reg2stack() + 2) * VMRegImpl::stack_slot_size;
 }
 
 static int reg2offset_out(VMReg r) {
@@ -631,7 +633,6 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
     case T_LONG:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (int_args < Argument::n_int_register_parameters_c - 1) {
-        if (int_args & 1) int_args++;
         regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else if (int_args == Argument::n_int_register_parameters_c - 1){
@@ -2354,6 +2355,7 @@ void SharedRuntime::generate_deopt_blob() {
 
   // Overwrite the result registers with the exception results.
   __ sw(x10, Address(sp, RegisterSaver::x10_offset_in_bytes()));
+  __ sw(x11, Address(sp, RegisterSaver::x11_offset_in_bytes()));
 
   __ bind(noException);
 
@@ -2446,6 +2448,7 @@ void SharedRuntime::generate_deopt_blob() {
   // Restore frame locals after moving the frame
   __ fsd(f10, Address(sp, RegisterSaver::f10_offset_in_bytes()));
   __ sw(x10, Address(sp, RegisterSaver::x10_offset_in_bytes()));
+  __ sw(x11, Address(sp, RegisterSaver::x11_offset_in_bytes()));
 
   // Call C code.  Need thread but NOT official VM entry
   // crud.  We cannot block on this call, no GC can happen.  Call should
@@ -2475,6 +2478,7 @@ void SharedRuntime::generate_deopt_blob() {
   // Collect return values
   __ fld(f10, Address(sp, RegisterSaver::f10_offset_in_bytes()));
   __ lw(x10, Address(sp, RegisterSaver::x10_offset_in_bytes()));
+  __ lw(x11, Address(sp, RegisterSaver::x11_offset_in_bytes()));
 
   // Pop self-frame.
   __ leave();                           // Epilog
