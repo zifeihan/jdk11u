@@ -776,7 +776,6 @@ bool is_CAS(int opcode, bool maybe_volatile)
   switch(opcode) {
   // We handle these
   case Op_CompareAndSwapI:
-  case Op_CompareAndSwapL:
   case Op_CompareAndSwapP:
   case Op_CompareAndSwapN:
   case Op_CompareAndSwapB:
@@ -801,7 +800,6 @@ bool is_CAS(int opcode, bool maybe_volatile)
   case Op_WeakCompareAndSwapB:
   case Op_WeakCompareAndSwapS:
   case Op_WeakCompareAndSwapI:
-  case Op_WeakCompareAndSwapL:
   case Op_WeakCompareAndSwapP:
   case Op_WeakCompareAndSwapN:
     return maybe_volatile;
@@ -5068,21 +5066,6 @@ instruct compareAndSwapI(iRegINoSp res, indirect mem, iRegINoSp oldval, iRegINoS
   ins_pipe(pipe_slow);
 %}
 
-instruct compareAndSwapL(iRegINoSp res, indirect mem, iRegLNoSp oldval, iRegLNoSp newval)
-%{
-  match(Set res (CompareAndSwapL mem (Binary oldval newval)));
-
-  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + ALU_COST * 4 + BRANCH_COST * 8 );
-
-  format %{
-    "cmpxchg $mem, $oldval, $newval\t# (long) if $mem == $oldval then $mem <-- $newval\n\t"
-    "mv $res, $res == $oldval\t# $res <-- ($res == $oldval ? 1 : 0), #@compareAndSwapL"
-  %}
-
-  ins_encode(riscv32_enc_cmpxchgl(res, mem, oldval, newval));
-
-  ins_pipe(pipe_slow);
-%}
 
 instruct compareAndSwapP(iRegINoSp res, indirect mem, iRegP oldval, iRegP newval)
 %{
@@ -5171,24 +5154,6 @@ instruct compareAndSwapIAcq(iRegINoSp res, indirect mem, iRegINoSp oldval, iRegI
   %}
 
   ins_encode(riscv32_enc_cmpxchg_acq(res, mem, oldval, newval));
-
-  ins_pipe(pipe_slow);
-%}
-
-instruct compareAndSwapLAcq(iRegINoSp res, indirect mem, iRegLNoSp oldval, iRegLNoSp newval)
-%{
-  predicate(needs_acquiring_load_exclusive(n));
-
-  match(Set res (CompareAndSwapL mem (Binary oldval newval)));
-
-  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + ALU_COST * 4 + BRANCH_COST * 8 );
-
-  format %{
-    "cmpxchg_acq $mem, $oldval, $newval\t# (long) if $mem == $oldval then $mem <-- $newval\n\t"
-    "mv $res, $res == $oldval\t# $res <-- ($res == $oldval ? 1 : 0), #@compareAndSwapLAcq"
-  %}
-
-  ins_encode(riscv32_enc_cmpxchgl_acq(res, mem, oldval, newval));
 
   ins_pipe(pipe_slow);
 %}
@@ -5557,26 +5522,6 @@ instruct weakCompareAndSwapI(iRegINoSp res, indirect mem, iRegI oldval, iRegI ne
   ins_pipe(pipe_slow);
 %}
 
-instruct weakCompareAndSwapL(iRegINoSp res, indirect mem, iRegL oldval, iRegL newval)
-%{
-  match(Set res (WeakCompareAndSwapL mem (Binary oldval newval)));
-
-  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + BRANCH_COST * 4 + ALU_COST * 5);
-
-  format %{
-    "cmpxchg_long_weak $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
-    "xori $res, $res, 1\t# $res == 1 when success, #@weakCompareAndSwapL"
-  %}
-
-  ins_encode %{
-    __ cmpxchg_long_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
-                         /*acquire*/ Assembler::relaxed, /*release*/ Assembler::rl, $res$$Register);
-    __ xori($res$$Register, $res$$Register, 1);
-  %}
-
-  ins_pipe(pipe_slow);
-%}
-
 instruct weakCompareAndSwapN(iRegINoSp res, indirect mem, iRegN oldval, iRegN newval)
 %{
   match(Set res (WeakCompareAndSwapN mem (Binary oldval newval)));
@@ -5683,28 +5628,6 @@ instruct weakCompareAndSwapIAcq(iRegINoSp res, indirect mem, iRegI oldval, iRegI
   ins_encode %{
     __ cmpxchg_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $res$$Register);
-    __ xori($res$$Register, $res$$Register, 1);
-  %}
-
-  ins_pipe(pipe_slow);
-%}
-
-instruct weakCompareAndSwapLAcq(iRegINoSp res, indirect mem, iRegL oldval, iRegL newval)
-%{
-  predicate(needs_acquiring_load_exclusive(n));
-
-  match(Set res (WeakCompareAndSwapL mem (Binary oldval newval)));
-
-  ins_cost(LOAD_COST * 2 + STORE_COST * 2 + BRANCH_COST * 4 + ALU_COST * 5);
-
-  format %{
-    "cmpxchg_long_weak_acq $mem, $oldval, $newval\t# (long, weak) if $mem == $oldval then $mem <-- $newval\n\t"
-    "xori $res, $res, 1\t# $res == 1 when success, #@weakCompareAndSwapLAcq"
-  %}
-
-  ins_encode %{
-    __ cmpxchg_long_weak(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
-                         /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $res$$Register);
     __ xori($res$$Register, $res$$Register, 1);
   %}
 
