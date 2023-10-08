@@ -3397,7 +3397,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
   Register tmp2 = t1;
 
   assert(elem_size == 1 || elem_size == 2, "must be 2 or 1 byte");
-  assert_different_registers(a1, a2, result, cnt1, t0, t1);
+  assert_different_registers(a1, a2, result, cnt1, tmp1, tmp2);
 
   BLOCK_COMMENT("string_equals {");
 
@@ -3408,7 +3408,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
   sub(cnt1, cnt1, wordSize);
   bltz(cnt1, SHORT);
 
-  // Main 4 byte comparison loop.
+  // Main 8 byte comparison loop.
   bind(NEXT_WORD); {
     lw(tmp1, Address(a1, 0));
     add(a1, a1, wordSize);
@@ -3416,7 +3416,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
     add(a2, a2, wordSize);
     sub(cnt1, cnt1, wordSize);
     bne(tmp1, tmp2, DONE);
-  } bgtz(cnt1, NEXT_WORD);
+  } bgez(cnt1, NEXT_WORD);
 
   if (!AvoidUnalignedAccesses) {
     // Last longword.  In the case where length == 4 we compare the
@@ -3430,16 +3430,37 @@ void MacroAssembler::string_equals(Register a1, Register a2,
     lw(tmp2, Address(tmp2, 0));
     bne(tmp1, tmp2, DONE);
     j(SAME);
+  } else {
+    add(tmp1, cnt1, wordSize);
+    beqz(tmp1, SAME);
   }
 
   bind(SHORT);
-  lw(tmp1, Address(a1));
-  lw(tmp2, Address(a2));
-  xorr(tmp1, tmp1, tmp2);
-  neg(cnt1, cnt1);
-  slli(cnt1, cnt1, LogBitsPerByte);
-  sll(tmp1, tmp1, cnt1);
-  bnez(tmp1, DONE);
+  Label TAIL03, TAIL01;
+
+  bind(TAIL03);
+  // 0-3 bytes left.
+  andi(tmp1, cnt1, 2);
+  beqz(tmp1, TAIL01);
+  {
+    lhu(tmp1, Address(a1, 0));
+    add(a1, a1, 2);
+    lhu(tmp2, Address(a2, 0));
+    add(a2, a2, 2);
+    bne(tmp1, tmp2, DONE);
+  }
+
+  bind(TAIL01);
+  if (elem_size == 1) { // Only needed when comparing 1-byte elements
+    // 0-1 bytes left.
+    andi(tmp1, cnt1, 1);
+    beqz(tmp1, SAME);
+    {
+      lbu(tmp1, Address(a1, 0));
+      lbu(tmp2, Address(a2, 0));
+      bne(tmp1, tmp2, DONE);
+    }
+  }
 
   // Arrays are equal.
   bind(SAME);

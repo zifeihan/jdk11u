@@ -836,7 +836,7 @@ static void long_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
           __ mv(dst.second()->as_Register(), src.second()->as_Register());
         } else {
           //<R.R>-><R.S>
-          assert(dst.first()->is_reg() && dst.second()->is_reg() && src.first()->is_reg() && src.second()->is_stack(), "must be");
+          assert(dst.first()->is_reg() && dst.second()->is_stack() && src.first()->is_reg() && src.second()->is_reg(), "must be");
           __ mv(dst.first()->as_Register(), src.first()->as_Register());
           __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
         }
