@@ -2226,28 +2226,12 @@ encode %{
     __ corrected_idiv(dst_reg, src1_reg, src2_reg, false);
   %}
 
-  enc_class riscv32_enc_div_long(iRegI dst, iRegI src1, iRegI src2) %{
-    MacroAssembler _masm(&cbuf);
-    Register dst_reg = as_Register($dst$$reg);
-    Register src1_reg = as_Register($src1$$reg);
-    Register src2_reg = as_Register($src2$$reg);
-    __ corrected_ldiv(dst_reg, src1_reg, src2_reg, false);
-  %}
-
   enc_class riscv32_enc_mod(iRegI dst, iRegI src1, iRegI src2) %{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
     Register src2_reg = as_Register($src2$$reg);
     __ corrected_idiv(dst_reg, src1_reg, src2_reg, true);
-  %}
-
-  enc_class riscv32_enc_mod_long(iRegI dst, iRegI src1, iRegI src2) %{
-    MacroAssembler _masm(&cbuf);
-    Register dst_reg = as_Register($dst$$reg);
-    Register src1_reg = as_Register($src1$$reg);
-    Register src2_reg = as_Register($src2$$reg);
-    __ corrected_ldiv(dst_reg, src1_reg, src2_reg, true);
   %}
 
  enc_class riscv32_enc_lShiftL_reg_reg(iRegI dst, iRegI src1, iRegI src2)%{
@@ -2258,7 +2242,7 @@ encode %{
     __ lShiftL_reg_reg(dst_reg, src1_reg, src2_reg);
   %}
 
-   enc_class riscv32_enc_lShiftL_reg_imm(iRegI dst, iRegI src1, immI src2, iRegI tmp)%{
+enc_class riscv32_enc_lShiftL_reg_imm(iRegI dst, iRegI src1, immI src2, iRegI tmp)%{
     MacroAssembler _masm(&cbuf);
     Register dst_reg = as_Register($dst$$reg);
     Register src1_reg = as_Register($src1$$reg);
@@ -3368,20 +3352,6 @@ operand stackSlotL(sRegL reg)
   %}
 %}
 
-// Special operand allowing long args to int ops to be truncated for free
-
-operand iRegL2I(iRegL reg) %{
-
-  op_cost(0);
-
-  match(ConvL2I reg);
-
-  format %{ "l2i($reg)" %}
-
-  interface(REG_INTER)
-%}
-
-
 // Comparison Operands
 // NOTE: Label is a predefined operand which should not be redefined in
 //       the AD file. It is generically handled within the ADLC.
@@ -3555,7 +3525,7 @@ opclass memory(indirect, indOffI, indOffL, indirectN, indOffIN, indOffLN);
 // (actually a mv $dst $src) and the downstream instructions consume
 // the result of the l2i as an iRegI input.
 
-opclass iRegIorL2I(iRegI, iRegL2I);
+opclass iRegIorL2I(iRegI);
 opclass iRegIorL(iRegI, iRegL);
 opclass iRegNorP(iRegN, iRegP);
 opclass iRegILNP(iRegI, iRegL, iRegN, iRegP);
@@ -6086,10 +6056,10 @@ instruct subL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
             "sub  $dst.hi, $dst.hi, t0\t#@subL_reg_reg" %}
 
   ins_encode %{
-    __ mv(t0, as_Register($src2$$reg));
-    __ sub(as_Register($dst$$reg), as_Register($src2$$reg), as_Register($src1$$reg));
+    __ mv(t0, as_Register($src1$$reg));
+    __ sub(as_Register($dst$$reg), as_Register($src1$$reg), as_Register($src2$$reg));
     __ sltu(t0, t0, as_Register($dst$$reg));
-    __ sub(as_Register($dst$$reg)->successor(), as_Register($src2$$reg)->successor(), as_Register($src1$$reg)->successor());
+    __ sub(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), as_Register($src2$$reg)->successor());
     __ sub(as_Register($dst$$reg)->successor(), as_Register($dst$$reg)->successor(), t0);
   %}
 
@@ -6164,39 +6134,22 @@ instruct mulI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
 
 instruct mulL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (MulL src1 src2));
+  effect(TEMP_DEF dst, USE src1, USE src2);
   ins_cost(IMUL_COST * 4 + ALU_COST * 2);
   format %{ "mul   $src2.hi, $src2.hi, $src1.lo\n\t"
             "mul   $src1.hi, $src1.hi, $src2.lo\n\t"
             "mulhu t0, $src1.lo, $src2.lo\n\t"
             "add   $dst.hi, $src1.hi, $src2.hi\n\t"
-            "mul   &dst.lo, $src1.lo, $src2.lo\n\t"
-            "add   &dst.hi, $dst.hi, t0\t#@mulL" %}
+            "mul   $dst.lo, $src1.lo, $src2.lo\n\t"
+            "add   $dst.hi, $dst.hi, t0\t#@mulL" %}
 
   ins_encode %{
    __ mul(as_Register($src2$$reg)->successor(),as_Register($src2$$reg)->successor(),as_Register($src1$$reg));
-   __ mul(as_Register($src1$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg));
+   __ mul(as_Register($dst$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg));
    __ mulhu(t0,as_Register($src1$$reg),as_Register($src2$$reg));
-   __ add(as_Register($dst$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg)->successor());
+   __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),as_Register($src2$$reg)->successor());
    __ mul(as_Register($dst$$reg),as_Register($src1$$reg),as_Register($src2$$reg));
    __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),t0);
-  %}
-
-  ins_pipe(lmul_reg_reg);
-%}
-
-instruct mulHiL_rReg(iRegLNoSp dst, iRegL src1, iRegL src2)
-%{
-  match(Set dst (MulHiL src1 src2));
-  ins_cost(IMUL_COST * 4 + ALU_COST * 2);
-  format %{ "mulh  $dst, $src1, $src2\t# mulhi, #@mulHiL_rReg" %}
-
-  ins_encode %{
-   __ mul(as_Register($src2$$reg)->successor(),as_Register($src2$$reg)->successor(),as_Register($src1$$reg));
-   __ mul(as_Register($src1$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg));
-   __ mulhu(t0,as_Register($src1$$reg),as_Register($src2$$reg));
-   __ add(as_Register($dst$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg)->successor());
-   __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),t0);
-   __ mv(as_Register($dst$$reg), as_Register($dst$$reg)->successor());
   %}
 
   ins_pipe(lmul_reg_reg);
@@ -6226,12 +6179,16 @@ instruct signExtract(iRegINoSp dst, iRegIorL2I src1, immI_31 div1, immI_31 div2)
 
 // Long Divide
 
-instruct divL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
+instruct divL(iRegL_R10R11 dst, iRegL_R12R13 src1, iRegL_R10R11 src2) %{
   match(Set dst (DivL src1 src2));
-  ins_cost(IDIVDI_COST);
-  format %{ "div  $dst, $src1, $src2\t#@divL" %}
+  effect(CALL);
+  ins_cost(DEFAULT_COST);
+  format %{ "DIVL $src1,$src2,$dst\t! long ! call to SharedRuntime::ldiv" %}
 
-  ins_encode(riscv32_enc_div_long(dst, src1, src2));
+  ins_encode %{
+    address target = CAST_FROM_FN_PTR(address, SharedRuntime::ldiv);
+     __ trampoline_call(Address(target, relocInfo::runtime_call_type));
+  %}
   ins_pipe(ldiv_reg_reg);
 %}
 
@@ -6260,12 +6217,15 @@ instruct modI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
 
 // Long Remainder
 
-instruct modL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
+instruct modL_reg_reg(iRegL_R10R11 dst, iRegL_R12R13 src1, iRegL_R10R11 src2) %{
   match(Set dst (ModL src1 src2));
+  effect(CALL);
   ins_cost(IDIVDI_COST);
-  format %{ "rem  $dst, $src1, $src2\t#@modL" %}
-
-  ins_encode(riscv32_enc_mod_long(dst, src1, src2));
+  format %{ "modL $dst,$src1,$src2\t ! call to SharedRuntime::lrem" %}
+  ins_encode %{
+    address target = CAST_FROM_FN_PTR(address, SharedRuntime::lrem);
+    __ trampoline_call(Address(target, relocInfo::runtime_call_type));
+  %}
   ins_pipe(ialu_reg_reg);
 %}
 
@@ -6383,7 +6343,7 @@ instruct lShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 // Shift Left Immediate
 instruct lShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2, iRegINoSp tmp1) %{
   match(Set dst (LShiftL src1 src2));
-  effect(TEMP tmp1);
+  effect(TEMP_DEF dst, TEMP tmp1);
 
   ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
   format %{ "slli  $dst, $src1, ($src2 & 0x3f)\t#@lShiftL_reg_imm" %}
@@ -6410,7 +6370,7 @@ instruct urShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 // Shift Right Logical Immediate
 instruct urShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2, iRegINoSp tmp1) %{
   match(Set dst (URShiftL src1 src2));
-  effect(TEMP tmp1);
+  effect(TEMP_DEF dst, TEMP tmp1);
 
   ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
   format %{ "srli  $dst, $src1, ($src2 & 0x3f)\t#@urShiftL_reg_imm" %}
@@ -6455,7 +6415,7 @@ instruct rShiftL_reg_reg(iRegLNoSp dst, iRegL src1, iRegIorL2I src2) %{
 // Shift Right Arithmetic Immediate
 instruct rShiftL_reg_imm(iRegLNoSp dst, iRegL src1, immI src2, iRegINoSp tmp1) %{
   match(Set dst (RShiftL src1 src2));
-  effect(USE src1, TEMP tmp1);
+  effect(TEMP_DEF dst, TEMP tmp1);
 
   ins_cost(ALU_COST * 12 + BRANCH_COST * 2);
   format %{ "srai  $dst, $src1, ($src2 & 0x3f)\t#@rShiftL_reg_imm" %}
@@ -6964,18 +6924,6 @@ instruct andL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   %}
 
   ins_pipe(ialu_reg_reg);
-%}
-
-// Immediate And Long
-instruct andL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
-  match(Set dst (AndL src1 src2));
-
-  format %{ "andi  $dst, $src1, $src2\t#@andL_reg_imm" %}
-
-  ins_cost(ALU_COST);
-  ins_encode(riscv32_enc_andL_reg_imm(dst, src1, src2));
-
-  ins_pipe(ialu_reg_imm);
 %}
 
 // Register Or Long

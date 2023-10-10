@@ -233,10 +233,6 @@ class MacroAssembler: public Assembler {
   // idiv variant which deals with MINLONG as dividend and -1 as divisor
   int corrected_idiv(Register result, Register ra, Register rb,
                       bool want_remainder);
-  void ldiv(Register result, Register ra, Register rb);
-  void lrem(Register result, Register ra, Register rb);
-  int corrected_ldiv(Register result, Register ra, Register rb,
-                     bool want_remainder);
   void lShiftL_reg_reg(Register dst, Register src1, Register src2);
   void urShiftL_reg_reg(Register dst, Register src1, Register src2);
   void rShiftL_reg_reg(Register dst, Register src1, Register src2);

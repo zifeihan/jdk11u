@@ -937,20 +937,8 @@ void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far)
   bnez(t0, l, is_far);
 }
 void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bltz(hi, l, is_far);
-  bnez(hi, done);
-  bleu(Rs1, Rs2, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  blez(t0, l, is_far);
 }
 
 void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -962,7 +950,8 @@ void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_ble(Rs2, Rs1, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bgez(t0, l, is_far);
 }
 
 void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -970,20 +959,8 @@ void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bltz(hi, l, is_far);
-  bnez(hi, done);
-  bltu(Rs1, Rs2, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bltz(t0, l, is_far);
 }
 
 void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -995,7 +972,8 @@ void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_blt(Rs2, Rs1, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bgtz(t0, l, is_far);
 }
 
 void MacroAssembler::long_bgtu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -1922,36 +1900,6 @@ int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
     rem(result , ra, rb); // result = ra % rb;
   }
   return idiv_offset;
-}
-
-void MacroAssembler::ldiv(Register result, Register ra, Register rb)
-{
-  orr(t1, rb, rb->successor());
-  assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), rb, rb->successor(), ra, ra->successor());
-  mv(result, x10);
-  mv(result->successor(), x11);
-}
-
-void MacroAssembler::lrem(Register result, Register ra, Register rb)
-{
-  orr(t1, rb, rb->successor());
-  assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), rb, rb->successor(), ra, ra->successor());
-  mv(result, x10);
-  mv(result->successor(), x11);
-}
-
-int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
-                                    bool want_remainder)
-{
-  int ldiv_offset = offset();
-  if (!want_remainder) {
-    ldiv(result, ra, rb);
-  } else {
-    lrem(result , ra, rb); // result = ra % rb;
-  }
-  return ldiv_offset;
 }
 
 void MacroAssembler::lShiftL_reg_reg(Register dst, Register src1, Register src2)
