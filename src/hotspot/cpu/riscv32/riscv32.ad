@@ -1445,7 +1445,7 @@ const bool Matcher::isSimpleConstant64(jlong value) {
 
 // true just means we have fast l2f conversion
 const bool Matcher::convL2FSupported(void) {
-  return true;
+  return false;
 }
 
 // Vector width in bytes.
@@ -6941,18 +6941,6 @@ instruct orL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   ins_pipe(ialu_reg_reg);
 %}
 
-// Immediate Or Long
-instruct orL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
-  match(Set dst (OrL src1 src2));
-
-  format %{ "ori  $dst, $src1, $src2\n\t#@orL_reg_imm" %}
-
-  ins_cost(ALU_COST * 2);
-  ins_encode(riscv32_enc_orL_reg_imm(dst, src1, src2));
-
-  ins_pipe(ialu_reg_imm);
-%}
-
 // Register Xor Long
 instruct xorL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (XorL src1 src2));
@@ -6967,18 +6955,6 @@ instruct xorL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   %}
 
   ins_pipe(ialu_reg_reg);
-%}
-
-// Immediate Xor Long
-instruct xorL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
-  match(Set dst (XorL src1 src2));
-
-  ins_cost(ALU_COST * 2);
-  format %{ "xori  $dst, $src1, $src2\n\t#@xorL_reg_imm" %}
-
-  ins_encode(riscv32_enc_xorL_reg_imm(dst, src1, src2));
-
-  ins_pipe(ialu_reg_imm);
 %}
 
 // ============================================================================
@@ -7353,33 +7329,18 @@ instruct convI2F_reg_reg(fRegF dst, iRegIorL2I src) %{
 
 // float <-> long
 
-instruct convF2L_reg_reg(iRegLNoSp dst, fRegF src) %{
+instruct convF2L_reg_reg(iRegL_R10R11 dst, fRegF src) %{
   match(Set dst (ConvF2L src));
+  effect(CALL);
 
   ins_cost(XFER_COST + ALU_COST * 2);
-  format %{ "fcvt.w.s  $dst, $src\t#@convF2L_reg_reg" %}
+  format %{ "convF2L  $dst,$src\t! call to SharedRuntime::f2l" %}
 
   ins_encode %{
     __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::f2l), $src$$FloatRegister);
-    __ mv($dst$$Register, x10);
-    __ mv($dst$$Register->successor(), x11);
   %}
 
   ins_pipe(fp_f2l);
-%}
-
-instruct convL2F_reg_reg(fRegF dst, iRegL src) %{
-  match(Set dst (ConvL2F src));
-
-  ins_cost(XFER_COST + ALU_COST);
-  format %{ "fcvt.s.w  $dst, $src\t#@convL2F_reg_reg" %}
-
-  ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2f), $src$$Register, $src$$Register->successor());
-    __ fmv_s($dst$$FloatRegister, f10);
-  %}
-
-  ins_pipe(fp_l2f);
 %}
 
 // double <-> int
@@ -7412,16 +7373,15 @@ instruct convI2D_reg_reg(fRegD dst, iRegIorL2I src) %{
 
 // double <-> long
 
-instruct convD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
+instruct convD2L_reg_reg(iRegL_R10R11 dst, fRegD src) %{
   match(Set dst (ConvD2L src));
+  effect(CALL);
 
   ins_cost(XFER_COST + ALU_COST * 2);
-  format %{ "fcvt.w.d  $dst, $src\t#@convD2L_reg_reg" %}
+  format %{ "convD2L    $dst,$src\t ! call to SharedRuntime::d2l" %}
 
   ins_encode %{
     __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), $src$$FloatRegister);
-    __ mv($dst$$Register, x10);
-    __ mv($dst$$Register->successor(), x11);
   %}
 
   ins_pipe(fp_d2l);
