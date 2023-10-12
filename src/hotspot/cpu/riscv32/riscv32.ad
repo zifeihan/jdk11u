@@ -5984,6 +5984,8 @@ instruct addP_reg_imm(iRegPNoSp dst, iRegP src1, immLAdd src2) %{
 // Long Addition
 instruct addL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (AddL src1 src2));
+  effect(TEMP_DEF dst);
+
   ins_cost(ALU_COST * 5);
   format %{ "mv   t0, $src1.lo\n\t"
             "add  $dst.lo, $src1.lo, $src2.lo\n\t"
@@ -6064,17 +6066,6 @@ instruct subL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   %}
 
   ins_pipe(ialu_reg_reg);
-%}
-
-// No constant pool entries requiredLong Immediate Subtraction.
-instruct subL_reg_imm(iRegLNoSp dst, iRegL src1, immLSub src2) %{
-  match(Set dst (SubL src1 src2));
-  ins_cost(ALU_COST * 7);
-  format %{ "addi  $dst, $src1, -$src2\t#@subL_reg_imm" %}
-
-  ins_encode(riscv32_enc_subL_reg_imm(dst, src1, src2));
-
-  ins_pipe(ialu_reg_imm);
 %}
 
 // Integer Negation (special case for sub)
