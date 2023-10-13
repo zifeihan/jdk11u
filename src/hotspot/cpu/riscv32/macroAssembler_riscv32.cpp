@@ -4413,62 +4413,6 @@ void MacroAssembler::zero_words(Register base, u_int64_t cnt)
   BLOCK_COMMENT("} zero_words");
 }
 
-// base:   Address of a buffer to be filled, 4 bytes aligned.
-// cnt:    Count in 4-byte unit.
-// value:  Value to be filled with.
-// base will point to the end of the buffer after filling.
-void MacroAssembler::fill_words(Register base, Register cnt, Register value)
-{
-//  Algorithm:
-//
-//    t0 = cnt & 7
-//    cnt -= t0
-//    p += t0
-//    switch (t0):
-//      switch start:
-//      do while cnt
-//        cnt -= 8
-//          p[-8] = value
-//        case 7:
-//          p[-7] = value
-//        case 6:
-//          p[-6] = value
-//          // ...
-//        case 1:
-//          p[-1] = value
-//        case 0:
-//          p += 8
-//      do-while end
-//    switch end
-
-  assert_different_registers(base, cnt, value, t0, t1);
-
-  Label fini, skip, entry, loop;
-  const int unroll = 8; // Number of sw instructions we'll unroll
-
-  beqz(cnt, fini);
-
-  andi(t0, cnt, unroll - 1);
-  sub(cnt, cnt, t0);
-  slli(t1, t0, 2);
-  add(base, base, t1); // align 4, so first sw n % 8 = mod, next loop sw 8 * n.
-  la(t1, entry);
-  slli(t0, t0, 2); // sw_inst_nums * 4; t0 is cnt % 8, so t1 = t1 - sw_inst_nums * 4, 4 is sizeof(inst)
-  sub(t1, t1, t0);
-  jr(t1);
-
-  bind(loop);
-  add(base, base, unroll * 4);
-  for (int i = -unroll; i < 0; i++) {
-    sw(value, Address(base, i * 4));
-  }
-  bind(entry);
-  sub(cnt, cnt, unroll);
-  bgez(cnt, loop);
-
-  bind(fini);
-}
-
 #define FCVT_SAFE(FLOATCVT, FLOATEQ)                                                             \
 void MacroAssembler:: FLOATCVT##_safe(Register dst, FloatRegister src, Register temp) {          \
   Label L_Okay;                                                                                  \
