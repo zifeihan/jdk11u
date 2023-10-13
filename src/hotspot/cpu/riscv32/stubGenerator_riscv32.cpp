@@ -585,50 +585,6 @@ class StubGenerator: public StubCodeGenerator {
     return start;
   }
 
-  // The inner part of zero_words().  This is the bulk operation,
-  // zeroing words in blocks, possibly using DC ZVA to do it.  The
-  // caller is responsible for zeroing the last few words.
-  //
-  // Inputs:
-  // x28: the HeapWord-aligned base address of an array to zero.
-  // x29: the count in HeapWords, x29 > 0.
-  //
-  // Returns x28 and x29, adjusted for the caller to clear.
-  // x28: the base address of the tail of words left to clear.
-  // x29: the number of words in the tail.
-  //      x29 < MacroAssembler::zero_words_block_size.
-
-  address generate_zero_blocks() {
-    Label store_pair, loop_store_pair, done;
-    Label base_aligned;
-
-    const Register base = x28, cnt = x29;
-
-    __ align(CodeEntryAlignment);
-    StubCodeMark mark(this, "StubRoutines", "zero_blocks");
-    address start = __ pc();
-
-    {
-      // Clear the remaining blocks.
-      Label loop;
-      __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
-      __ bltz(cnt, done);
-      __ bind(loop);
-      for (int i = 0; i < 2 * MacroAssembler::zero_words_block_size; i++) {
-        __ sw(zr, Address(base, 0));
-        __ add(base, base, wordSize);
-      }
-      __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
-      __ bgez(cnt, loop);
-      __ bind(done);
-      __ add(cnt, cnt, MacroAssembler::zero_words_block_size);
-    }
-
-    __ ret();
-
-    return start;
-  }
-
   typedef enum {
     copy_forwards = 1,
     copy_backwards = -1
@@ -1853,8 +1809,6 @@ class StubGenerator: public StubCodeGenerator {
 
     generate_copy_longs(copy_f, c_rarg0, c_rarg1, t1, copy_forwards);
     generate_copy_longs(copy_b, c_rarg0, c_rarg1, t1, copy_backwards);
-
-    StubRoutines::riscv32::_zero_blocks = generate_zero_blocks();
 
     //*** jbyte
     // Always need aligned and unaligned versions

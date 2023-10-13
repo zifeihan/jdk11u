@@ -1499,7 +1499,7 @@ const bool Matcher::misaligned_vectors_ok() {
 }
 
 // false => size gets scaled to BytesPerLong, ok.
-const bool Matcher::init_array_count_is_in_bytes = false;
+const bool Matcher::init_array_count_is_in_bytes = true;
 
 // Use conditional move (CMOVL)
 const int Matcher::long_cmove_cost() {
@@ -9479,24 +9479,12 @@ instruct clearArray_reg_reg(iRegI_R29 cnt, iRegP_R28 base, Universe dummy, rFlag
   format %{ "ClearArray $cnt, $base\t#@clearArray_reg_reg" %}
 
   ins_encode %{
-    __ zero_words($base$$Register, $cnt$$Register);
-  %}
-
-  ins_pipe(pipe_class_memory);
-%}
-
-instruct clearArray_imm_reg(immL cnt, iRegP_R28 base, Universe dummy, rFlagsReg cr)
-%{
-  predicate((u_int32_t)n->in(2)->get_long()
-            < (u_int32_t)(BlockZeroingLowLimit >> LogBytesPerWord));
-  match(Set dummy (ClearArray cnt base));
-  effect(USE_KILL base, KILL cr);
-
-  ins_cost(4 * DEFAULT_COST);
-  format %{ "ClearArray $cnt, $base\t#@clearArray_imm_reg" %}
-
-  ins_encode %{
-    __ zero_words($base$$Register, $cnt$$constant);
+    Label loop;
+    __ bind(loop);
+    __ sub($cnt$$Register, $cnt$$Register, 4);
+    __ sw(zr, Address($base$$Register, 0));
+    __ addi($base$$Register, $base$$Register, wordSize);
+    __ bgtz($cnt$$Register, loop);
   %}
 
   ins_pipe(pipe_class_memory);

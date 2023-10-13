@@ -706,9 +706,6 @@ class MacroAssembler: public Assembler {
   void inflate_hi16(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz(Register Rd, Register Rs, bool isLL = false, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz_bit(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
-  void zero_words(Register base, u_int64_t cnt);
-  void zero_words(Register ptr, Register cnt);
-  void zero_memory(Register addr, Register len, Register tmp1);
 
 #ifdef COMPILER2
   // refer to conditional_branches and float_conditional_branches
@@ -740,7 +737,6 @@ class MacroAssembler: public Assembler {
   void flt_d_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
   void fle_s_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
   void fle_d_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
-  static const int zero_words_block_size;
 
   void cast_primitive_type(BasicType type, Register Rt) {
     switch (type) {
