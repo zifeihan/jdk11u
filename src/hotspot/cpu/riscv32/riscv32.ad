@@ -4803,20 +4803,6 @@ instruct addP_reg_reg(iRegPNoSp dst, iRegP src1, iRegI src2) %{
   ins_pipe(ialu_reg_reg);
 %}
 
-// If we shift more than 32 bits, we need not convert I2L.
-instruct lShiftL_regI_immGE32(iRegLNoSp dst, iRegIorL2I src, uimmI6_ge32 scale) %{
-  match(Set dst (LShiftL (ConvI2L src) scale));
-  ins_cost(ALU_COST);
-  format %{ "slli  $dst, $src, $scale & 0x1f\t#@lShiftL_regI_immGE32" %}
-
-  ins_encode %{
-    __ mv(as_Register($dst$$reg), zr);
-    __ slli(as_Register($dst$$reg)->successor(), as_Register($src$$reg), ($scale$$constant - 32) & 0x1f);
-  %}
-
-  ins_pipe(ialu_reg_shift);
-%}
-
 // Pointer Immediate Addition
 // n.b. this needs to be more expensive than using an indirect memory
 // operand
@@ -6173,7 +6159,6 @@ instruct convL2D_reg_reg(fRegD dst, iRegL src) %{
 
   ins_encode %{
     __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), $src$$Register, $src$$Register->successor());
-    __ fmv_d($dst$$FloatRegister, f10);
   %}
 
   ins_pipe(fp_l2d);
@@ -6494,21 +6479,17 @@ instruct MoveI2F_reg_reg(fRegF dst, iRegI src) %{
 
 %}
 
-instruct MoveD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
+instruct MoveD2L_reg_reg(iRegL_R10R11 dst, fRegD src) %{
 
   match(Set dst (MoveD2L src));
-
-  effect(DEF dst, USE src);
+  effect(CALL);
 
   ins_cost(XFER_COST * 2);
 
-  format %{ "fmv.x.w $dst, $src\t"
-            "fmv.x.w $dst->successor(), $src->successor() \t#@MoveD2L_reg_reg"
-  %}
+  format %{ "MoveD2L    $dst,$src\t ! call to SharedRuntime::d2l" %}
 
   ins_encode %{
-    __ fmv_x_w(as_Register($dst$$reg), as_FloatRegister($src$$reg));
-    __ fmv_x_w(as_Register($dst$$reg)->successor(), as_FloatRegister($src$$reg)->successor());
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), $src$$FloatRegister);
   %}
 
   ins_pipe(fp_d2l);
@@ -6518,18 +6499,14 @@ instruct MoveD2L_reg_reg(iRegLNoSp dst, fRegD src) %{
 instruct MoveL2D_reg_reg(fRegD dst, iRegL src) %{
 
   match(Set dst (MoveL2D src));
-
-  effect(DEF dst, USE src);
+  effect(CALL);
 
   ins_cost(XFER_COST * 2);
 
-  format %{ "fmv.w.x  $dst, $src\t"
-            "fmv.w.x  $dst->successor(), $src->successor() \t#@MoveD2L_reg_reg"
-  %}
+  format %{ "MoveL2D    $dst,$src\t ! call to SharedRuntime::l2d" %}
 
   ins_encode %{
-    __ fmv_w_x(as_FloatRegister($dst$$reg), as_Register($src$$reg));
-    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), as_Register($src$$reg)->successor());
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), $src$$Register, $src$$Register->successor());
   %}
 
   ins_pipe(fp_l2d);
