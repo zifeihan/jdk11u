@@ -4336,20 +4336,6 @@ instruct loadConF(fRegF dst, immF con) %{
   ins_pipe(fp_load_constant_s);
 %}
 
-instruct loadConF0(fRegF dst, immF0 con) %{
-  match(Set dst con);
-
-  ins_cost(XFER_COST);
-
-  format %{ "fmv_w_x $dst, zr\t# float, #@loadConF0" %}
-
-  ins_encode %{
-    __ fmv_w_x(as_FloatRegister($dst$$reg), zr);
-  %}
-
-  ins_pipe(fp_load_constant_s);
-%}
-
 // Load Double Constant
 instruct loadConD(fRegD dst, immD con) %{
   match(Set dst con);
@@ -4361,21 +4347,6 @@ instruct loadConD(fRegD dst, immD con) %{
 
   ins_encode %{
     __ fld(as_FloatRegister($dst$$reg), $constantaddress($con));
-  %}
-
-  ins_pipe(fp_load_constant_d);
-%}
-
-instruct loadConD0(fRegD dst, immD0 con) %{
-  match(Set dst con);
-
-  ins_cost(XFER_COST);
-
-  format %{ "fmv_w_x $dst, zr\t# double, #@loadConD0" %}
-
-  ins_encode %{
-    __ fmv_w_x(as_FloatRegister($dst$$reg), zr);
-    __ fmv_w_x(as_FloatRegister($dst$$reg)->successor(), zr);
   %}
 
   ins_pipe(fp_load_constant_d);
@@ -4764,21 +4735,6 @@ instruct addI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
 
   ins_encode %{
     int32_t con = (int32_t)$src2$$constant;
-    __ addi(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            $src2$$constant);
-  %}
-
-  ins_pipe(ialu_reg_imm);
-%}
-
-instruct addI_reg_imm_l2i(iRegINoSp dst, iRegL src1, immIAdd src2) %{
-  match(Set dst (AddI (ConvL2I src1) src2));
-
-  ins_cost(ALU_COST);
-  format %{ "addi  $dst, $src1.lo, $src2\t#@addI_reg_imm_l2i" %}
-
-  ins_encode %{
     __ addi(as_Register($dst$$reg),
             as_Register($src1$$reg),
             $src2$$constant);
@@ -5261,21 +5217,6 @@ instruct regI_not_reg(iRegINoSp dst,
 
   ins_pipe(ialu_reg);
 %}
-
-instruct regL_not_reg(iRegLNoSp dst,
-                      iRegL src1, immL_M1 m1) %{
-  match(Set dst (XorL src1 m1));
-  ins_cost(ALU_COST * 2);
-  format %{ "xori  $dst, $src1, -1\t#@regL_not_reg" %}
-
-  ins_encode %{
-    __ xori(as_Register($dst$$reg), as_Register($src1$$reg), -1);
-    __ xori(as_Register($dst$$reg)->successor(), as_Register($src1$$reg)->successor(), -1);
-  %}
-
-  ins_pipe(ialu_reg);
-%}
-
 
 // ============================================================================
 // Floating Point Arithmetic Instructions
@@ -6329,45 +6270,6 @@ instruct MoveI2F_stack_reg(fRegF dst, stackSlotI src) %{
 
 %}
 
-instruct MoveD2L_stack_reg(iRegLNoSp dst, stackSlotD src) %{
-
-  match(Set dst (MoveD2L src));
-
-  effect(DEF dst, USE src);
-
-  ins_cost(LOAD_COST * 2);
-
-  format %{ "lw  $dst, $src\t"
-            "lw  $dst->successor(), $src + 4 \t#@MoveD2L_stack_reg"
-  %}
-
-  ins_encode %{
-    __ lw(as_Register($dst$$reg), Address(sp, $src$$disp));
-    __ lw(as_Register($dst$$reg)->successor(), Address(sp, $src$$disp + 4));
-  %}
-
-  ins_pipe(iload_reg_reg);
-
-%}
-
-instruct MoveL2D_stack_reg(fRegD dst, stackSlotL src) %{
-
-  match(Set dst (MoveL2D src));
-
-  effect(DEF dst, USE src);
-
-  ins_cost(LOAD_COST);
-
-  format %{ "fld  $dst, $src\t#@MoveL2D_stack_reg" %}
-
-  ins_encode %{
-    __ fld(as_FloatRegister($dst$$reg), Address(sp, $src$$disp));
-  %}
-
-  ins_pipe(pipe_class_memory);
-
-%}
-
 instruct MoveF2I_reg_stack(stackSlotI dst, fRegF src) %{
 
   match(Set dst (MoveF2I src));
@@ -6398,45 +6300,6 @@ instruct MoveI2F_reg_stack(stackSlotF dst, iRegI src) %{
 
   ins_encode %{
     __ sw(as_Register($src$$reg), Address(sp, $dst$$disp));
-  %}
-
-  ins_pipe(istore_reg_reg);
-
-%}
-
-instruct MoveD2L_reg_stack(stackSlotL dst, fRegD src) %{
-
-  match(Set dst (MoveD2L src));
-
-  effect(DEF dst, USE src);
-
-  ins_cost(STORE_COST);
-
-  format %{ "fsd  $dst, $src\t#@MoveD2L_reg_stack" %}
-
-  ins_encode %{
-    __ fsd(as_FloatRegister($src$$reg), Address(sp, $dst$$disp));
-  %}
-
-  ins_pipe(pipe_class_memory);
-
-%}
-
-instruct MoveL2D_reg_stack(stackSlotD dst, iRegL src) %{
-
-  match(Set dst (MoveL2D src));
-
-  effect(DEF dst, USE src);
-
-  ins_cost(STORE_COST * 2);
-
-  format %{ "sw  $src, $dst\t"
-            "sw  $src->successor(), $dst + 4 \t#@MoveL2D_reg_stack"
-  %}
-
-  ins_encode %{
-    __ sw(as_Register($src$$reg), Address(sp, $dst$$disp));
-    __ sw(as_Register($src$$reg)->successor(), Address(sp, $dst$$disp + 4));
   %}
 
   ins_pipe(istore_reg_reg);
@@ -6477,39 +6340,6 @@ instruct MoveI2F_reg_reg(fRegF dst, iRegI src) %{
 
   ins_pipe(fp_i2f);
 
-%}
-
-instruct MoveD2L_reg_reg(iRegL_R10R11 dst, fRegD src) %{
-
-  match(Set dst (MoveD2L src));
-  effect(CALL);
-
-  ins_cost(XFER_COST * 2);
-
-  format %{ "MoveD2L    $dst,$src\t ! call to SharedRuntime::d2l" %}
-
-  ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::d2l), $src$$FloatRegister);
-  %}
-
-  ins_pipe(fp_d2l);
-
-%}
-
-instruct MoveL2D_reg_reg(fRegD dst, iRegL src) %{
-
-  match(Set dst (MoveL2D src));
-  effect(CALL);
-
-  ins_cost(XFER_COST * 2);
-
-  format %{ "MoveL2D    $dst,$src\t ! call to SharedRuntime::l2d" %}
-
-  ins_encode %{
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::l2d), $src$$Register, $src$$Register->successor());
-  %}
-
-  ins_pipe(fp_l2d);
 %}
 
 // ============================================================================

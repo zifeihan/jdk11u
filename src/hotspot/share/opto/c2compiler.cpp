@@ -582,8 +582,14 @@ bool C2Compiler::is_intrinsic_supported(const methodHandle& method, bool is_virt
   case vmIntrinsics::_floatToIntBits:
   case vmIntrinsics::_intBitsToFloat:
   case vmIntrinsics::_doubleToRawLongBits:
+    if (!Matcher::match_rule_supported(Op_MoveD2L)) return false;
+    break;
   case vmIntrinsics::_doubleToLongBits:
+    if (!Matcher::match_rule_supported(Op_MoveD2L)) return false;
+    break;
   case vmIntrinsics::_longBitsToDouble:
+    if (!Matcher::match_rule_supported(Op_MoveL2D)) return false;
+    break;
   case vmIntrinsics::_Reference_get:
   case vmIntrinsics::_Class_cast:
   case vmIntrinsics::_aescrypt_encryptBlock:
