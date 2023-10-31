@@ -586,6 +586,10 @@ reg_class f2_reg(
     F2, F2_H
 );
 
+reg_class f10_reg(
+    F10, F10_H
+);
+
 // Class for 64 bit register f3
 reg_class f3_reg(
     F3, F3_H
@@ -2948,6 +2952,16 @@ operand fRegD()
   interface(REG_INTER);
 %}
 
+operand fRegD10()
+%{
+  constraint(ALLOC_IN_RC(f10_reg));
+  match(RegD);
+  match(fRegD);
+  op_cost(0);
+  format %{ %}
+  interface(REG_INTER);
+%}
+
 // Java Thread Register
 operand javaThread_RegP(iRegP reg)
 %{
@@ -4837,6 +4851,7 @@ instruct subI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immISub src2) %{
 // Long Subtraction
 instruct subL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (SubL src1 src2));
+  effect(TEMP_DEF dst);
   ins_cost(ALU_COST * 5);
   format %{ "mv   t0, $src2.lo\n\t"
             "sub  $dst.lo, $src2.lo, $src1.lo\n\t"
@@ -4875,6 +4890,8 @@ instruct negI_reg(iRegINoSp dst, iRegIorL2I src, immI0 zero) %{
 
 instruct negL_reg(iRegLNoSp dst, iRegL src, immL0 zero) %{
   match(Set dst (SubL zero src));
+  effect(TEMP_DEF dst);
+  
   ins_cost(ALU_COST * 4);
   format %{ "sltu  t0, zr, $src.lo\n\t" 
             "sub  $dst.lo, zr, $src.lo\n\t"
@@ -4912,7 +4929,7 @@ instruct mulI(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
 
 instruct mulL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (MulL src1 src2));
-  effect(TEMP_DEF dst, USE src1, USE src2);
+  effect(TEMP_DEF dst);
   ins_cost(IMUL_COST * 4 + ALU_COST * 2);
   format %{ "mul   $src2.hi, $src2.hi, $src1.lo\n\t"
             "mul   $src1.hi, $src1.hi, $src2.lo\n\t"
@@ -4922,10 +4939,10 @@ instruct mulL(iRegLNoSp dst, iRegL src1, iRegL src2) %{
             "add   $dst.hi, $dst.hi, t0\t#@mulL" %}
 
   ins_encode %{
-   __ mul(as_Register($src2$$reg)->successor(),as_Register($src2$$reg)->successor(),as_Register($src1$$reg));
+   __ mul(t0,as_Register($src2$$reg)->successor(),as_Register($src1$$reg));
    __ mul(as_Register($dst$$reg)->successor(),as_Register($src1$$reg)->successor(),as_Register($src2$$reg));
+   __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),t0);
    __ mulhu(t0,as_Register($src1$$reg),as_Register($src2$$reg));
-   __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),as_Register($src2$$reg)->successor());
    __ mul(as_Register($dst$$reg),as_Register($src1$$reg),as_Register($src2$$reg));
    __ add(as_Register($dst$$reg)->successor(),as_Register($dst$$reg)->successor(),t0);
   %}
@@ -5673,6 +5690,7 @@ instruct xorI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
 // Register And Long
 instruct andL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (AndL src1 src2));
+  effect(TEMP_DEF dst);
 
   format %{ "andr  $dst, $src1, $src2\t#@andL_reg_reg" %}
 
@@ -5692,6 +5710,7 @@ instruct andL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
 // Register Or Long
 instruct orL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (OrL src1 src2));
+  effect(TEMP_DEF dst);
 
   format %{ "orr  $dst.lo, $src1.lo, $src2.lo\n\t"
             "orr  $dst.hi, $src1.hi, $src2.hi\t#@orL_reg_reg" %}
@@ -5707,6 +5726,7 @@ instruct orL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
 // Register Xor Long
 instruct xorL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (XorL src1 src2));
+  effect(TEMP_DEF dst);
 
   format %{ "xorr  $dst.lo, $src1.lo, $src2.lo\n\t"
             "xorr  $dst.hi, $src1.hi, $src2.hi\t#@xorL_reg_reg" %}
@@ -6092,8 +6112,9 @@ instruct convD2L_reg_reg(iRegL_R10R11 dst, fRegD src) %{
   ins_pipe(fp_d2l);
 %}
 
-instruct convL2D_reg_reg(fRegD dst, iRegL src) %{
+instruct convL2D_reg_reg(fRegD10 dst, iRegL src) %{
   match(Set dst (ConvL2D src));
+  effect(CALL);
 
   ins_cost(XFER_COST + ALU_COST * 2);
   format %{ "fcvt.d.w  $dst, $src\t#@convL2D_reg_reg" %}

@@ -303,10 +303,8 @@ int SharedRuntime::java_calling_convention(const BasicType *sig_bt,
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_j) {
-        regs[i].set2(FP_ArgReg[fp_args]->as_VMReg());
-        fp_args +=2;
+        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else {
-        if (stk_args & 1) stk_args++;
         regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
@@ -658,14 +656,12 @@ int SharedRuntime::c_calling_convention(const BasicType *sig_bt,
     case T_DOUBLE:
       assert((i + 1) < total_args_passed && sig_bt[i + 1] == T_VOID, "expecting half");
       if (fp_args < Argument::n_float_register_parameters_c) {
-        regs[i].set2(FP_ArgReg[fp_args]->as_VMReg());
-        fp_args += 2;
+        regs[i].set2(FP_ArgReg[fp_args++]->as_VMReg());
       } else if (int_args < Argument::n_int_register_parameters_c) {
         if (int_args & 1) int_args++;
         regs[i].set2(INT_ArgReg[int_args]->as_VMReg());
         int_args += 2;
       } else {
-        if (stk_args & 1) stk_args++;
         regs[i].set2(VMRegImpl::stack2reg(stk_args));
         stk_args += 2;
       }
@@ -991,7 +987,7 @@ void SharedRuntime::save_native_result(MacroAssembler *masm, BasicType ret_type,
     __ fsw(f10, Address(fp, -wordSize));
     break;
   case T_DOUBLE:
-    __ fsd(f10, Address(fp, -2 * wordSize));
+    __ fsd(f10, Address(fp, -wordSize));
     break;
   case T_VOID:  break;
   case T_LONG:
@@ -1013,7 +1009,7 @@ void SharedRuntime::restore_native_result(MacroAssembler *masm, BasicType ret_ty
     __ flw(f10, Address(fp, -wordSize));
     break;
   case T_DOUBLE:
-    __ fld(f10, Address(fp, -2 * wordSize));
+    __ fld(f10, Address(fp, -wordSize));
     break;
   case T_VOID:  break;
   case T_LONG:
@@ -1669,7 +1665,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
                 in_sig_bt[i + 1] == T_VOID &&
                 out_sig_bt[c_arg + 1] == T_VOID, "bad arg list");
         double_move(masm, in_regs[i], out_regs[c_arg]);
-        float_args += 2;
+        float_args ++;
         break;
 
       case T_LONG :
