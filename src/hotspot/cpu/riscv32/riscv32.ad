@@ -367,7 +367,7 @@ reg_class int_r29_reg(R29);
 // Singleton class for R30 int register
 reg_class int_r30_reg(R30);
 
-reg_class long_reg (R10,R11, R12,R13, R14,R15, R16,R17, R18,R19, R20,R21);
+reg_class long_reg (R12,R13, R14,R15, R16,R17, R18,R19, R20,R21, R24,R25, R26,R27);
 reg_class long_r10r11_reg(R10, R11);
 reg_class long_r12r13_reg(R12, R13);
 
@@ -6324,113 +6324,6 @@ instruct MoveI2F_reg_reg(fRegF dst, iRegI src) %{
 
   ins_pipe(fp_i2f);
 
-%}
-
-instruct MoveD2L_stack_reg(iRegLNoSp dst, stackSlotD src) %{
-  match(Set dst (MoveD2L src));
-  effect(DEF dst, USE src);
-  ins_cost(LOAD_COST * 2);
-  format %{ "lw  $dst, $src\t"
-            "lw  $dst->successor(), $src + 4 \t#@MoveD2L_stack_reg"
-  %}
-
-  ins_encode %{
-    __ lw(as_Register($dst$$reg), Address(sp, $src$$disp));
-    __ lw(as_Register($dst$$reg)->successor(), Address(sp, $src$$disp + 4));
-  %}
-
-  ins_pipe(iload_reg_reg);
-%}
-
-instruct MoveD2L_reg_stack(stackSlotL dst, fRegD src) %{
-  match(Set dst (MoveD2L src));
-  effect(DEF dst, USE src);
-  ins_cost(STORE_COST);
-
-  format %{ "fsd  $dst, $src\t#@MoveD2L_reg_stack" %}
-
-  ins_encode %{
-    __ fsd(as_FloatRegister($src$$reg), Address(sp, $dst$$disp));
-  %}
-
-  ins_pipe(pipe_class_memory);
-
-%}
-
-instruct MoveL2D_stack_reg(fRegD dst, stackSlotL src) %{
-  match(Set dst (MoveL2D src));
-  effect(DEF dst, USE src);
-  ins_cost(LOAD_COST);
-
-  format %{ "fld  $dst, $src\t#@MoveL2D_stack_reg" %}
-
-  ins_encode %{
-    __ fld(as_FloatRegister($dst$$reg), Address(sp, $src$$disp));
-  %}
-
-  ins_pipe(pipe_class_memory);
-%}
-
-instruct MoveL2D_reg_stack(stackSlotD dst, iRegLNoSp src) %{
-  match(Set dst (MoveL2D src));
-  effect(DEF dst, USE src);
-  ins_cost(STORE_COST * 2);
-
-  format %{ "sw  $src, $dst\t"
-            "sw  $src->successor(), $dst + 4 \t#@MoveL2D_reg_stack"
-  %}
-
-  ins_encode %{
-    __ sw(as_Register($src$$reg), Address(sp, $dst$$disp));
-    __ sw(as_Register($src$$reg)->successor(), Address(sp, $dst$$disp + 4));
-  %}
-  ins_pipe(pipe_class_memory);
-%}
-
-// Load double value from stack slot.
-instruct stkD_to_regD(fRegD dst, stackSlotD src) %{
-  match(Set dst src);
-  ins_cost(LOAD_COST);
-  format %{ "LD(Y)   $dst,$src\t # stk reload double" %}
-  ins_encode %{
-    __ fld(as_FloatRegister($dst$$reg), Address(sp, $src$$disp));
-  %}
-  ins_pipe(pipe_class_memory);
-%}
-
-// Store double value to stack slot.
-instruct regD_to_stkD(stackSlotD dst, fRegD src) %{
-  match(Set dst src);
-  ins_cost(STORE_COST);
-  format %{ "STD(Y)  $src,$dst\t # stk spill double" %}
-  ins_encode %{
-    __ fsd(as_FloatRegister($src$$reg), Address(sp, $dst$$disp));
-  %}
-  ins_pipe(pipe_class_memory);
-%}
-
-// Load long from stack slot.
-instruct stkL_to_regL(iRegLNoSp dst, stackSlotL src) %{
-  match(Set dst src);
-  ins_cost(LOAD_COST);
-  format %{ "LG      $dst,$src\t # stk reload long" %}
-  ins_encode %{
-    __ lw(as_Register($dst$$reg), Address(sp, $src$$disp));
-    __ lw(as_Register($dst$$reg)->successor(), Address(sp, $src$$disp + 4));
-  %}
-  ins_pipe(pipe_class_memory);
-%}
-
-// Store long to stack slot.
-instruct regL_to_stkL(stackSlotL dst, iRegLNoSp src) %{
-  match(Set dst src);
-  ins_cost(STORE_COST);
-  format %{ "STG     $src,$dst\t # stk spill long" %}
-  ins_encode %{
-    __ sw(as_Register($src$$reg), Address(sp, $dst$$disp));
-    __ sw(as_Register($src$$reg)->successor(), Address(sp, $dst$$disp + 4));
-  %}
-  ins_pipe(pipe_class_memory);
 %}
 
 // ============================================================================
