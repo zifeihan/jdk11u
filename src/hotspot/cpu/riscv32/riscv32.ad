@@ -2919,7 +2919,7 @@ operand fRegD()
 %{
   constraint(ALLOC_IN_RC(double_reg));
   match(RegD);
-
+  match(fRegD10);
   op_cost(0);
   format %{ %}
   interface(REG_INTER);
