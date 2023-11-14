@@ -233,10 +233,6 @@ class MacroAssembler: public Assembler {
   // idiv variant which deals with MINLONG as dividend and -1 as divisor
   int corrected_idiv(Register result, Register ra, Register rb,
                       bool want_remainder);
-  void ldiv(Register result, Register ra, Register rb);
-  void lrem(Register result, Register ra, Register rb);
-  int corrected_ldiv(Register result, Register ra, Register rb,
-                     bool want_remainder);
   void lShiftL_reg_reg(Register dst, Register src1, Register src2);
   void urShiftL_reg_reg(Register dst, Register src1, Register src2);
   void rShiftL_reg_reg(Register dst, Register src1, Register src2);
@@ -530,34 +526,6 @@ class MacroAssembler: public Assembler {
                enum operand_size size,
                Assembler::Aqrl acquire, Assembler::Aqrl release,
                Register result, bool result_as_bool = false);
-  void cmpxchg_long(Register addr, Register expected,
-                    Register new_val,
-                    enum operand_size size,
-                    Assembler::Aqrl acquire, Assembler::Aqrl release,
-                    Register result, bool result_as_bool = false);
-  void cmpxchg_weak(Register addr, Register expected,
-                    Register new_val,
-                    enum operand_size size,
-                    Assembler::Aqrl acquire, Assembler::Aqrl release,
-                    Register result);
-  void cmpxchg_long_weak(Register addr, Register expected,
-                         Register new_val,
-                         enum operand_size size,
-                         Assembler::Aqrl acquire, Assembler::Aqrl release,
-                         Register result);
-
-  void cmpxchg_narrow_value(Register addr, Register expected,
-                            Register new_val,
-                            enum operand_size size,
-                            Assembler::Aqrl acquire, Assembler::Aqrl release,
-                            Register result, bool result_as_bool,
-                            Register tmp1, Register tmp2, Register tmp3);
-  void weak_cmpxchg_narrow_value(Register addr, Register expected,
-                                 Register new_val,
-                                 enum operand_size size,
-                                 Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                 Register result,
-                                 Register tmp1, Register tmp2, Register tmp3);
 
   void atomic_add(Register prev, RegisterOrConstant incr, Register addr);
   void atomic_addw(Register prev, RegisterOrConstant incr, Register addr);
@@ -710,10 +678,6 @@ class MacroAssembler: public Assembler {
   void inflate_hi16(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz(Register Rd, Register Rs, bool isLL = false, Register Rtmp1 = t0, Register Rtmp2 = t1);
   void ctz_bit(Register Rd, Register Rs, Register Rtmp1 = t0, Register Rtmp2 = t1);
-  void zero_words(Register base, u_int64_t cnt);
-  void zero_words(Register ptr, Register cnt);
-  void fill_words(Register base, Register cnt, Register value);
-  void zero_memory(Register addr, Register len, Register tmp1);
 
 #ifdef COMPILER2
   // refer to conditional_branches and float_conditional_branches
@@ -745,7 +709,6 @@ class MacroAssembler: public Assembler {
   void flt_d_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
   void fle_s_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
   void fle_d_u(Register result, FloatRegister Rs1, FloatRegister Rs2);
-  static const int zero_words_block_size;
 
   void cast_primitive_type(BasicType type, Register Rt) {
     switch (type) {

@@ -45,7 +45,6 @@ address StubRoutines::riscv32::_float_sign_mask = NULL;
 address StubRoutines::riscv32::_float_sign_flip = NULL;
 address StubRoutines::riscv32::_double_sign_mask = NULL;
 address StubRoutines::riscv32::_double_sign_flip = NULL;
-address StubRoutines::riscv32::_zero_blocks = NULL;
 address StubRoutines::riscv32::_has_negatives = NULL;
 address StubRoutines::riscv32::_has_negatives_long = NULL;
 address StubRoutines::riscv32::_compare_long_string_LL = NULL;
