@@ -929,47 +929,16 @@ void MacroAssembler::fsflagsi(Register Rd, unsigned imm) {
 #undef INSN
 
 void MacroAssembler::long_beq(Register Rs1, Register Rs2, Label &l, bool is_far) {
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bnez(hi, done);
-  beqz(low, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  beqz(t0, l, is_far);
 }
 void MacroAssembler::long_bne(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  bnez(hi, l, is_far);
-  bnez(low, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bnez(t0, l, is_far);
 }
 void MacroAssembler::long_ble(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bltz(hi, l, is_far);
-  bnez(hi, done);
-  bleu(Rs1, Rs2, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  blez(t0, l, is_far);
 }
 
 void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -981,7 +950,8 @@ void MacroAssembler::long_bleu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bge(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_ble(Rs2, Rs1, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bgez(t0, l, is_far);
 }
 
 void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -989,20 +959,8 @@ void MacroAssembler::long_bgeu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_blt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  Register low = NULL;
-  Register hi = NULL;
-  mv(t0, Rs1);
-  sub(low, Rs1, Rs2);
-  sltu(t0, t0, low);
-  sub(hi, Rs1->successor(), Rs2->successor());
-  sub(hi, hi, t0);
-
-  Label done;
-  bltz(hi, l, is_far);
-  bnez(hi, done);
-  bltu(Rs1, Rs2, l, is_far);
-
-  bind(done);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bltz(t0, l, is_far);
 }
 
 void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -1014,7 +972,8 @@ void MacroAssembler::long_bltu(Register Rs1, Register Rs2, Label &l, bool is_far
 }
 
 void MacroAssembler::long_bgt(Register Rs1, Register Rs2, Label &l, bool is_far){
-  long_blt(Rs2, Rs1, l, is_far);
+  cmp_l2i(t0, Rs1, Rs2, t1);
+  bgtz(t0, l, is_far);
 }
 
 void MacroAssembler::long_bgtu(Register Rs1, Register Rs2, Label &l, bool is_far){
@@ -1943,103 +1902,83 @@ int MacroAssembler::corrected_idiv(Register result, Register ra, Register rb,
   return idiv_offset;
 }
 
-void MacroAssembler::ldiv(Register result, Register ra, Register rb)
-{
-  orr(t1, rb, rb->successor());
-  assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::ldiv), rb, rb->successor(), ra, ra->successor());
-  mv(result, x10);
-  mv(result->successor(), x11);
-}
-
-void MacroAssembler::lrem(Register result, Register ra, Register rb)
-{
-  orr(t1, rb, rb->successor());
-  assert(t1 != 0, "div 0");
-  call_VM_leaf(CAST_FROM_FN_PTR(address, SharedRuntime::lrem), rb, rb->successor(), ra, ra->successor());
-  mv(result, x10);
-  mv(result->successor(), x11);
-}
-
-int MacroAssembler::corrected_ldiv(Register result, Register ra, Register rb,
-                                    bool want_remainder)
-{
-  int ldiv_offset = offset();
-  if (!want_remainder) {
-    ldiv(result, ra, rb);
-  } else {
-    lrem(result , ra, rb); // result = ra % rb;
-  }
-  return ldiv_offset;
-}
-
 void MacroAssembler::lShiftL_reg_reg(Register dst, Register src1, Register src2)
-{
-    andi(src2, src2, 0x3f);
+{  
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    sll(dst->successor(), src1, t0);
-    mv(dst, 0);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    srli(t1, src1, 0x1);
-    sub(t0, t0, src2);
-    srl(t1, t1, t0);
-    sll(dst->successor(), src1->successor(), src2);
-    orr(dst->successor(), t1, dst->successor());
-    sll(dst, src1, src2);
+  Label blt_branch, done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  sll(dst->successor(), dst, t0);
+  mv(dst, 0);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  srli(t0, dst, 0x1);
+  sub(t1, t1, src2);
+  srl(t0, t0, t1);
+  sll(dst->successor(), dst->successor(), src2);
+  orr(dst->successor(), t0, dst->successor());
+  sll(dst, dst, src2);
 
-    bind(done);
-    return;
+  bind(done);
 }
 
 void MacroAssembler::urShiftL_reg_reg(Register dst, Register src1, Register src2)
 {
-    andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    srl(dst, src1->successor(), t0);
-    mv(dst->successor(), 0);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    slli(t1, src1->successor(), 0x1);
-    sub(t0, t0, src2);
-    sll(t1, t1, t0);
-    srl(dst, src1, src2);
-    orr(dst, t1, dst);
-    srl(dst->successor(), src1->successor(), src2);
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    bind(done);
-    return;
+  Label blt_branch, done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  srl(dst, dst->successor(), t0);
+  mv(dst->successor(), 0);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  slli(t0, dst->successor(), 0x1);
+  sub(t1, t1, src2);
+  sll(t0, t0, t1);
+  srl(dst, dst, src2);
+  orr(dst, t0, dst);
+  srl(dst->successor(), dst->successor(), src2);
+
+  bind(done);
 }
 
 void MacroAssembler::rShiftL_reg_reg(Register dst, Register src1, Register src2)
 {
-    andi(src2, src2, 0x3f);
+  mv(t0, src1);
+  mv(dst->successor(), src1->successor());
+  mv(dst, t0);
+  // only the low 6 bits of rs2 are considered for the shift amount
+  andi(src2, src2, 0x3f);
 
-    Label blt_branch,done;
-    addi(t0, src2, -32);
-    bltz(t0, blt_branch);
-    sra(dst, src1->successor(), t0);
-    srai(dst->successor(), src1->successor(), 0x1f);
-    beqz(zr, done);
-    bind(blt_branch);
-    mv(t0, 31);
-    slli(t1, src1->successor(), 0x1);
-    sub(t0, t0, src2);
-    sll(t1, t1, t0);
-    srl(dst, src1, src2);
-    orr(dst, t1, dst);
-    sra(dst->successor(), src1->successor(), src2);
+  Label blt_branch,done;
+  addi(t0, src2, -32);
+  bltz(t0, blt_branch);
+  sra(dst, dst->successor(), t0);
+  srai(dst->successor(), dst->successor(), 0x1f);
+  beqz(zr, done);
+  bind(blt_branch);
+  mv(t1, 31);
+  slli(t0, dst->successor(), 0x1);
+  sub(t1, t1, src2);
+  sll(t0, t0, t1);
+  srl(dst, dst, src2);
+  orr(dst, t0, dst);
+  sra(dst->successor(), dst->successor(), src2);
 
-    bind(done);
-    return;
+  bind(done);
 }
 
 // Look up the method for a megamorpic invkkeinterface call.
@@ -2293,126 +2232,6 @@ void MacroAssembler::store_conditional(Register addr,
   }
 }
 
-// cmpxchg narrow value will kill t0, t1, expected, new_val and tmps.
-// It's designed to implement compare and swap byte/boolean/char/short by lr.w/sc.w,
-// which are forced to work with 4-byte aligned address.
-void MacroAssembler::cmpxchg_narrow_value(Register addr, Register expected,
-                                          Register new_val,
-                                          enum operand_size size,
-                                          Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                          Register result, bool result_as_bool,
-                                          Register tmp1, Register tmp2, Register tmp3) {
-  assert(size == int8 || size == int16, "unsupported operand size");
-
-  Register aligned_addr = t1, shift = tmp1, mask = tmp2, not_mask = tmp3, old = result, tmp = t0;
-  assert_different_registers(addr, old, mask, not_mask, new_val, expected, shift, tmp);
-
-  andi(shift, addr, 3);
-  slli(shift, shift, 3);
-
-  andi(aligned_addr, addr, ~3);
-
-  if (size == int8) {
-    addi(mask, zr, 0xff);
-  } else {
-    addi(mask, zr, -1);
-    zero_ext(mask, mask, registerSize - 16);
-  }
-  sll(mask, mask, shift);
-
-  xori(not_mask, mask, -1);
-
-  sll(expected, expected, shift);
-  andr(expected, expected, mask);
-
-  sll(new_val, new_val, shift);
-  andr(new_val, new_val, mask);
-
-  Label retry, fail, done;
-
-  bind(retry);
-  lr_w(old, aligned_addr, acquire);
-  andr(tmp, old, mask);
-  bne(tmp, expected, fail);
-
-  andr(tmp, old, not_mask);
-  orr(tmp, tmp, new_val);
-  sc_w(tmp, tmp, aligned_addr, release);
-  bnez(tmp, retry);
-
-  if (result_as_bool) {
-    addi(result, zr, 1);
-    j(done);
-
-    bind(fail);
-    mv(result, zr);
-
-    bind(done);
-  } else {
-    andr(tmp, old, mask);
-
-    bind(fail);
-    srl(result, tmp, shift);
-  }
-}
-
-// weak cmpxchg narrow value will kill t0, t1, expected, new_val and tmps.
-// weak_cmpxchg_narrow_value is a weak version of cmpxchg_narrow_value, to implement
-// the weak CAS stuff. The major difference is that it just failed when store conditional
-// failed.
-void MacroAssembler::weak_cmpxchg_narrow_value(Register addr, Register expected,
-                                               Register new_val,
-                                               enum operand_size size,
-                                               Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                               Register result,
-                                               Register tmp1, Register tmp2, Register tmp3) {
-  assert(size == int8 || size == int16, "unsupported operand size");
-
-  Register aligned_addr = t1, shift = tmp1, mask = tmp2, not_mask = tmp3, old = result, tmp = t0;
-  assert_different_registers(addr, old, mask, not_mask, new_val, expected, shift, tmp);
-
-  andi(shift, addr, 3);
-  slli(shift, shift, 3);
-
-  andi(aligned_addr, addr, ~3);
-
-  if (size == int8) {
-    addi(mask, zr, 0xff);
-  } else {
-    addi(mask, zr, -1);
-    zero_ext(mask, mask, registerSize - 16);
-  }
-  sll(mask, mask, shift);
-
-  xori(not_mask, mask, -1);
-
-  sll(expected, expected, shift);
-  andr(expected, expected, mask);
-
-  sll(new_val, new_val, shift);
-  andr(new_val, new_val, mask);
-
-  Label succ, fail, done;
-
-  lr_w(old, aligned_addr, acquire);
-  andr(tmp, old, mask);
-  bne(tmp, expected, fail);
-
-  andr(tmp, old, not_mask);
-  orr(tmp, tmp, new_val);
-  sc_w(tmp, tmp, aligned_addr, release);
-  beqz(tmp, succ);
-
-  bind(fail);
-  addi(result, zr, 1);
-  j(done);
-
-  bind(succ);
-  mv(result, zr);
-
-  bind(done);
-}
-
 void MacroAssembler::cmpxchg(Register addr, Register expected,
                              Register new_val,
                              enum operand_size size,
@@ -2443,99 +2262,6 @@ void MacroAssembler::cmpxchg(Register addr, Register expected,
     mv(result, t0);
   }
 
-  bind(done);
-}
-
-void MacroAssembler::cmpxchg_long(Register addr, Register expected,
-                                  Register new_val,
-                                  enum operand_size size,
-                                  Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                  Register result, bool result_as_bool) {
-  assert(size != int8 && size != int16, "unsupported operand size");
-
-  Label retry_load, done, ne_done;
-  bind(retry_load);
-  load_reserved(addr, size, acquire);
-  bne(t0, expected, ne_done);
-  load_reserved(addr->successor(), size, acquire);
-  bne(t0, expected->successor(), ne_done);
-  store_conditional(addr, new_val, size, release);
-  bnez(t0, retry_load);
-  store_conditional(addr->successor(), new_val->successor(), size, release);
-  bnez(t0, retry_load);
-
-  // equal, succeed
-  if (result_as_bool) {
-    li(result, 1);
-    mv(result->successor(), zr);
-  } else {
-    mv(result, expected);
-    mv(result->successor(), expected->successor());
-  }
-  j(done);
-
-  // not equal, failed
-  bind(ne_done);
-  if (result_as_bool) {
-    mv(result, zr);
-    mv(result->successor(), zr);
-  } else {
-    mv(result, addr);
-    mv(result->successor(), addr->successor());
-  }
-
-  bind(done);
-}
-
-void MacroAssembler::cmpxchg_weak(Register addr, Register expected,
-                                  Register new_val,
-                                  enum operand_size size,
-                                  Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                  Register result) {
-  assert(size != int8 && size != int16, "unsupported operand size");
-
-  Label fail, done, sc_done;
-  load_reserved(addr, size, acquire);
-  bne(t0, expected, fail);
-  store_conditional(addr, new_val, size, release);
-  beqz(t0, sc_done);
-
-  // fail
-  bind(fail);
-  li(result, 1);
-  j(done);
-
-  // sc_done
-  bind(sc_done);
-  mv(result, 0);
-  bind(done);
-}
-
-void MacroAssembler::cmpxchg_long_weak(Register addr, Register expected,
-                                       Register new_val,
-                                       enum operand_size size,
-                                       Assembler::Aqrl acquire, Assembler::Aqrl release,
-                                       Register result) {
-  assert(size != int8 && size != int16, "unsupported operand size");
-
-  Label fail, done, sc_done;
-  load_reserved(addr, size, acquire);
-  bne(t0, expected, fail);
-  load_reserved(addr->successor(), size, acquire);
-  bne(t0, expected->successor(), fail);
-  store_conditional(addr, new_val, size, release);
-  bnez(t0, fail);
-  store_conditional(addr->successor(), new_val->successor(), size, release);
-  beqz(t0, sc_done);
-
-  // fail
-  bind(fail);
-  li(result, 1);
-  j(done);
-
-  // sc_done
-  bind(sc_done);
-  mv(result, 0);
   bind(done);
 }
 
@@ -3406,7 +3132,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
   Register tmp2 = t1;
 
   assert(elem_size == 1 || elem_size == 2, "must be 2 or 1 byte");
-  assert_different_registers(a1, a2, result, cnt1, t0, t1);
+  assert_different_registers(a1, a2, result, cnt1, tmp1, tmp2);
 
   BLOCK_COMMENT("string_equals {");
 
@@ -3417,7 +3143,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
   sub(cnt1, cnt1, wordSize);
   bltz(cnt1, SHORT);
 
-  // Main 4 byte comparison loop.
+  // Main 8 byte comparison loop.
   bind(NEXT_WORD); {
     lw(tmp1, Address(a1, 0));
     add(a1, a1, wordSize);
@@ -3425,7 +3151,7 @@ void MacroAssembler::string_equals(Register a1, Register a2,
     add(a2, a2, wordSize);
     sub(cnt1, cnt1, wordSize);
     bne(tmp1, tmp2, DONE);
-  } bgtz(cnt1, NEXT_WORD);
+  } bgez(cnt1, NEXT_WORD);
 
   if (!AvoidUnalignedAccesses) {
     // Last longword.  In the case where length == 4 we compare the
@@ -3439,16 +3165,37 @@ void MacroAssembler::string_equals(Register a1, Register a2,
     lw(tmp2, Address(tmp2, 0));
     bne(tmp1, tmp2, DONE);
     j(SAME);
+  } else {
+    add(tmp1, cnt1, wordSize);
+    beqz(tmp1, SAME);
   }
 
   bind(SHORT);
-  lw(tmp1, Address(a1));
-  lw(tmp2, Address(a2));
-  xorr(tmp1, tmp1, tmp2);
-  neg(cnt1, cnt1);
-  slli(cnt1, cnt1, LogBitsPerByte);
-  sll(tmp1, tmp1, cnt1);
-  bnez(tmp1, DONE);
+  Label TAIL03, TAIL01;
+
+  bind(TAIL03);
+  // 0-3 bytes left.
+  andi(tmp1, cnt1, 2);
+  beqz(tmp1, TAIL01);
+  {
+    lhu(tmp1, Address(a1, 0));
+    add(a1, a1, 2);
+    lhu(tmp2, Address(a2, 0));
+    add(a2, a2, 2);
+    bne(tmp1, tmp2, DONE);
+  }
+
+  bind(TAIL01);
+  if (elem_size == 1) { // Only needed when comparing 1-byte elements
+    // 0-1 bytes left.
+    andi(tmp1, cnt1, 1);
+    beqz(tmp1, SAME);
+    {
+      lbu(tmp1, Address(a1, 0));
+      lbu(tmp2, Address(a2, 0));
+      bne(tmp1, tmp2, DONE);
+    }
+  }
 
   // Arrays are equal.
   bind(SAME);
@@ -4362,153 +4109,6 @@ void MacroAssembler::inflate_hi16(Register Rd, Register Rs, Register Rtmp1, Regi
   inflate_lo16(Rd, Rs, Rtmp1, Rtmp2);
 }
 
-// The size of the blocks erased by the zero_blocks stub.  We must
-// handle anything smaller than this ourselves in zero_words().
-const int MacroAssembler::zero_words_block_size = 8;
-
-// zero_words() is used by C2 ClearArray patterns.  It is as small as
-// possible, handling small word counts locally and delegating
-// anything larger to the zero_blocks stub.  It is expanded many times
-// in compiled code, so it is important to keep it short.
-
-// ptr:   Address of a buffer to be zeroed.
-// cnt:   Count in HeapWords.
-//
-// ptr, cnt, t0, and t1 are clobbered.
-void MacroAssembler::zero_words(Register ptr, Register cnt)
-{
-  assert(is_power_of_2(zero_words_block_size), "adjust this");
-  assert(ptr == x28 && cnt == x29, "mismatch in register usage");
-  assert_different_registers(cnt, t0);
-
-  BLOCK_COMMENT("zero_words {");
-  mv(t0, zero_words_block_size);
-  Label around, done, done16;
-  bltu(cnt, t0, around);
-  {
-    RuntimeAddress zero_blocks =  RuntimeAddress(StubRoutines::riscv32::zero_blocks());
-    assert(zero_blocks.target() != NULL, "zero_blocks stub has not been generated");
-    if (StubRoutines::riscv32::complete()) {
-      trampoline_call(zero_blocks);
-    } else {
-      jal(zero_blocks);
-    }
-  }
-  bind(around);
-  for (int i = zero_words_block_size >> 1; i > 1; i >>= 1) {
-    Label l;
-    andi(t0, cnt, i);
-    beqz(t0, l);
-    for (int j = 0; j < 2 * i; j++) {
-      sw(zr, Address(ptr, 0));
-      addi(ptr, ptr, wordSize);
-    }
-    bind(l);
-  }
-  {
-    Label label;
-    andi(t0, cnt, 1);
-    beqz(t0, label);
-    sw(zr, Address(ptr, 0));
-    sw(zr, Address(ptr, wordSize));
-    bind(label);
-  }
-  BLOCK_COMMENT("} zero_words");
-}
-
-// base:         Address of a buffer to be zeroed, 8 bytes aligned.
-// cnt:          Immediate count in HeapWords.
-#define SmallArraySize (18 * BytesPerLong)
-void MacroAssembler::zero_words(Register base, u_int64_t cnt)
-{
-  assert_different_registers(base, t0, t1);
-
-  BLOCK_COMMENT("zero_words {");
-
-  if (cnt <= SmallArraySize / BytesPerLong) {
-    for (int i = 0; i < 2 * (int)cnt; i++) {
-      sw(zr, Address(base, i * wordSize));
-    }
-  } else {
-    const int unroll = 8; // Number of sw(zr, adr), instructions we'll unroll
-    int remainder = cnt %  unroll;
-    for (int i = 0; i < 2 * remainder; i++) {
-      sw(zr, Address(base, i * wordSize));
-    }
-
-    Label loop;
-    Register cnt_reg = t0;
-    Register loop_base = t1;
-    cnt = cnt - remainder;
-    li(cnt_reg, cnt);
-    add(loop_base, base, remainder * 2 * wordSize);
-    bind(loop);
-    sub(cnt_reg, cnt_reg, unroll);
-    for (int i = 0; i < 2 * unroll; i++) {
-      sw(zr, Address(loop_base, i * wordSize));
-    }
-    add(loop_base, loop_base, unroll * 2 * wordSize);
-    bnez(cnt_reg, loop);
-  }
-  BLOCK_COMMENT("} zero_words");
-}
-
-// base:   Address of a buffer to be filled, 4 bytes aligned.
-// cnt:    Count in 4-byte unit.
-// value:  Value to be filled with.
-// base will point to the end of the buffer after filling.
-void MacroAssembler::fill_words(Register base, Register cnt, Register value)
-{
-//  Algorithm:
-//
-//    t0 = cnt & 7
-//    cnt -= t0
-//    p += t0
-//    switch (t0):
-//      switch start:
-//      do while cnt
-//        cnt -= 8
-//          p[-8] = value
-//        case 7:
-//          p[-7] = value
-//        case 6:
-//          p[-6] = value
-//          // ...
-//        case 1:
-//          p[-1] = value
-//        case 0:
-//          p += 8
-//      do-while end
-//    switch end
-
-  assert_different_registers(base, cnt, value, t0, t1);
-
-  Label fini, skip, entry, loop;
-  const int unroll = 8; // Number of sw instructions we'll unroll
-
-  beqz(cnt, fini);
-
-  andi(t0, cnt, unroll - 1);
-  sub(cnt, cnt, t0);
-  slli(t1, t0, 2);
-  add(base, base, t1); // align 4, so first sw n % 8 = mod, next loop sw 8 * n.
-  la(t1, entry);
-  slli(t0, t0, 2); // sw_inst_nums * 4; t0 is cnt % 8, so t1 = t1 - sw_inst_nums * 4, 4 is sizeof(inst)
-  sub(t1, t1, t0);
-  jr(t1);
-
-  bind(loop);
-  add(base, base, unroll * 4);
-  for (int i = -unroll; i < 0; i++) {
-    sw(value, Address(base, i * 4));
-  }
-  bind(entry);
-  sub(cnt, cnt, unroll);
-  bgez(cnt, loop);
-
-  bind(fini);
-}
-
 #define FCVT_SAFE(FLOATCVT, FLOATEQ)                                                             \
 void MacroAssembler:: FLOATCVT##_safe(Register dst, FloatRegister src, Register temp) {          \
   Label L_Okay;                                                                                  \
@@ -4583,72 +4183,6 @@ FCMP(double, flt_d);
 
 #undef FCMP
 
-// Zero words; len is in bytes
-// Destroys all registers except addr
-// len must be a nonzero multiple of wordSize
-void MacroAssembler::zero_memory(Register addr, Register len, Register tmp1) {
-  assert_different_registers(addr, len, tmp1, t0, t1);
-
-#ifdef ASSERT
-  {
-    Label L;
-    andi(t0, len, BytesPerWord - 1);
-    beqz(t0, L);
-    stop("len is not a multiple of BytesPerWord");
-    bind(L);
-  }
-#endif // ASSERT
-
-#ifndef PRODUCT
-  block_comment("zero memory");
-#endif // PRODUCT
-
-  Label loop;
-  Label entry;
-
-  // Algorithm:
-  //
-  //  t0 = cnt & 7
-  //  cnt -= t0
-  //  p += t0
-  //  switch (t0) {
-  //    do {
-  //      cnt -= 8
-  //        p[-8] = 0
-  //      case 7:
-  //        p[-7] = 0
-  //      case 6:
-  //        p[-6] = 0
-  //        ...
-  //      case 1:
-  //        p[-1] = 0
-  //      case 0:
-  //        p += 8
-  //     } while (cnt)
-  //  }
-
-  const int unroll = 8;   // Number of sw(zr) instructions we'll unroll
-
-  srli(len, len, LogBytesPerWord);
-  andi(t0, len, unroll - 1);  // t0 = cnt % unroll
-  sub(len, len, t0);          // cnt -= unroll
-  // tmp1 always points to the end of the region we're about to zero
-  slli(t1, t0, LogBytesPerWord);
-  add(tmp1, addr, t1);
-  la(t1, entry);
-  slli(t0, t0, 2);
-  sub(t1, t1, t0);
-  jr(t1);
-  bind(loop);
-  sub(len, len, unroll);
-  for (int i = -unroll; i < 0; i++) {
-    Assembler::sw(zr, Address(tmp1, i * wordSize));
-  }
-  bind(entry);
-  add(tmp1, tmp1, unroll * wordSize);
-  bnez(len, loop);
-}
-
 void MacroAssembler::zero_ext(Register dst, Register src, int clear_bits) {
   slli(dst, src, clear_bits);
   srli(dst, dst, clear_bits);
@@ -4670,6 +4204,10 @@ void MacroAssembler::cmp_l2i(Register dst, Register src1, Register src2, Registe
   Register left_hi  = src1->successor();
   Register right_lo = src2;
   Register right_hi = src2->successor();
+  if (src2 == zr) {
+     right_lo = src2;
+     right_hi = src2;
+  }
 
   if (dst == src1->successor()) {
     assert_different_registers(dst, src2->successor(), tmp);

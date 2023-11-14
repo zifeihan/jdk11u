@@ -57,8 +57,6 @@ class riscv32 {
   static address _double_sign_mask;
   static address _double_sign_flip;
 
-  static address _zero_blocks;
-
   static address _has_negatives;
   static address _has_negatives_long;
   static address _compare_long_string_LL;
@@ -121,10 +119,6 @@ class riscv32 {
   static address double_sign_flip()
   {
     return _double_sign_flip;
-  }
-
-  static address zero_blocks() {
-    return _zero_blocks;
   }
 
   static address has_negatives() {

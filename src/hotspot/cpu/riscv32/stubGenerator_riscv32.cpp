@@ -585,50 +585,6 @@ class StubGenerator: public StubCodeGenerator {
     return start;
   }
 
-  // The inner part of zero_words().  This is the bulk operation,
-  // zeroing words in blocks, possibly using DC ZVA to do it.  The
-  // caller is responsible for zeroing the last few words.
-  //
-  // Inputs:
-  // x28: the HeapWord-aligned base address of an array to zero.
-  // x29: the count in HeapWords, x29 > 0.
-  //
-  // Returns x28 and x29, adjusted for the caller to clear.
-  // x28: the base address of the tail of words left to clear.
-  // x29: the number of words in the tail.
-  //      x29 < MacroAssembler::zero_words_block_size.
-
-  address generate_zero_blocks() {
-    Label store_pair, loop_store_pair, done;
-    Label base_aligned;
-
-    const Register base = x28, cnt = x29;
-
-    __ align(CodeEntryAlignment);
-    StubCodeMark mark(this, "StubRoutines", "zero_blocks");
-    address start = __ pc();
-
-    {
-      // Clear the remaining blocks.
-      Label loop;
-      __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
-      __ bltz(cnt, done);
-      __ bind(loop);
-      for (int i = 0; i < 2 * MacroAssembler::zero_words_block_size; i++) {
-        __ sw(zr, Address(base, 0));
-        __ add(base, base, wordSize);
-      }
-      __ sub(cnt, cnt, MacroAssembler::zero_words_block_size);
-      __ bgez(cnt, loop);
-      __ bind(done);
-      __ add(cnt, cnt, MacroAssembler::zero_words_block_size);
-    }
-
-    __ ret();
-
-    return start;
-  }
-
   typedef enum {
     copy_forwards = 1,
     copy_backwards = -1
@@ -1424,14 +1380,14 @@ class StubGenerator: public StubCodeGenerator {
 
     __ BIND(L_store_element);
     __ store_heap_oop(Address(to, 0), copied_oop, noreg, noreg, AS_RAW);  // store the oop
-    __ add(to, to, UseCompressedOops ? 4 : 8);
+    __ add(to, to, 4);
     __ sub(count, count, 1);
     __ beqz(count, L_do_card_marks);
 
     // ======== loop entry is here ========
     __ BIND(L_load_element);
     __ load_heap_oop(copied_oop, Address(from, 0), noreg, noreg, AS_RAW); // load the oop
-    __ add(from, from, UseCompressedOops ? 4 : 8);
+    __ add(from, from, 4);
     __ beqz(copied_oop, L_store_element);
 
     __ load_klass(r9_klass, copied_oop);// query the object klass
@@ -1842,179 +1798,6 @@ class StubGenerator: public StubCodeGenerator {
     return start;
   }
 
-  //
-  // Generate stub for array fill. If "aligned" is true, the
-  // "to" address is assumed to be heapword aligned.
-  //
-  // Arguments for generated stub:
-  //   to:    c_rarg0
-  //   value: c_rarg1
-  //   count: c_rarg2 treated as signed
-  //
-  address generate_fill(BasicType t, bool aligned, const char *name) {
-    __ align(CodeEntryAlignment);
-    StubCodeMark mark(this, "StubRoutines", name);
-    address start = __ pc();
-
-    BLOCK_COMMENT("Entry:");
-
-    const Register to        = c_rarg0;  // source array address
-    const Register value     = c_rarg1;  // value
-    const Register count     = c_rarg2;  // elements count
-
-    const Register bz_base   = x28;      // base for block_zero routine
-    const Register cnt_words = x29;      // temp register
-    const Register tmp_reg   = t1;
-
-    __ enter();
-
-    Label L_fill_elements, L_exit1;
-
-    int shift = -1;
-    switch (t) {
-      case T_BYTE:
-        shift = 0;
-
-        // Zero extend value
-        // 8 bit -> 16 bit
-        __ andi(value, value, 0xff);
-        __ mv(tmp_reg, value);
-        __ slli(tmp_reg, tmp_reg, 8);
-        __ orr(value, value, tmp_reg);
-
-        // 16 bit -> 32 bit
-        __ mv(tmp_reg, value);
-        __ slli(tmp_reg, tmp_reg, 16);
-        __ orr(value, value, tmp_reg);
-
-        __ mv(tmp_reg, 4 >> shift); // Short arrays (< 4 bytes) fill by element
-        __ bltu(count, tmp_reg, L_fill_elements);
-        break;
-      case T_SHORT:
-        shift = 1;
-        // Zero extend value
-        // 16 bit -> 32 bit
-        __ andi(value, value, 0xffff);
-        __ mv(tmp_reg, value);
-        __ slli(tmp_reg, tmp_reg, 16);
-        __ orr(value, value, tmp_reg);
-
-        // Short arrays (< 4 bytes) fill by element
-        __ mv(tmp_reg, 4 >> shift);
-        __ bltu(count, tmp_reg, L_fill_elements);
-        break;
-      case T_INT:
-        shift = 2;
-
-        // Short arrays (< 4 bytes) fill by element
-        __ mv(tmp_reg, 4 >> shift);
-        __ bltu(count, tmp_reg, L_fill_elements);
-        break;
-      default: ShouldNotReachHere();
-    }
-
-    // Align source address at 4 bytes address boundary.
-    Label L_skip_align1, L_skip_align2, L_skip_align4;
-    if (!aligned) {
-      switch (t) {
-        case T_BYTE:
-          // One byte misalignment happens only for byte arrays.
-          __ andi(t0, to, 1);
-          __ beqz(t0, L_skip_align1);
-          __ sb(value, Address(to, 0));
-          __ addi(to, to, 1);
-          __ addi(count, count, -1);
-          __ bind(L_skip_align1);
-          // Fallthrough
-        case T_SHORT:
-          // Two bytes misalignment happens only for byte and short (char) arrays.
-          __ andi(t0, to, 2);
-          __ beqz(t0, L_skip_align2);
-          __ sh(value, Address(to, 0));
-          __ addi(to, to, 2);
-          __ addi(count, count, -(2 >> shift));
-          __ bind(L_skip_align2);
-          // Fallthrough
-        case T_INT:
-          // Align to 4 bytes, we know we are 4 byte aligned to start.
-          __ andi(t0, to, 4);
-          __ beqz(t0, L_skip_align4);
-          __ sw(value, Address(to, 0));
-          __ addi(to, to, 4);
-          __ addi(count, count, -(4 >> shift));
-          __ bind(L_skip_align4);
-          break;
-        default: ShouldNotReachHere();
-      }
-    }
-
-    //
-    //  Fill large chunks
-    //
-    __ srli(cnt_words, count, 2 - shift); // number of words
-    __ andi(value, value, 0xffffffff);
-    __ slli(tmp_reg, cnt_words, 2 - shift);
-    __ sub(count, count, tmp_reg);
-
-
-    {
-      __ fill_words(to, cnt_words, value);
-    }
-
-    // Remaining count is less than 4 bytes. Fill it by a single store.
-    // Note that the total length is no less than 8 bytes.
-    if (t == T_BYTE || t == T_SHORT) {
-      Label L_exit1;
-      __ beqz(count, L_exit1);
-      __ slli(tmp_reg, count, shift);
-      __ add(to, to, tmp_reg); // points to the end
-      __ sw(value, Address(to, -4)); // overwrite some elements
-      __ bind(L_exit1);
-      __ leave();
-      __ ret();
-    }
-
-    // Handle copies less than 4 bytes.
-    Label L_fill_2, L_fill_4, L_exit2;
-    __ bind(L_fill_elements);
-    switch (t) {
-      case T_BYTE:
-        __ andi(t0, count, 1);
-        __ beqz(t0, L_fill_2);
-        __ sb(value, Address(to, 0));
-        __ addi(to, to, 1);
-        __ bind(L_fill_2);
-        __ andi(t0, count, 2);
-        __ beqz(t0, L_fill_4);
-        __ sh(value, Address(to, 0));
-        __ addi(to, to, 2);
-        __ bind(L_fill_4);
-        __ andi(t0, count, 4);
-        __ beqz(t0, L_exit2);
-        __ sw(value, Address(to, 0));
-        break;
-      case T_SHORT:
-        __ andi(t0, count, 1);
-        __ beqz(t0, L_fill_4);
-        __ sh(value, Address(to, 0));
-        __ addi(to, to, 2);
-        __ bind(L_fill_4);
-        __ andi(t0, count, 2);
-        __ beqz(t0, L_exit2);
-        __ sw(value, Address(to, 0));
-        break;
-      case T_INT:
-        __ beqz(count, L_exit2);
-        __ sw(value, Address(to, 0));
-        break;
-      default: ShouldNotReachHere();
-    }
-    __ bind(L_exit2);
-    __ leave();
-    __ ret();
-    return start;
-  }
-
   void generate_arraycopy_stubs() {
     address entry                     = NULL;
     address entry_jbyte_arraycopy     = NULL;
@@ -2026,8 +1809,6 @@ class StubGenerator: public StubCodeGenerator {
 
     generate_copy_longs(copy_f, c_rarg0, c_rarg1, t1, copy_forwards);
     generate_copy_longs(copy_b, c_rarg0, c_rarg1, t1, copy_backwards);
-
-    StubRoutines::riscv32::_zero_blocks = generate_zero_blocks();
 
     //*** jbyte
     // Always need aligned and unaligned versions
@@ -2120,13 +1901,6 @@ class StubGenerator: public StubCodeGenerator {
                                                                entry_oop_arraycopy,
                                                                entry_jlong_arraycopy,
                                                                entry_checkcast_arraycopy);
-
-    StubRoutines::_jbyte_fill = generate_fill(T_BYTE, false, "jbyte_fill");
-    StubRoutines::_jshort_fill = generate_fill(T_SHORT, false, "jshort_fill");
-    StubRoutines::_jint_fill = generate_fill(T_INT, false, "jint_fill");
-    StubRoutines::_arrayof_jbyte_fill = generate_fill(T_BYTE, true, "arrayof_jbyte_fill");
-    StubRoutines::_arrayof_jshort_fill = generate_fill(T_SHORT, true, "arrayof_jshort_fill");
-    StubRoutines::_arrayof_jint_fill = generate_fill(T_INT, true, "arrayof_jint_fill");
   }
 
   // Safefetch stubs.
