@@ -367,7 +367,7 @@ reg_class int_r29_reg(R29);
 // Singleton class for R30 int register
 reg_class int_r30_reg(R30);
 
-reg_class long_reg (R12,R13, R14,R15, R16,R17, R18,R19, R20,R21);
+reg_class long_reg(R12,R13, R14,R15, R16,R17, R18,R19, R20,R21, R24,R25, R26,R27);
 reg_class long_r10r11_reg(R10, R11);
 reg_class long_r12r13_reg(R12, R13);
 
