@@ -2190,7 +2190,7 @@ frame %{
   interpreter_frame_pointer(R8);
 
   // Stack alignment requirement
-  stack_alignment(StackAlignmentInBytes); // Alignment size in bytes (128-bit -> 16 bytes)
+  stack_alignment(8); // Alignment size in bytes (128-bit -> 16 bytes)
 
   // Number of stack slots between incoming argument block and the start of
   // a new frame.  The PROLOG must add this many slots to the stack.  The

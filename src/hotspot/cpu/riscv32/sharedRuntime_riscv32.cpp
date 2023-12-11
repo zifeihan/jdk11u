@@ -459,7 +459,7 @@ void SharedRuntime::gen_i2c_adapter(MacroAssembler *masm,
   int comp_words_on_stack = align_up(comp_args_on_stack * VMRegImpl::stack_slot_size, wordSize) >> LogBytesPerWord;
   if (comp_args_on_stack != 0) {
     __ sub(t0, sp, comp_words_on_stack * wordSize);
-    __ andi(sp, t0, -16);
+    __ andi(sp, t0, -8);
   }
 
   // Will jump to the compiled code just as if compiled code was doing it.
